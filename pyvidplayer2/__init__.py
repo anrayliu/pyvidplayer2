@@ -14,13 +14,7 @@ from .post_processing import PostProcessing
 from .parallel_video import ParallelVideo 
 from .video_player import VideoPlayer 
 from .video_collection import VideoCollection
-
-try:
-    import PIL
-except ImportError:
-    pass 
-else:
-    from .video_tkinter import VideoTkinter
+from .video_tkinter import VideoTkinter
 
 try:
     import srt 

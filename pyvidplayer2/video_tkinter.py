@@ -14,8 +14,11 @@ class VideoTkinter(Video):
     def __str__(self) -> str:
         return f"<VideoTkinter(path={self.path})>"
 
-    def _create_frame(self, data: numpy.ndarray) -> ImageTk.PhotoImage:
+    def _create_frame(self, data: numpy.ndarray):
         return ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(data, cv2.COLOR_BGR2RGB)))
+
+        #h, w = data.shape[:2]
+        #return tkinter.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + cv2.cvtColor(data, cv2.COLOR_BGR2RGB).tobytes(), format='PPM')
 
     def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]) -> None:
         surf.create_image(*pos, image=self.frame_surf)

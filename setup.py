@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pyvidplayer2",
-    version="1.0",
+    version="0.9.0",
     description="Video playback in Python",
     author="Anray Liu",
     author_email="anrayliu@gmail.com",

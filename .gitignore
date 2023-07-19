@@ -1,1 +1,4 @@
-__pychache__\
+__pychache__/
+build/
+dist/
+*.egg-info/

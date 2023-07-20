@@ -5,7 +5,7 @@ win = pygame.display.set_mode((1124, 868))
 pygame.display.set_caption("video player demo")
 clock = pygame.time.Clock()
 
-vid = VideoPlayer("demos\\vids\\ep2.mp4", (50, 50, 1024, 768))
+vid = VideoPlayer(r"resources\trailer.mp4", (50, 50, 1024, 768))
 
 while True:
     events = pygame.event.get()

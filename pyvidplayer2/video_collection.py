@@ -43,6 +43,6 @@ class VideoCollection:
         for v in self.videos:
             v.close()
 
-    def draw(self, surf: pygame.Surface) -> None:
+    def draw(self, surf: pygame.Surface, force_draw=True) -> None:
         for video, pos in zip(self.videos, self.positions):
-            video.draw(surf, pos)
+            video.draw(surf, pos, force_draw)

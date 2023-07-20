@@ -9,13 +9,13 @@ from pyvidplayer2 import VideoPlayer, PostProcessing
 # try playing with these values
 
 SIZE = (426, 240)
-FILE = "demos\\vids\\sh.mp4"
+FILE = r"resources\trailer.mp4"
 
 win = pygame.display.set_mode(SIZE, pygame.NOFRAME)
 
 # creates the video player
 
-vid = VideoPlayer(FILE, (0, 0, *SIZE), interp=PostProcessing.INTER_AREA, post_process=PostProcessing.cel_shading)
+vid = VideoPlayer(FILE, (0, 0, *SIZE), interp=PostProcessing.INTER_AREA)
 
 # moves the window to the bottom right corner and pins it above other windows
 
@@ -43,9 +43,8 @@ while True:
     if touching and GetForegroundWindow() != hwnd:
 
         # weird behaviour with SetForegroundWindow that requires the alt key to be pressed before it
-        
-        shell.SendKeys("%")
 
+        shell.SendKeys("%")
         SetForegroundWindow(hwnd)
 
     # handles video playback

@@ -1,6 +1,8 @@
 from pyvidplayer2 import Video, VideoTkinter, VideoPyglet
 
-PATH = "demos\\vids\\walter.mp4"
+PATH = r"resources\trailer.mp4"
+
+# accepts pygame, pyglet, and tkinter to render graphics
 
 Video(PATH).preview()
 

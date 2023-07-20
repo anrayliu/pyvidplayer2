@@ -1,7 +1,7 @@
 import tkinter
 from pyvidplayer2 import VideoTkinter
 
-video = VideoTkinter("demos\\vids\\ep2.mp4")
+video = VideoTkinter(r"resources\trailer.mp4")
 
 def update():
     video.draw(canvas, (video.current_size[0] / 2, video.current_size[1] / 2), force_draw=False)

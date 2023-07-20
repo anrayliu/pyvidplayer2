@@ -6,7 +6,7 @@ win = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 
 #provide video class with the path to your video
-vid = Video("demos\\vids\\m.mkv")
+vid = Video(r"resources\trailer.mp4")
 
 while True:
     key = None

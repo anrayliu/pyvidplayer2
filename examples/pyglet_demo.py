@@ -1,7 +1,7 @@
 import pyglet 
 from pyvidplayer2 import VideoPyglet
 
-video = VideoPyglet("demos\\vids\\ep2.mp4")
+video = VideoPyglet(r"resources\trailer.mp4")
 
 def update(dt):
     video.draw((0, 0), force_draw=False)

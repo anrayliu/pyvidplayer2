@@ -1,11 +1,13 @@
 import pygame
 from pyvidplayer2 import VideoCollection, PostProcessing
 
-PATH = "demos\\vids\\ep2.mp4"
+PATH = r"resources\trailer.mp4"
 
 win = pygame.display.set_mode((960, 240))
 pygame.display.set_caption("post processing demo")
 clock = pygame.time.Clock()
+
+# using a video collection to play videos in parallel for a side to side comparison
 
 video = VideoCollection()
 

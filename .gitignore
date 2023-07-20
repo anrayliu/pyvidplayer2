@@ -2,3 +2,4 @@ __pychache__/
 build/
 dist/
 *.egg-info/
+build.txt

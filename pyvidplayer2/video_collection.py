@@ -12,7 +12,7 @@ class VideoCollection:
 
     def __str__(self) -> str:
         return f"<VideoCollection(count={len(self.videos)})>"
-
+    
     def add_video(self, path: str, rect: Tuple[int, int, int, int], subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR) -> None:
         pv = None
         for v in self.videos:
@@ -37,7 +37,19 @@ class VideoCollection:
 
     def resize(self, pos: Tuple[int, int]) -> None:
         for v in self.videos:
-            v.resize(pos) 
+            v.resize(pos)
+
+    def change_resolution(self, height: int) -> None:
+        for v in self.videos:
+            v.change_resolution(height)
+
+    def set_volume(self, vol: float) -> None:
+        for v in self.videos:
+            v.set_volume(vol)
+
+    def restart(self) -> None:
+        self.stop() 
+        self.play()
 
     def close(self) -> None:
         for v in self.videos:

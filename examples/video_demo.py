@@ -1,3 +1,9 @@
+'''
+This is the same example from the original pyvidplayer
+The video class still does everything it did, but with many more features
+'''
+
+
 import pygame
 from pyvidplayer2 import Video
 
@@ -6,7 +12,7 @@ win = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 
 #provide video class with the path to your video
-vid = Video(r"resources\trailer.mp4")
+vid = Video(r"resources\trailer1.mp4")
 
 while True:
     key = None

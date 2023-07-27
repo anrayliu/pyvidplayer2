@@ -1,3 +1,9 @@
+'''
+A quick example showing how pyvidplayer2 can be used in more complicated applications
+This is a Picture-in-Picture app
+'''
+
+
 import pygame
 from win32gui import SetWindowPos, GetCursorPos, GetWindowRect, GetForegroundWindow, SetForegroundWindow
 from win32api import GetSystemMetrics
@@ -6,10 +12,8 @@ from win32com.client import Dispatch
 from pyvidplayer2 import VideoPlayer, PostProcessing
 
 
-# try playing with these values
-
 SIZE = (426, 240)
-FILE = r"resources\trailer.mp4"
+FILE = r"resources\trailer1.mp4"
 
 win = pygame.display.set_mode(SIZE, pygame.NOFRAME)
 
@@ -20,7 +24,6 @@ vid = VideoPlayer(FILE, (0, 0, *SIZE), interp=PostProcessing.INTER_AREA)
 # moves the window to the bottom right corner and pins it above other windows
 
 hwnd = pygame.display.get_wm_info()["window"]
-
 SetWindowPos(hwnd, HWND_TOPMOST, GetSystemMetrics(0) - SIZE[0], GetSystemMetrics(1) - SIZE[1] - 48, 0, 0, SWP_NOSIZE)
 
 clock = pygame.time.Clock()
@@ -42,7 +45,7 @@ while True:
     touching = pygame.Rect(GetWindowRect(hwnd)).collidepoint(GetCursorPos())
     if touching and GetForegroundWindow() != hwnd:
 
-        # weird behaviour with SetForegroundWindow that requires the alt key to be pressed before it
+        # weird behaviour with SetForegroundWindow that requires the alt key to be pressed before it's called
 
         shell.SendKeys("%")
         SetForegroundWindow(hwnd)

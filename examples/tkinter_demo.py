@@ -1,7 +1,12 @@
+'''
+This is a quick example of integrating a video into a tkinter project
+'''
+
+
 import tkinter
 from pyvidplayer2 import VideoTkinter
 
-video = VideoTkinter(r"resources\trailer.mp4")
+video = VideoTkinter(r"resources\trailer1.mp4")
 
 def update():
     video.draw(canvas, (video.current_size[0] / 2, video.current_size[1] / 2), force_draw=False)

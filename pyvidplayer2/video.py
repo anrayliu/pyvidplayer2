@@ -83,7 +83,7 @@ class Video:
         self._chunks.append(None)
 
         s = self._convert_seconds(self._starting_time + (self._chunks_claimed - 1) * self.chunk_size)
-        p = subprocess.run(f'{get_ffmpeg_path()} -i "{self.path}" -ss {s} -t {self._convert_seconds(self.chunk_size)} -f wav -loglevel quiet -', capture_output=True)
+        p = subprocess.run(f'"{get_ffmpeg_path()}" -i "{self.path}" -ss {s} -t {self._convert_seconds(self.chunk_size)} -f wav -loglevel quiet -', capture_output=True)
         
         self._chunks[i - self._chunks_played - 1] = p.stdout
 
@@ -102,7 +102,7 @@ class Video:
         
         if p >= self.subs.start:
             if p > self.subs.end:
-                if self.subs.get_next():
+                if self.subs._get_next():
                     self._write_subs()
             else:
                 self.frame_surf.blit(self.subs.surf, (self.current_size[0] / 2 - self.subs.surf.get_width() / 2, self.current_size[1] - self.subs.surf.get_height() - 50))
@@ -184,6 +184,10 @@ class Video:
 
     def get_volume(self) -> float:
         return pygame.mixer.music.get_volume()
+
+    def get_paused(self) -> bool:
+        # here because the original pyvidplayer had get_paused
+        return self.paused
     
     def toggle_pause(self) -> None:
         self.resume() if self.paused else self.pause()
@@ -221,7 +225,7 @@ class Video:
 
         self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)
         if self.subs is not None:
-            self.subs.seek(self._starting_time)
+            self.subs._seek(self._starting_time)
 
     def preview(self) -> None:
         pygame.init()

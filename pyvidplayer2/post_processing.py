@@ -3,10 +3,6 @@ import numpy
 
 
 class PostProcessing:
-    INTER_LINEAR = cv2.INTER_LINEAR     # default interpolation
-    INTER_CUBIC = cv2.INTER_CUBIC       # better but slower 
-    INTER_AREA = cv2.INTER_AREA         # good for downscaling
-
     def none(data: numpy.ndarray) -> numpy.ndarray:
         return data 
     
@@ -29,13 +25,8 @@ class PostProcessing:
 
         x1, y1 = 0, int(data.shape[0] * 0.15) #topleft crop
         x2, y2 = data.shape[1], int(data.shape[0] * 0.85) #bottomright crop
-
         data = data[y1:y2, x1:x2] # crops image
-
-        h, w = data.shape[:2]
-
-        background[y1:y1+h, x1:x1+w] = data # draws image onto background
-
+        background[y1:y1 + data.shape[0], x1:x1 + data.shape[1]] = data # draws image onto background
         return background
     
     def cel_shading(data: numpy.ndarray) -> numpy.ndarray:

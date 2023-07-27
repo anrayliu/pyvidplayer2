@@ -1,7 +1,12 @@
+'''
+This example gives a side by side comparison between a few available post process effects
+'''
+
+
 import pygame
 from pyvidplayer2 import VideoCollection, PostProcessing
 
-PATH = r"resources\trailer.mp4"
+PATH = r"resources\trailer2.mp4"
 
 win = pygame.display.set_mode((960, 240))
 pygame.display.set_caption("post processing demo")
@@ -17,6 +22,10 @@ video.add_video(PATH, (640, 0, 320, 240), post_process=PostProcessing.blur)
 
 video.play()
 
+font = pygame.font.SysFont("arial", 30)
+surfs = [font.render("Sharpen", True, "white"), font.render("Normal", True, "white"), font.render("Blur", True, "white")]
+
+
 while True:
     key = None
     for event in pygame.event.get():
@@ -30,5 +39,9 @@ while True:
     clock.tick(60)
         
     video.draw(win)
+    
+    for i, surf in enumerate(surfs):
+        pygame.draw.rect(win, "black", (320 * i, 0, *surf.get_size()))
+        win.blit(surf, (320 * i, 0))
 
     pygame.display.update()

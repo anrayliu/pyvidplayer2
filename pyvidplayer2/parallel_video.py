@@ -33,7 +33,7 @@ class ParallelVideo:
         self.interp = interp
 
         if sound is None:
-            self._sound = pygame.mixer.Sound(subprocess.run(f'{get_ffmpeg_path()} -i {self.path} -ar 44100 -f wav -loglevel quiet -', capture_output=True).stdout)
+            self._sound = pygame.mixer.Sound(subprocess.run(f'"{get_ffmpeg_path()}" -i "{self.path}" -ar 44100 -f wav -loglevel quiet -', capture_output=True).stdout)
         else:
             self._sound = sound
         self._channel = None
@@ -81,7 +81,7 @@ class ParallelVideo:
         
         if p >= self.subs.start:
             if p > self.subs.end:
-                self.subs.get_next()
+                self.subs._get_next()
                 self._write_subs()
             else:
                 self.frame_surf.blit(self.subs.surf, (self.current_size[0] / 2 - self.subs.surf.get_width() / 2, self.current_size[1] - self.subs.surf.get_height() - 50))
@@ -131,5 +131,7 @@ class ParallelVideo:
         self.active = False
         self.frame_data = None
         self.frame_surf = None
-        self._channel.stop()
-        self._channel = None
+
+        if self._channel is not None:
+            self._channel.stop()
+            self._channel = None

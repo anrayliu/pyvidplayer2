@@ -10,7 +10,7 @@ from . import get_ffmpeg_path
 
 
 class ParallelVideo:
-    def __init__(self, path: str, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, sound=None) -> None:
+    def __init__(self, path: str, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, _sound=None) -> None:
         
         self.path = path
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
@@ -32,10 +32,10 @@ class ParallelVideo:
         self.post_func = post_process
         self.interp = interp
 
-        if sound is None:
+        if _sound is None:
             self._sound = pygame.mixer.Sound(subprocess.run(f'"{get_ffmpeg_path()}" -i "{self.path}" -ar 44100 -f wav -loglevel quiet -', capture_output=True).stdout)
         else:
-            self._sound = sound
+            self._sound = _sound
         self._channel = None
 
         self.active = False 

@@ -12,7 +12,6 @@ PATH2 = r"resources\trailer2.mp4"
 
 win = pygame.display.set_mode((1066, 744))
 pygame.display.set_caption("video collection demo")
-clock = pygame.time.Clock()
 
 v = VideoCollection()
 
@@ -37,7 +36,7 @@ while True:
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
     
-    clock.tick(60)
+    pygame.time.wait(16)
     
     win.fill("white")
     v.draw(win)

@@ -20,7 +20,7 @@ class Video:
 
         # file information
 
-        self.frame_count = self._vid.get(cv2.CAP_PROP_FRAME_COUNT)
+        self.frame_count = int(self._vid.get(cv2.CAP_PROP_FRAME_COUNT))
         self.frame_rate = self._vid.get(cv2.CAP_PROP_FPS)
         self.frame_delay = 1 / self.frame_rate
         self.duration = self.frame_count / self.frame_rate
@@ -231,13 +231,12 @@ class Video:
         pygame.init()
         win = pygame.display.set_mode(self.current_size)
         pygame.display.set_caption(f"pygame - {self.name}")
-        clock = pygame.time.Clock()
         self.play()
         while self.active:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.active = False
-            clock.tick(60)
+            pygame.time.wait(16)
             self.draw(win, (0, 0), force_draw=False)
             pygame.display.update()
         pygame.display.quit()

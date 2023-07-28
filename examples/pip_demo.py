@@ -9,7 +9,8 @@ from win32gui import SetWindowPos, GetCursorPos, GetWindowRect, GetForegroundWin
 from win32api import GetSystemMetrics
 from win32con import SWP_NOSIZE, HWND_TOPMOST
 from win32com.client import Dispatch
-from pyvidplayer2 import VideoPlayer, PostProcessing
+from pyvidplayer2 import VideoPlayer, Video
+from cv2 import INTER_AREA
 
 
 SIZE = (426, 240)
@@ -19,7 +20,7 @@ win = pygame.display.set_mode(SIZE, pygame.NOFRAME)
 
 # creates the video player
 
-vid = VideoPlayer(FILE, (0, 0, *SIZE), interp=PostProcessing.INTER_AREA)
+vid = VideoPlayer(Video(FILE, interp=INTER_AREA), (0, 0, *SIZE))
 
 # moves the window to the bottom right corner and pins it above other windows
 

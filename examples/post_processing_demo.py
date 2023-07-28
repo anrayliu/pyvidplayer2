@@ -10,7 +10,6 @@ PATH = r"resources\trailer2.mp4"
 
 win = pygame.display.set_mode((960, 240))
 pygame.display.set_caption("post processing demo")
-clock = pygame.time.Clock()
 
 # using a video collection to play videos in parallel for a side to side comparison
 
@@ -36,7 +35,7 @@ while True:
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
     
-    clock.tick(60)
+    pygame.time.wait(16)
         
     video.draw(win)
     

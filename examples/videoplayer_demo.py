@@ -4,13 +4,12 @@ This is an example of the built in GUI for videos
 
 
 import pygame
-from pyvidplayer2 import VideoPlayer
+from pyvidplayer2 import VideoPlayer, Video
 
 win = pygame.display.set_mode((1124, 868))
 pygame.display.set_caption("video player demo")
-clock = pygame.time.Clock()
 
-vid = VideoPlayer(r"resources\trailer2.mp4", (50, 50, 1024, 768))
+vid = VideoPlayer(Video(r"resources\trailer2.mp4"), (50, 50, 1024, 768), preview_thumbnails=10)
 
 
 while True:
@@ -21,7 +20,7 @@ while True:
             pygame.quit()
             exit()
     
-    clock.tick(60)
+    pygame.time.wait(16)
     
     win.fill("white")
     

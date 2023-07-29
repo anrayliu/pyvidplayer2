@@ -128,7 +128,7 @@ class VideoPlayer:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)
 
-    def update(self, events: List[pygame.event.Event] = None, show_ui=None) -> None:
+    def update(self, events: List[pygame.event.Event] = None, show_ui=None) -> bool:
         dt = self._clock.tick()
 
         if self.video._update() and self.video.current_size > self.frame_rect.size:
@@ -173,6 +173,8 @@ class VideoPlayer:
                 self.video.restart()
 
         self._buffer_angle += dt / 10
+
+        return self._show_ui
 
     def draw(self, win: pygame.Surface) -> None:
         pygame.draw.rect(win, "black", self.frame_rect)

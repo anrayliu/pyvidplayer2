@@ -15,13 +15,14 @@ from .parallel_video import ParallelVideo
 from .video_player import VideoPlayer 
 from .video_collection import VideoCollection
 from .video_tkinter import VideoTkinter
+from .subtitles import Subtitles
 
 try:
-    import srt 
+    import PyQt6
 except ImportError:
     pass 
 else:
-    from .subtitles import Subtitles
+    from .video_pyqt import VideoPyQT
 
 try:
     import pyglet

@@ -26,7 +26,7 @@ Note: FFMPEG must be installed and accessible via PATH.
 
 # Quickstart
 
-Refer to the examples folder for more basic guides, and docs.md contains more detailed information.
+Refer to the examples folder for more basic guides, and documentation.md contains more detailed information.
 
 ```
 import pygame

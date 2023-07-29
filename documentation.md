@@ -50,7 +50,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```get_pos()``` - Returns the current position in seconds.
  - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one tenth of a second.
   - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
- - ```preview()``` - Opens a window and plays the video. This method will hang until the video closes.
+ - ```preview()``` - Opens a window and plays the video. This method will hang until the video closes. Videos are played at 60 fps with force_draw disabled.
 
 # VideoPlayer(video, rect, interactable=True, loop=False, preview_thumbnails=0)
 
@@ -78,7 +78,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
  - ```queue(path)```
  - ```resize(size)```
  - ```move(pos, relative)``` - Moves the VideoPlayer. If relative is true, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
- - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that.
+ - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
  - ```draw(surface)``` - Draws the VideoPlayer onto the given Surface.
  - ```close()``` - Releases resources. Always recommended to call when done.
 
@@ -181,6 +181,10 @@ Used to apply various filters to video playback. Mostly for fun.
  - ```letterbox``` - Adds black bars above and below the frame to look more cinematic.
  - ```cel_shading``` - Thickens borders for a comic book style filter.
 
-# Tkinter and Pyglet Support
+# Other Supported Graphics Libraries
 
-To use Tkinter or Pyglet instead of Pygame, use the VideoTkinter and VideoPyglet class respectively, instead of Video. Subtitle support is lost, but they otherwise behave just like a Video. Keep in mind they still use the Pygame music stream to play audio. In addition, each preview method will use their respective graphics API to create a window and draw frames.
+ - Tkinter (```VideoTkinter```)
+ - Pyglet (```VideoPyglet```)
+ - PyQT6 (```VideoPyQT```)
+
+To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Keep in mind they still use the Pygame music stream to play audio. In addition, each preview method will use their respective graphics API to create a window and draw frames.

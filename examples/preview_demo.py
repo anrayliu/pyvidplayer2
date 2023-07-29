@@ -1,15 +1,8 @@
 '''
-This example shows that each type of video uses their respective
-graphics API to render previews.
+This is the quickest and simplest way to play videos
 '''
 
 
-from pyvidplayer2 import Video, VideoTkinter, VideoPyglet
+from pyvidplayer2 import Video
 
-PATH = r"resources\trailer1.mp4"
-
-Video(PATH).preview()
-
-VideoTkinter(PATH).preview()
-
-VideoPyglet(PATH).preview()
+Video(r"resources\trailer1.mp4").preview()

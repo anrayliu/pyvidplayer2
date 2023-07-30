@@ -14,7 +14,7 @@ All the features from the original library have been ported over, with the excep
 - Subtitle support
 - Play multiple videos in parallel
 - Built in GUI
-- Support for Pygame, Pyglet, and Tkinter
+- Support for Pygame, Pyglet, Tkinter, and PyQT6
 - Can play all ffmpeg supported video formats
 - Post process effects
 

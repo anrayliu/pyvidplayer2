@@ -10,4 +10,4 @@ from pyvidplayer2 import Video, PostProcessing
 def custom_process(data):
     return PostProcessing.letterbox(PostProcessing.cel_shading(PostProcessing.greyscale(data)))
 
-Video(r"resources\trailer1.mp4", post_process=custom_process).preview()
+Video(r"resources\birds.avi", post_process=custom_process).preview()

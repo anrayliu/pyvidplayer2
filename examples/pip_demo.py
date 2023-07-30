@@ -14,7 +14,7 @@ from cv2 import INTER_AREA
 
 
 SIZE = (426, 240)
-FILE = r"resources\trailer1.mp4"
+FILE = r"resources\billiejean.mp4"
 
 win = pygame.display.set_mode(SIZE, pygame.NOFRAME)
 

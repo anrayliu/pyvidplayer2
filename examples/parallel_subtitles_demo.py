@@ -1,18 +1,18 @@
 '''
-This example shows how ParallelVideos can also play subtitles
+This example shows how every video can play subtitles
 '''
 
 import pygame
-from pyvidplayer2 import ParallelVideo, Subtitles
+from pyvidplayer2 import Video, Subtitles
 
 
 win = pygame.display.set_mode((960, 360))
 pygame.display.set_caption("parallel subtitles demo")
 
-vid1 = ParallelVideo(r"resources\trailer1.mp4", subs=Subtitles(r"resources\subs1.srt"))
+vid1 = Video(r"resources\trailer1.mp4", subs=Subtitles(r"resources\subs1.srt"))
 vid1.resize((480, 360))
 
-vid2 = ParallelVideo(r"resources\trailer2.mp4", subs=Subtitles(r"resources\subs2.srt"))
+vid2 = Video(r"resources\trailer2.mp4", subs=Subtitles(r"resources\subs2.srt"))
 vid2.resize((480, 360))
 
 

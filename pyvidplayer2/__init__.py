@@ -1,21 +1,15 @@
-import pygame 
-pygame.init()
-
 ffmpeg_path = "ffmpeg"
 
 def get_ffmpeg_path() -> str:
     return ffmpeg_path
 
 def set_ffmpeg_path(path: str) -> None:
+    global ffmpeg_path
     ffmpeg_path = path
 
-from .video import Video
+
 from .post_processing import PostProcessing 
-from .parallel_video import ParallelVideo 
-from .video_player import VideoPlayer 
-from .video_collection import VideoCollection
 from .video_tkinter import VideoTkinter
-from .subtitles import Subtitles
 
 try:
     import PyQt6
@@ -23,6 +17,17 @@ except ImportError:
     pass 
 else:
     from .video_pyqt import VideoPyQT
+
+try:
+    import pygame
+except ImportError:
+    pass 
+else:
+    pygame.init()
+
+    from .video_pygame import VideoPygame as Video
+    from .subtitles import Subtitles
+    from .video_player import VideoPlayer
 
 try:
     import pyglet

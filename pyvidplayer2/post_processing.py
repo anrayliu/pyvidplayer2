@@ -23,8 +23,8 @@ class PostProcessing:
     def letterbox(data: numpy.ndarray) -> numpy.ndarray:
         background = numpy.zeros((*data.shape[:2], 3), dtype=numpy.uint8)
 
-        x1, y1 = 0, int(data.shape[0] * 0.15) #topleft crop
-        x2, y2 = data.shape[1], int(data.shape[0] * 0.85) #bottomright crop
+        x1, y1 = 0, int(data.shape[0] * 0.1) #topleft crop
+        x2, y2 = data.shape[1], int(data.shape[0] * 0.9) #bottomright crop
         data = data[y1:y2, x1:x2] # crops image
         background[y1:y1 + data.shape[0], x1:x1 + data.shape[1]] = data # draws image onto background
         return background

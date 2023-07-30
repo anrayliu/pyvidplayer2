@@ -1,6 +1,6 @@
 # Video(path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR)
 
-Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into the Pygame music stream. Finally, it uses OpenCV to display the appropriate video frames.
+Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can be played simultaneously. This object uses Pygame for graphics. See bottom for other supported libraries.
 
 ## Arguments
 ```path``` - Path to video file. I tested a few popular video types, such as mkv, mp4, mov, avi, and 3gp, but theoretically anything FFMPEG can extract data from should work.
@@ -54,7 +54,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
 
 # VideoPlayer(video, rect, interactable=True, loop=False, preview_thumbnails=0)
 
-VideoPlayers are GUI containers for videos. This seeks to mimic standard video players, so clicking it will play/pause playback, and the GUI will only show when the mouse is hovering over it.
+VideoPlayers are GUI containers for videos. This seeks to mimic standard video players, so clicking it will play/pause playback, and the GUI will only show when the mouse is hovering over it. Only supported for Pygame.
 
 ## Arguments
 ```video``` - Video object to play.
@@ -84,7 +84,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig")
 
-Object used for handling subtitles.
+Object used for handling subtitles. Only supported for Pygame.
 
 ## Arguments
 ```path``` - Path to subtitle file. Currently only srt files are supported.
@@ -110,68 +110,8 @@ Object used for handling subtitles.
  - ```set_font(font)```
  - ```get_font()```
 
-# ParallelVideo(path, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR)
-
-ParallelVideos play their audio with the Pygame Sound object instead of the music stream. This allows several sounds to be played simultaneously, but control over them such as seeking and pausing is lost. Also, ParallelVideos load their entire audio at once, which can sometimes take a while. This is why for a large amount of ParallelVideos, a VideoCollection is recommended, as it optimizes the loading of audio.
-
-## Arguments
-```path``` - Path to video file. I tested a few popular video types, such as mkv, mp4, mov, avi, and 3gp, but theoretically anything FFMPEG can extract data from should work.
-```subs``` - Pass a Subtitle class here for the video to display subtitles.
-```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
-```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
-
-## Attributes
- - ```path``` - Same as given argument.
- - ```name``` - Name of file without the directory and extension.
- - ```ext``` - Type of video (mp4, mkv, mov, etc).
- - ```frame_rate``` - How many frames are in one second.
- - ```frame_count``` - How many total frames there are.
- - ```frame_delay``` - Time between frames in order to maintain frame rate (in fractions of a second).
- - ```duration``` - Length of video in seconds.
- - ```original_size```
- - ```current_size```
- - ```aspect_ratio``` - Width divided by height.
- - ```frame_data``` - Current video frame as a NumPy ndarray.
- - ```frame_surf``` - Current video frame as a Pygame Surface.
- - ```active``` - Whether the video is currently playing. This is unaffected by pausing and resuming.
- - ```subs``` - Same as given argument.
- - ```post_func``` - Same as given argument.
- - ```interp``` - Same as given argument.
-
- ## Methods
- - ```play()```
- - ```stop()```
- - ```resize(size)```
- - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
- - ```close()``` - Releases resources. Always recommended to call when done.
- - ```restart() ```
- - ```set_volume(volume)``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
- - ```get_volume()```
- - ```get_pos()``` - Returns the current position in seconds.
- - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
- - ```copy_sound(subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR)``` - This returns a newly created ParallelVideo, but the sound from the calling object will be given to the new ParallelVideo. This skips the audio loading time.
-
-# VideoCollection()
-
-A VideoCollection is a convenient way to treat multiple ParallelVideos as one. It also optimizes audio loading and playback syncing so this is the recommended way to play videos in parallel. When a method such as play() is called, it will be called for every video in the collection.
-
-## Attributes
-- ```videos``` - List of ParallelVideos belonging to this collection.
-- ```positions``` - List of coordinates to draw each video at.
-
-## Methods
- - ```add_video(path, rect, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR)``` - Creates and adds a new ParallelVideo to the collection. If a video with the same audio has already been loaded, its sound will be copied to optimize load times. The rectangle specifies where the video will be drawn, and what size.
- - ```play()```
- - ```stop()```
- - ```resize(pos)```
- - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
- - ```set_volume(volume)``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
- - ```restart(self)```
- - ```close()``` - Releases resources. Always recommended to call when done.
- - ```draw(surface, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
-
 # PostProcessing
-Used to apply various filters to video playback. Mostly for fun.
+Used to apply various filters to video playback. Mostly for fun. Works across all graphics libraries.
 
  - ```none``` - Default. Nothing happens.
  - ```blur``` - Slightly blurs frames.
@@ -181,10 +121,11 @@ Used to apply various filters to video playback. Mostly for fun.
  - ```letterbox``` - Adds black bars above and below the frame to look more cinematic.
  - ```cel_shading``` - Thickens borders for a comic book style filter.
 
-# Other Supported Graphics Libraries
+# Supported Graphics Libraries
 
+ - Pygame (```Video```) <- default and best supported
  - Tkinter (```VideoTkinter```)
  - Pyglet (```VideoPyglet```)
  - PyQT6 (```VideoPyQT```)
 
-To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Keep in mind they still use the Pygame music stream to play audio. In addition, each preview method will use their respective graphics API to create a window and draw frames.
+To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Each preview method will use their respective graphics API to create a window and draw frames.

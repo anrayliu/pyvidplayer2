@@ -2,7 +2,6 @@ import pygame
 import cv2 
 import math
 from typing import Tuple, List
-from .post_processing import PostProcessing
 from .video import Video
 
 
@@ -50,13 +49,21 @@ class VideoPlayer:
         size = (int(70 * self.video.aspect_ratio), 70)
         for i in range(self.preview_thumbnails):
             self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, int(i * self.video.frame_rate * self._interval))
-
+            
             self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
         
-        # add last frame
-        self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, self.video.frame_count - 1)
-        self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
-        
+        # add last readable frame
+
+        i = 1
+        while True:
+            self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, self.video.frame_count - i)
+            try:
+                self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
+            except:
+                i += 1
+            else:
+                break 
+
         self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
     
     def _get_closest_frame(self, time):

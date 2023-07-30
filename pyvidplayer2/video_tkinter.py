@@ -1,4 +1,3 @@
-import pygame
 import cv2
 import numpy
 import tkinter
@@ -18,8 +17,8 @@ class VideoTkinter(Video):
         h, w = data.shape[:2]
         return tkinter.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + cv2.cvtColor(data, cv2.COLOR_BGR2RGB).tobytes(), format='PPM')
 
-    def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]) -> None:
-        surf.create_image(*pos, image=self.frame_surf)
+    def _render_frame(self, canvas: tkinter.Canvas, pos: Tuple[int, int]) -> None:
+        canvas.create_image(*pos, image=self.frame_surf)
 
     def preview(self) -> None:
         def update():

@@ -1,12 +1,10 @@
-import pygame 
 import cv2 
 import subprocess 
 import os
-import numpy
-from io import BytesIO
 from typing import Tuple 
 from threading import Thread
 from .post_processing import PostProcessing
+from .audio_handler import AudioHandler
 from . import get_ffmpeg_path
 
 
@@ -50,16 +48,9 @@ class Video:
         self.post_func = post_process
         self.interp = interp
 
+        self._audio = AudioHandler()
+
         self.play()
-
-    def __str__(self) -> str:
-        return f"<Video(path={self.path})>"
-
-    def _create_frame(self, data: numpy.ndarray) -> pygame.Surface:
-        return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
-    
-    def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]) -> None:
-        surf.blit(self.frame_surf, pos)
 
     def _chunks_len(self) -> int:
         i = 0
@@ -113,7 +104,7 @@ class Video:
         n = False
         self.buffering = False
 
-        if pygame.mixer.music.get_busy() or self.paused:
+        if self._audio.get_busy() or self.paused:
 
             while self.get_pos() > self._vid.get(cv2.CAP_PROP_POS_FRAMES) * self.frame_delay:
 
@@ -137,21 +128,14 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                pygame.mixer.music.load(BytesIO(self._chunks.pop(0)))
-                pygame.mixer.music.play()
+                self._audio.load(self._chunks.pop(0))
+                self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()
             else:
                 self.buffering = True
     
         return n
-
-    def draw(self, surf: pygame.Surface, pos: Tuple[int, int], force_draw=True) -> bool:
-        if self._update() or force_draw:
-            if self.frame_surf is not None:
-                self._render_frame(surf, pos)
-                return True
-        return False
     
     def play(self) -> None:
         self.active = True
@@ -171,7 +155,7 @@ class Video:
     def close(self) -> None:
         self.stop()
         self._vid.release()
-        pygame.mixer.music.unload()
+        self._audio.unload()
         for t in self._threads:
             t.join()
 
@@ -180,10 +164,10 @@ class Video:
         self.play()
 
     def set_volume(self, vol: float) -> None:
-        pygame.mixer.music.set_volume(vol)
+        self._audio.set_volume(vol)
 
     def get_volume(self) -> float:
-        return pygame.mixer.music.get_volume()
+        return self._audio.get_volume()
 
     def get_paused(self) -> bool:
         # here because the original pyvidplayer had get_paused
@@ -195,19 +179,15 @@ class Video:
     def pause(self) -> None:
         if self.active:
             self.paused = True
-            pygame.mixer.music.pause()
+            self._audio.pause()
 
     def resume(self) -> None:
         if self.active:
             self.paused = False
-
-            # unpausing when mixer hasn't loaded anything yet causes weird mixer behaviour
-
-            if pygame.mixer.music.get_pos() != -1:
-                pygame.mixer.music.unpause()
+            self._audio.unpause()
 
     def get_pos(self) -> float:
-        return min(self.duration, self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + max(0, pygame.mixer.music.get_pos()) / 1000)
+        return min(self.duration, self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos())
 
     def seek(self, time: float, relative=True) -> None:
         # seeking accurate to 1 tenth of a second
@@ -221,23 +201,25 @@ class Video:
         self._threads = []
         self._chunks_claimed = 0
         self._chunks_played = 0
-        pygame.mixer.music.stop()
+        self._audio.stop()
 
         self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)
         if self.subs is not None:
             self.subs._seek(self._starting_time)
 
-    def preview(self) -> None:
-        pygame.init()
-        win = pygame.display.set_mode(self.current_size)
-        pygame.display.set_caption(f"pygame - {self.name}")
-        self.play()
-        while self.active:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.active = False
-            pygame.time.wait(16)
-            self.draw(win, (0, 0), force_draw=False)
-            pygame.display.update()
-        pygame.display.quit()
-        self.close()
+    def draw(self, surf, pos: Tuple[int, int], force_draw=True) -> bool:
+        if self._update() or force_draw:
+            if self.frame_surf is not None:
+                self._render_frame(surf, pos)
+                return True
+        return False
+
+    def _create_frame(self):
+        pass
+    
+    def _render_frame(self):
+        pass
+    
+    def preview(self):
+        pass 
+

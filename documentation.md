@@ -3,13 +3,13 @@
 Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can be played simultaneously. This object uses Pygame for graphics. See bottom for other supported libraries.
 
 ## Arguments
-```path``` - Path to video file. I tested a few popular video types, such as mkv, mp4, mov, avi, and 3gp, but theoretically anything FFMPEG can extract data from should work.
-```chunk_size``` - How much audio is extracted at a time, in seconds. Increasing this value can mean less total extracts, but slower extracts.
-```max_threads``` - Maximum number of chunks that can be extracted at any given time. Increasing this value can speed up extract at the expense of cpu usage.
-```max_chunks``` - Maximum number of chunks allowed to be extracted and reserved. Increasing this value can help with buffering, but will use more memory.
-```subs``` - Pass a Subtitle class here for the video to display subtitles.
-```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
-```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```path``` - Path to video file. I tested a few popular video types, such as mkv, mp4, mov, avi, and 3gp, but theoretically anything FFMPEG can extract data from should work.
+ - ```chunk_size``` - How much audio is extracted at a time, in seconds. Increasing this value can mean less total extracts, but slower extracts.
+ - ```max_threads``` - Maximum number of chunks that can be extracted at any given time. Increasing this value can speed up extract at the expense of cpu usage.
+ - ```max_chunks``` - Maximum number of chunks allowed to be extracted and reserved. Increasing this value can help with buffering, but will use more memory.
+ - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
+ - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
+ - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -57,11 +57,11 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
 VideoPlayers are GUI containers for videos. This seeks to mimic standard video players, so clicking it will play/pause playback, and the GUI will only show when the mouse is hovering over it. Only supported for Pygame.
 
 ## Arguments
-```video``` - Video object to play.
-```rect``` - An x, y, width, and height of the VideoPlayer. The topleft corner will be the x, y coordinate.
-```interactable``` - Enables the GUI.
-```loop``` - Whether the contained video will restart after it finishes. If the queue is not empty, the entire queue will loop, not just the current video.
-```preview_thumbnails``` - Number of preview thumbnails loaded and saved in memory. When seeking, a preview window will show the closest loaded frame. The higher this number is, the more frames are loaded, increasing the preview accuracy, but also increasing initial load time and memory usage. Because of this, this value is defaulted to 0, which turns seek previewing off.
+ - ```video``` - Video object to play.
+ - ```rect``` - An x, y, width, and height of the VideoPlayer. The topleft corner will be the x, y coordinate.
+ - ```interactable``` - Enables the GUI.
+ - ```loop``` - Whether the contained video will restart after it finishes. If the queue is not empty, the entire queue will loop, not just the current video.
+ - ```preview_thumbnails``` - Number of preview thumbnails loaded and saved in memory. When seeking, a preview window will show the closest loaded frame. The higher this number is, the more frames are loaded, increasing the preview accuracy, but also increasing initial load time and memory usage. Because of this, this value is defaulted to 0, which turns seek previewing off.
 
 ## Attributes 
  - ```video``` - Same as given argument.
@@ -87,11 +87,11 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 Object used for handling subtitles. Only supported for Pygame.
 
 ## Arguments
-```path``` - Path to subtitle file. Currently only srt files are supported.
-```colour``` - Colour of text.
-```highlight``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
-```font``` - Pygame Font or SysFont object used to render Surfaces. This includes the size of the text.
-```encoding``` - Encoding used to open the srt file.
+ - ```path``` - Path to subtitle file. Currently only srt files are supported.
+ - ```colour``` - Colour of text.
+ - ```highlight``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
+ - ```font``` - Pygame Font or SysFont object used to render Surfaces. This includes the size of the text.
+ - ```encoding``` - Encoding used to open the srt file.
 
 ## Attributes
 
@@ -129,3 +129,8 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - PyQT6 (```VideoPyQT```)
 
 To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Each preview method will use their respective graphics API to create a window and draw frames.
+
+# On the Bucket List
+
+ - Support for more subtitle file types
+ - Video streaming

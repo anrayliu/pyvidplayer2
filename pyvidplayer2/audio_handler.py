@@ -1,6 +1,7 @@
 import pyaudio
 import wave
 import math 
+import time
 import numpy
 from threading import Thread
 from io import BytesIO
@@ -18,6 +19,8 @@ class AudioHandler:
         self.stop_thread = False
 
         self.position = 0
+
+        self.loaded = False
         self.paused = False
         self.active = False
 
@@ -38,16 +41,22 @@ class AudioHandler:
         rate=self.wave.getframerate(),
         output=True)
 
+        self.loaded = True
+
     def unload(self):
         self.stop()
 
-        self.stream.stop_stream()
-        self.stream.close()
-        self.wave.close()
+        if self.loaded:
 
-        self.wave = None 
-        self.stream = None
-        self.thread = None
+            self.stream.stop_stream()
+            self.stream.close()
+            self.wave.close()
+
+            self.wave = None 
+            self.stream = None
+            self.thread = None
+
+            self.loaded = False
 
     def play(self):
         self.stop_thread = False 
@@ -65,7 +74,9 @@ class AudioHandler:
 
         while data != b'' and not self.stop_thread:
 
-            if not self.paused:
+            if self.paused:
+                time.sleep(0.01)
+            else:
                 audio = numpy.frombuffer(data, dtype=numpy.int16)
 
                 if self.volume == 0.0:
@@ -91,9 +102,10 @@ class AudioHandler:
         return self.position
 
     def stop(self):
-        if self.get_busy():
+        if self.active:
             self.stop_thread = True
             self.thread.join()
+            self.position = 0
 
     def pause(self):
         self.paused = True 

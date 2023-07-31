@@ -192,7 +192,7 @@ class Video:
     def seek(self, time: float, relative=True) -> None:
         # seeking accurate to 1 tenth of a second
 
-        self._starting_time = self.get_pos() + time if relative else time
+        self._starting_time = (self.get_pos() + time) if relative else time
         self._starting_time = round(min(max(0, self._starting_time), self.duration), 1)
 
         for t in self._threads:
@@ -201,7 +201,7 @@ class Video:
         self._threads = []
         self._chunks_claimed = 0
         self._chunks_played = 0
-        self._audio.stop()
+        self._audio.unload()
 
         self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)
         if self.subs is not None:

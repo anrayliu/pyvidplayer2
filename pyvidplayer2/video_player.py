@@ -154,7 +154,6 @@ class VideoPlayer:
             if self._show_ui:
                 self._progress_bar.w = self._progress_back.w * (self.video.get_pos() / self.video.duration)
                 self._smooth_bar += (self._progress_bar.w - self._smooth_bar) / (dt * 0.25)
-
                 self._show_seek = self._progress_back.collidepoint(mouse)
 
                 if self._show_seek:

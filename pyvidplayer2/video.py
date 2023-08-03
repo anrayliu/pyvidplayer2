@@ -74,7 +74,23 @@ class Video:
         self._chunks.append(None)
 
         s = self._convert_seconds(self._starting_time + (self._chunks_claimed - 1) * self.chunk_size)
-        p = subprocess.run(f'"{get_ffmpeg_path()}" -i "{self.path}" -ss {s} -t {self._convert_seconds(self.chunk_size)} -f wav -loglevel quiet -', capture_output=True)
+
+        command = [
+            get_ffmpeg_path(),
+            "-i",
+            self.path,
+            "-ss",
+            str(s),
+            "-t",
+            str(self._convert_seconds(self.chunk_size)),
+            "-f",
+            "wav",
+            "-loglevel",
+            "quiet",
+            "-"
+        ]
+
+        p = subprocess.run(command, capture_output=True)
         
         self._chunks[i - self._chunks_played - 1] = p.stdout
 

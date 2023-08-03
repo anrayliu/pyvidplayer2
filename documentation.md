@@ -134,3 +134,4 @@ To use other libraries instead of Pygame, use their respective video object. Sub
 
  - Support for more subtitle file types
  - Video streaming
+ - Better error messages

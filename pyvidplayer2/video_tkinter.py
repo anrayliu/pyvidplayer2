@@ -7,8 +7,8 @@ from .post_processing import PostProcessing
 
 
 class VideoTkinter(Video):
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, interp=interp, post_process=post_process)
+    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio)
 
     def __str__(self) -> str:
         return f"<VideoTkinter(path={self.path})>"
@@ -24,7 +24,7 @@ class VideoTkinter(Video):
         def update():
             self.draw(canvas, (self.current_size[0] / 2, self.current_size[1] / 2), force_draw=False)
             if self.active:
-                root.after(15, update) # for around 60 fps
+                root.after(16, update) # for around 60 fps
             else:
                 root.destroy()
         root = tkinter.Tk()

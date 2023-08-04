@@ -1,13 +1,8 @@
-'''
-Temporary feature not yet implemented
-'''
-
-
 import pygame
 from io import BytesIO
 
 
-class AudioHandler:
+class MixerHandler:
     def __init__(self) -> None:
         pass
 

@@ -10,7 +10,7 @@ from io import BytesIO
 _p = pyaudio.PyAudio()
 
 
-class AudioHandler:
+class PyaudioHandler:
     def __init__(self) -> None:
         self.stream = None
         self.wave = None
@@ -33,7 +33,10 @@ class AudioHandler:
         if self.active:
             self.unload()
 
-        self.wave = wave.open(BytesIO(bytes), "rb")
+        try:
+            self.wave = wave.open(BytesIO(bytes), "rb")
+        except EOFError:
+            raise EOFError("Audio is empty. This may mean the file is corrupted.")
 
         self.stream = _p.open(
         format=_p.get_format_from_width(self.wave.getsampwidth()),

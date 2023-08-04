@@ -7,7 +7,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name="pyvidplayer2",
-    version="0.9.4",
+    version="0.9.5",
     description="Video playback in Python",
     long_description=long_desc,
     long_description_content_type = "text/markdown",

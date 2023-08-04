@@ -7,8 +7,8 @@ from .post_processing import PostProcessing
 
 
 class VideoPygame(Video):
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp)
+    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=True) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio)
 
     def __str__(self) -> str:
         return f"<VideoPygame(path={self.path})>"

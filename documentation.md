@@ -1,6 +1,6 @@
-# Video(path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR)
+# Video(path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False)
 
-Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can be played simultaneously. This object uses Pygame for graphics. See bottom for other supported libraries.
+Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). This object uses Pygame for graphics. See bottom for other supported libraries.
 
 ## Arguments
  - ```path``` - Path to video file. I tested a few popular video types, such as mkv, mp4, mov, avi, and 3gp, but theoretically anything FFMPEG can extract data from should work.
@@ -10,6 +10,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. By default, VideoPygame uses Pygame, while support for other graphics apis will use Pyaudio. There's no real reason to use one over the other, but I suppose you could remove Pyaudio as a dependency if you use Pygame. However, Pygame audio does not support playing in parallel.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -33,6 +34,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```subs``` - Same as given argument.
  - ```post_func``` - Same as given argument.
  - ```interp``` - Same as given argument.
+ - ```use_pygame_audio``` - Same as given argument.
 
 ## Methods
  - ```play()```
@@ -134,4 +136,3 @@ To use other libraries instead of Pygame, use their respective video object. Sub
 
  - Support for more subtitle file types
  - Video streaming
- - Better error messages

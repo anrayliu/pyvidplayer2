@@ -3,18 +3,28 @@ import subprocess
 import os
 from typing import Tuple 
 from threading import Thread
+from .pyaudio_handler import PyaudioHandler
 from .post_processing import PostProcessing
-from .audio_handler import AudioHandler
 from . import get_ffmpeg_path
+
+try:
+    import pygame 
+except ImportError:
+    pass
+else:
+    from .mixer_handler import MixerHandler
 
 
 class Video:
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR) -> None:
+    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=True) -> None:
         
         self.path = path
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         self._vid = cv2.VideoCapture(self.path)
+
+        if not self._vid.isOpened():
+            raise FileNotFoundError(f'Could not find "{self.path}"')
 
         # file information
 
@@ -48,8 +58,15 @@ class Video:
         self.post_func = post_process
         self.interp = interp
 
-        self._audio = AudioHandler()
-
+        if use_pygame_audio:
+            try:
+                self._audio = MixerHandler()
+            except NameError:
+                raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed.")
+        else:    
+            self._audio = PyaudioHandler()
+        self.use_pygame_audio = use_pygame_audio
+        
         self.play()
 
     def _chunks_len(self) -> int:

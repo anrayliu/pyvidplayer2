@@ -5,7 +5,6 @@ from typing import Tuple
 from threading import Thread
 from .pyaudio_handler import PyaudioHandler
 from .post_processing import PostProcessing
-from . import get_ffmpeg_path
 
 try:
     import pygame 
@@ -93,7 +92,7 @@ class Video:
         s = self._convert_seconds(self._starting_time + (self._chunks_claimed - 1) * self.chunk_size)
 
         command = [
-            get_ffmpeg_path(),
+            "ffmpeg",
             "-i",
             self.path,
             "-ss",
@@ -107,7 +106,10 @@ class Video:
             "-"
         ]
 
-        p = subprocess.run(command, capture_output=True)
+        try:
+            p = subprocess.run(command, capture_output=True)
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find FFMPEG")
         
         self._chunks[i - self._chunks_played - 1] = p.stdout
 

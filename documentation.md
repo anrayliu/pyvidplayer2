@@ -132,7 +132,10 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 
 To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details.
 
-# On the Bucket List
+# Get Version
 
- - Support for more subtitle file types
- - Video streaming
+```
+print(pyvidplayer2.get_version_info())
+```
+
+Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame.

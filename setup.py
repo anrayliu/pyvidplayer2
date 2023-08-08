@@ -1,4 +1,5 @@
 from setuptools import setup
+from pyvidplayer2 import _VERSION
 
 
 with open("README.md", 'r') as f:
@@ -7,7 +8,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name="pyvidplayer2",
-    version="0.9.5",
+    version=_VERSION,
     description="Video playback in Python",
     long_description=long_desc,
     long_description_content_type = "text/markdown",

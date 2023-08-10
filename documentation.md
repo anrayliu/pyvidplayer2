@@ -10,7 +10,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
- - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. By default, VideoPygame uses Pygame, while support for other graphics apis will use Pyaudio. There's no real reason to use one over the other, but I suppose you could remove Pyaudio as a dependency if you use Pygame. However, Pygame audio does not support playing in parallel.
+ - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio.
 
 ## Attributes
  - ```path``` - Same as given argument.

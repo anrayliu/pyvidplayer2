@@ -83,7 +83,6 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
  - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
  - ```draw(surface)``` - Draws the VideoPlayer onto the given Surface.
  - ```close()``` - Releases resources. Always recommended to call when done.
- - ```close_all()``` - Closes every video loaded in this VideoPlayer.
  - ```skip()``` - Moves onto the next video in queue
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig")

@@ -8,9 +8,9 @@ from pyvidplayer2 import VideoPlayer, Video
 win = pygame.display.set_mode((1280, 720))
 
 
-vid = VideoPlayer(Video(r"resources\ocean.mkv"), (0, 0, 1280, 720), loop=True)
+vid = VideoPlayer(Video(r"resources\clip.mp4"), (0, 0, 1280, 720), loop=True)
 
-vid.queue(Video(r"resources\billiejean.mp4"))
+vid.queue(Video(r"resources\ocean.mkv"))
 vid.queue(Video(r"resources\birds.avi"))
 
 
@@ -18,7 +18,7 @@ while True:
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
-            vid.close_all()
+            vid.close()
             pygame.quit()
             exit()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:

@@ -233,9 +233,6 @@ class VideoPlayer:
 
     def close(self) -> None:
         self.video.close()
-
-    def close_all(self) -> None:
-        self.close()
         for video in self.queue_:
             try:
                 video.close()

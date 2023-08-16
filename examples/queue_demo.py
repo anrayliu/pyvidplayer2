@@ -26,8 +26,6 @@ while True:
     
     pygame.time.wait(16)
     
-    win.fill("white")
-    
     vid.update(events)
     vid.draw(win)
     

@@ -71,18 +71,20 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
  - ```vid_rect``` - This is the video fitted into the frame_rect while maintaining aspect ratio. Black bars will appear in any unused space.
  - ```interactable``` - Same as given argument.
  - ```loop``` - Same as given argument.
- - ```queue``` - Videos to play after the current one finishes.
+ - ```queue_``` - Videos to play after the current one finishes.
  - ```preview_thumbnails``` - Same as given argument.
 
 ## Methods
  - ```zoom_to_fill()``` - Zooms in the video so that the entire frame_rect is filled in, while maintaining aspect ratio.
  - ```zoom_out()``` - Reverts zoom_to_fill()
- - ```queue(path)```
+ - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
  - ```resize(size)```
  - ```move(pos, relative)``` - Moves the VideoPlayer. If relative is true, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
  - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
  - ```draw(surface)``` - Draws the VideoPlayer onto the given Surface.
  - ```close()``` - Releases resources. Always recommended to call when done.
+ - ```close_all()``` - Closes every video loaded in this VideoPlayer.
+ - ```skip()``` - Moves onto the next video in queue
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig")
 

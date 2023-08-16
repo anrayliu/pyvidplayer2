@@ -15,7 +15,7 @@ else:
 
 
 class Video:
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=True) -> None:
+    def __init__(self, path: str, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio) -> None:
         
         self.path = path
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
@@ -180,6 +180,7 @@ class Video:
         self.active = False
         self.frame_data = None
         self.frame_surf = None
+        self.paused = False 
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size

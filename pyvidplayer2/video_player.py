@@ -2,7 +2,7 @@ import pygame
 import cv2 
 import math
 from typing import Tuple, List
-from .video import Video
+from . import Video
 
 
 class VideoPlayer:
@@ -121,9 +121,16 @@ class VideoPlayer:
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
         self.video.resize(self.vid_rect.size)
 
-    def queue(self, path: str) -> None:
-        self.queue_.append(path)
+    def queue(self, input_: str | Video) -> None:
+        self.queue_.append(input_)
 
+        # update once to trigger audio loading
+        try:
+            input_.stop()
+            input_._update()
+        except AttributeError:
+            pass
+        
     def resize(self, size: Tuple[int, int]) -> None:
         self.frame_rect.size = size
         self._transform(self.frame_rect)
@@ -137,6 +144,20 @@ class VideoPlayer:
 
     def update(self, events: List[pygame.event.Event] = None, show_ui=None) -> bool:
         dt = self._clock.tick()
+
+        if not self.video.active:
+            if self.queue_:
+                if self.loop:
+                    self.queue(self.video)
+                input_ = self.queue_.pop(0)
+                try:
+                    self.video = Video(input_)
+                except TypeError:
+                    self.video = input_
+                    self.video.play()
+                self._transform(self.frame_rect)
+            elif self.loop:
+                self.video.restart()
 
         if self.video._update() and self.video.current_size > self.frame_rect.size:
             self.video.frame_surf = self.video.frame_surf.subsurface(self.frame_rect.x - self.vid_rect.x, self.frame_rect.y - self.vid_rect.y, *self.frame_rect.size)
@@ -168,15 +189,6 @@ class VideoPlayer:
                 
                 elif click:
                     self.video.toggle_pause()
-
-        if not self.video.active:
-            if self.queue_:
-                if self.loop:
-                    self.queue_.append(self.video.path)
-                self.video = Video(self.queue_.pop(0))
-                self._transform(self.frame_rect)
-            elif self.loop:
-                self.video.restart()
 
         self._buffer_angle += dt / 10
 
@@ -221,3 +233,14 @@ class VideoPlayer:
 
     def close(self) -> None:
         self.video.close()
+
+    def close_all(self) -> None:
+        self.close()
+        for video in self.queue_:
+            try:
+                video.close()
+            except AttributeError:
+                pass
+
+    def skip(self) -> None:
+        self.video.stop() if self.loop else self.video.close()

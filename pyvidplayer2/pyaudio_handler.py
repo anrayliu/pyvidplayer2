@@ -47,9 +47,8 @@ class PyaudioHandler:
         self.loaded = True
 
     def unload(self):
-        self.stop()
-
         if self.loaded:
+            self.stop()
 
             self.stream.stop_stream()
             self.stream.close()

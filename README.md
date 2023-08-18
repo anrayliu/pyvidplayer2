@@ -17,6 +17,7 @@ All the features from the original library have been ported over, with the excep
 - Support for Pygame, Pyglet, Tkinter, and PyQT6
 - Can play all ffmpeg supported video formats
 - Post process effects
+- Webcam feed
 
 # Installation
 ```

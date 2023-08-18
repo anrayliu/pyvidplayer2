@@ -113,6 +113,38 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```set_font(font)```
  - ```get_font()```
 
+# Webcam(post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30)
+
+Object used for displaying a webcam feed.
+
+## Arguments
+ - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
+ - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```fps``` - Maximum number of frames captured from the webcam per second.
+
+## Attributes
+
+ - ```post_process``` - Same as given argument.
+ - ```interp``` - Same as given argument.
+ - ```fps``` - Same as given argument.
+ - ```original_size```
+ - ```current_size```
+ - ```aspect_ratio``` - Width divided by height.
+ - ```active``` - Whether the webcam is currently playing.
+ - ```frame_data``` - Current video frame as a NumPy ndarray.
+ - ```frame_surf``` - Current video frame as a Pygame Surface.
+
+## Methods
+
+ - ```play()```
+ - ```stop()```
+ - ```resize(size)```
+ - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
+ - ```close()``` - Releases resources. Always recommended to call when done.
+ - ```get_pos()``` - Returns how long the webcam has been active. Is not reset if webcam is stopped.
+  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
+ - ```preview()``` - Opens a window and plays the webcam. This method will hang until the window is closed. Videos are played at whatever fps the webcam object is set to.
+
 # PostProcessing
 Used to apply various filters to video playback. Mostly for fun. Works across all graphics libraries.
 

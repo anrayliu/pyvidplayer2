@@ -1,18 +1,16 @@
 import cv2
 import pygame
+import time
 from .post_processing import PostProcessing
 from typing import Tuple
 
 
 class Webcam:
-    def __init__(self, device: int, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR) -> None:
-        
-        self.device = device
-
-        self._vid = cv2.VideoCapture(self.device)
+    def __init__(self, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30) -> None:
+        self._vid = cv2.VideoCapture(0)
 
         if not self._vid.isOpened():
-            raise FileNotFoundError(f'Could not open device {self.device}')
+            raise FileNotFoundError(f'Failed to open webcam.')
 
         self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         self.current_size = self.original_size
@@ -22,30 +20,41 @@ class Webcam:
         self.frame_surf = None
         
         self.active = False
-        self.paused = False
 
         self.post_func = post_process
         self.interp = interp
+        self.fps = fps
+
+        self._frame_delay = 1 / self.fps
+        self._frames = 0
+        self._last_tick = 0
 
         self.play()
 
+    def __str__(self) -> str:
+        return f"<Webcam(fps={self.fps})>"
+    
     def _update(self) -> bool:
-        n = False
+        if self.active:
 
-        if self.active and not self.paused:
-            has_frame, data = self._vid.read()
-            
-            if has_frame:
-                if self.original_size != self.current_size:
-                    data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
-                data = self.post_func(data)
+            if time.time() - self._last_tick > self._frame_delay:
 
-                self.frame_data = data
-                self.frame_surf = self._create_frame(data)
+                has_frame, data = self._vid.read()
+                
+                if has_frame:
+                    if self.original_size != self.current_size:
+                        data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
+                    data = self.post_func(data)
 
-                n = True
+                    self.frame_data = data
+                    self.frame_surf = self._create_frame(data)
 
-        return n
+                    self._frames += 1
+                    self._last_tick = time.time()
+
+                    return True
+
+        return False
     
     def play(self) -> None:
         self.active = True
@@ -54,7 +63,6 @@ class Webcam:
         self.active = False
         self.frame_data = None
         self.frame_surf = None
-        self.paused = False 
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
@@ -66,23 +74,8 @@ class Webcam:
         self.stop()
         self._vid.release()
 
-    def get_paused(self) -> bool:
-        # here because the original pyvidplayer had get_paused
-        return self.paused
-    
-    def toggle_pause(self) -> None:
-        self.resume() if self.paused else self.pause()
-
-    def pause(self) -> None:
-        if self.active:
-            self.paused = True
-
-    def resume(self) -> None:
-        if self.active:
-            self.paused = False
-
     def get_pos(self) -> float:
-        pass
+        return self._frames / self.fps
 
     def draw(self, surf, pos: Tuple[int, int], force_draw=True) -> bool:
         if self._update() or force_draw:
@@ -98,5 +91,16 @@ class Webcam:
         surf.blit(self.frame_surf, pos)
     
     def preview(self):
-        pass
+        win = pygame.display.set_mode(self.current_size)
+        pygame.display.set_caption(f"webcam")
+        self.play()
+        while self.active:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.stop()
+            pygame.time.wait(int(self._frame_delay * 1000))
+            self.draw(win, (0, 0), force_draw=False)
+            pygame.display.update()
+        pygame.display.quit()
+        self.close()
 

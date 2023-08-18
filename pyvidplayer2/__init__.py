@@ -20,6 +20,7 @@ else:
     from .video_pygame import VideoPygame as Video
     from .subtitles import Subtitles
     from .video_player import VideoPlayer
+    from .webcam import Webcam
 
 try:
     import pyglet

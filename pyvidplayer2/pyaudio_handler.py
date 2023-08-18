@@ -19,6 +19,7 @@ class PyaudioHandler:
         self.stop_thread = False
 
         self.position = 0
+        self.data = None
 
         self.loaded = False
         self.paused = False
@@ -29,12 +30,12 @@ class PyaudioHandler:
     def get_busy(self):
         return self.active
 
-    def load(self, bytes):
+    def load(self, input_):
         if self.active:
             self.unload()
 
         try:
-            self.wave = wave.open(BytesIO(bytes), "rb")
+            self.wave = wave.open(input_, "rb")
         except EOFError:
             raise EOFError("Audio is empty. This may mean the file is corrupted.")
 
@@ -63,6 +64,7 @@ class PyaudioHandler:
     def play(self):
         self.stop_thread = False 
         self.position = 0
+        self.data = None
         self.active = True
 
         self.wave.rewind()
@@ -73,6 +75,7 @@ class PyaudioHandler:
     def _threaded_play(self):
         chunk = 2048
         data = self.wave.readframes(chunk)
+        self.data = data
 
         while data != b'' and not self.stop_thread:
 
@@ -89,6 +92,7 @@ class PyaudioHandler:
                     
                 self.stream.write(audio.tobytes())
                 data = self.wave.readframes(chunk)
+                self.data = data
 
                 self.position += chunk / self.wave.getframerate()
 
@@ -108,6 +112,7 @@ class PyaudioHandler:
             self.stop_thread = True
             self.thread.join()
             self.position = 0
+            self.data = None
 
     def pause(self):
         self.paused = True 

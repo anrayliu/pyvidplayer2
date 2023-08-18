@@ -3,8 +3,8 @@ import subprocess
 import os
 from typing import Tuple 
 from threading import Thread
+from io import BytesIO
 from .pyaudio_handler import PyaudioHandler
-from .post_processing import PostProcessing
 
 try:
     import pygame 
@@ -163,7 +163,7 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                self._audio.load(self._chunks.pop(0))
+                self._audio.load(BytesIO(self._chunks.pop(0)))
                 self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()

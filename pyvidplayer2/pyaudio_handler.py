@@ -30,12 +30,12 @@ class PyaudioHandler:
     def get_busy(self):
         return self.active
 
-    def load(self, input_):
+    def load(self, bytes):
         if self.loaded:
             self.unload()
 
         try:
-            self.wave = wave.open(BytesIO(input_), "rb")
+            self.wave = wave.open(BytesIO(bytes), "rb")
         except EOFError:
             raise EOFError("Audio is empty. This may mean the file is corrupted.")
 

@@ -1,4 +1,4 @@
-# pyvidplayer2
+# pyvidplayer2 (please report all bugs!)
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in
 pretty much every way, and finally allows an easy and reliable way to play videos in Python.

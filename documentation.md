@@ -83,13 +83,15 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 ## Methods
  - ```zoom_to_fill()``` - Zooms in the video so that the entire frame_rect is filled in, while maintaining aspect ratio.
  - ```zoom_out()``` - Reverts zoom_to_fill()
- - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - ```get_queue()```
  - ```resize(size)```
  - ```move(pos, relative)``` - Moves the VideoPlayer. If relative is true, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
  - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
  - ```draw(surface)``` - Draws the VideoPlayer onto the given Surface.
  - ```close()``` - Releases resources. Always recommended to call when done.
- - ```skip()``` - Moves onto the next video in queue
+ - ```skip()``` - Moves onto the next video in the queue.
+ - ```get_video()``` - Returns currently playing video.
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig")
 
@@ -101,6 +103,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```highlight``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
  - ```font``` - Pygame Font or SysFont object used to render Surfaces. This includes the size of the text.
  - ```encoding``` - Encoding used to open the srt file.
+ - ```offset``` - The higher this number is, the close the subtitle is to the top of the screen.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -112,6 +115,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```colour``` - Same as given argument.
  - ```highlight``` - Same as given argument.
  - ```font``` - Same as given argument.
+ - ```offset``` - Same as given argument.
 
 ## Methods 
  - ```set_font(font)```
@@ -119,7 +123,7 @@ Object used for handling subtitles. Only supported for Pygame.
 
 # Webcam(post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30)
 
-Object used for displaying a webcam feed.
+Object used for displaying a webcam feed. Only supported for Pygame.
 
 ## Arguments
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.

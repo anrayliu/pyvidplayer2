@@ -251,3 +251,9 @@ class VideoPlayer:
     def clear_queue(self) -> None:
         self._close_queue()
         self.queue_ = []
+
+    def get_video(self) -> Video:
+        return self.video
+    
+    def get_queue(self) -> List:
+        return self.queue_

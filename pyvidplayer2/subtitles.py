@@ -4,7 +4,7 @@ import re
 
 
 class Subtitles:
-    def __init__(self, path: str, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig") -> None:
+    def __init__(self, path: str, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50) -> None:
         self.path = path
         self.encoding = encoding
 
@@ -15,6 +15,7 @@ class Subtitles:
         self.end = 0
         self.text = ""
         self.surf = pygame.Surface((0, 0))
+        self.offset = offset
 
         self.colour = colour
         self.highlight = highlight 
@@ -62,6 +63,9 @@ class Subtitles:
             if not self._get_next():
                 break
 
+    def _write_subs(self, surf):
+        surf.blit(self.surf, (surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
+        
     def set_font(self, font: pygame.font.SysFont) -> None:
         self.font = font
 

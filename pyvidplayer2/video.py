@@ -136,7 +136,7 @@ class Video:
                 if self.subs._get_next():
                     self._write_subs()
             else:
-                self.frame_surf.blit(self.subs.surf, (self.current_size[0] / 2 - self.subs.surf.get_width() / 2, self.current_size[1] - self.subs.surf.get_height() - 50))
+                self.subs._write_subs(self.frame_surf)
 
     def _update(self) -> bool:
         self._update_threads()
@@ -178,18 +178,16 @@ class Video:
         return n
 
     def mute(self) -> None:
-        if self.active:
-            self.muted = True
-            self._audio.mute()
+        self.muted = True
+        self._audio.mute()
 
     def unmute(self) -> None:
-        if self.active:
-            self.muted = False
-            self._audio.unmute()
+        self.muted = False
+        self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
         self.speed = max(0.5, min(10, speed))
-        self.seek(0)
+        self.seek(0) # must reload audio chunks
 
     def get_speed(self) -> float:
         return self.speed
@@ -198,11 +196,12 @@ class Video:
         self.active = True
 
     def stop(self) -> None:
-        self.restart()
-        self.active = False
-        self.frame_data = None
-        self.frame_surf = None
-        self.paused = False 
+        if self.active:
+            self.restart()
+            self.active = False
+            self.frame_data = None
+            self.frame_surf = None
+            self.paused = False 
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
@@ -245,7 +244,7 @@ class Video:
             self._audio.unpause()
 
     def get_pos(self) -> float:
-        return min(self.duration, self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed)
+        return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative=True) -> None:
         # seeking accurate to 1 tenth of a second
@@ -267,10 +266,9 @@ class Video:
             self.subs._seek(self._starting_time)
 
     def draw(self, surf, pos: Tuple[int, int], force_draw=True) -> bool:
-        if self._update() or force_draw:
-            if self.frame_surf is not None:
-                self._render_frame(surf, pos)
-                return True
+        if (self._update() or force_draw) and self.frame_surf is not None:
+            self._render_frame(surf, pos)
+            return True
         return False
 
     def _create_frame(self):

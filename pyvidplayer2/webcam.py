@@ -79,10 +79,9 @@ class Webcam:
         return self._frames / self.fps
 
     def draw(self, surf, pos: Tuple[int, int], force_draw=True) -> bool:
-        if self._update() or force_draw:
-            if self.frame_surf is not None:
-                self._render_frame(surf, pos)
-                return True
+        if (self._update() or force_draw) and self.frame_surf is not None:
+            self._render_frame(surf, pos)
+            return True
         return False
 
     def _create_frame(self, data: numpy.ndarray) -> pygame.Surface:

@@ -196,12 +196,11 @@ class Video:
         self.active = True
 
     def stop(self) -> None:
-        if self.active:
-            self.restart()
-            self.active = False
-            self.frame_data = None
-            self.frame_surf = None
-            self.paused = False 
+        self.restart()
+        self.active = False
+        self.frame_data = None
+        self.frame_surf = None
+        self.paused = False 
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size

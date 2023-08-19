@@ -31,6 +31,8 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```active``` - Whether the video is currently playing. This is unaffected by pausing and resuming.
  - ```buffering``` - Whether the video is waiting for audio to extract.
  - ```paused```
+ - ```muted```
+ - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
  - ```subs``` - Same as given argument.
  - ```post_func``` - Same as given argument.
  - ```interp``` - Same as given argument.
@@ -43,15 +45,19 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
  - ```close()``` - Releases resources. Always recommended to call when done.
  - ```restart() ```
+ - ```set_speed(speed)``` - Accepts a float from 0.5 (half speed) to 10.0 (ten times speed)
+ - ```get_speed()```
  - ```set_volume(volume)``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
  - ```get_volume()```
  - ```get_paused()```
  - ```toggle_pause()``` - Pauses if the video is playing, and resumes if the video is paused.
  - ```pause()```
  - ```resume()```
+ - ```mute()```
+ - ```unmute()```
  - ```get_pos()``` - Returns the current position in seconds.
  - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one tenth of a second.
-  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
+ - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - ```preview()``` - Opens a window and plays the video. This method will hang until the video closes. Videos are played at 60 fps with force_draw disabled.
 
 # VideoPlayer(video, rect, interactable=True, loop=False, preview_thumbnails=0)
@@ -77,13 +83,15 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 ## Methods
  - ```zoom_to_fill()``` - Zooms in the video so that the entire frame_rect is filled in, while maintaining aspect ratio.
  - ```zoom_out()``` - Reverts zoom_to_fill()
- - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - ```get_queue()```
  - ```resize(size)```
  - ```move(pos, relative)``` - Moves the VideoPlayer. If relative is true, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
  - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
  - ```draw(surface)``` - Draws the VideoPlayer onto the given Surface.
  - ```close()``` - Releases resources. Always recommended to call when done.
- - ```skip()``` - Moves onto the next video in queue
+ - ```skip()``` - Moves onto the next video in the queue.
+ - ```get_video()``` - Returns currently playing video.
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig")
 
@@ -95,9 +103,9 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```highlight``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
  - ```font``` - Pygame Font or SysFont object used to render Surfaces. This includes the size of the text.
  - ```encoding``` - Encoding used to open the srt file.
+ - ```offset``` - The higher this number is, the close the subtitle is to the top of the screen.
 
 ## Attributes
-
  - ```path``` - Same as given argument.
  - ```encoding``` - Same as given argument.
  - ```start``` - Starting timestamp of current subtitle.
@@ -107,15 +115,44 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```colour``` - Same as given argument.
  - ```highlight``` - Same as given argument.
  - ```font``` - Same as given argument.
+ - ```offset``` - Same as given argument.
 
 ## Methods 
-
  - ```set_font(font)```
  - ```get_font()```
 
+# Webcam(post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30)
+
+Object used for displaying a webcam feed. Only supported for Pygame.
+
+## Arguments
+ - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
+ - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```fps``` - Maximum number of frames captured from the webcam per second.
+
+## Attributes
+ - ```post_process``` - Same as given argument.
+ - ```interp``` - Same as given argument.
+ - ```fps``` - Same as given argument.
+ - ```original_size```
+ - ```current_size```
+ - ```aspect_ratio``` - Width divided by height.
+ - ```active``` - Whether the webcam is currently playing.
+ - ```frame_data``` - Current video frame as a NumPy ndarray.
+ - ```frame_surf``` - Current video frame as a Pygame Surface.
+
+## Methods
+ - ```play()```
+ - ```stop()```
+ - ```resize(size)```
+ - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
+ - ```close()``` - Releases resources. Always recommended to call when done.
+ - ```get_pos()``` - Returns how long the webcam has been active. Is not reset if webcam is stopped.
+ - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
+ - ```preview()``` - Opens a window and plays the webcam. This method will hang until the window is closed. Videos are played at whatever fps the webcam object is set to.
+
 # PostProcessing
 Used to apply various filters to video playback. Mostly for fun. Works across all graphics libraries.
-
  - ```none``` - Default. Nothing happens.
  - ```blur``` - Slightly blurs frames.
  - ```sharpen``` - An okay-looking sharpen. Looks pretty bad for small resolutions.
@@ -125,13 +162,12 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - ```cel_shading``` - Thickens borders for a comic book style filter.
 
 # Supported Graphics Libraries
-
  - Pygame (```Video```) <- default and best supported
  - Tkinter (```VideoTkinter```)
  - Pyglet (```VideoPyglet```)
  - PyQT6 (```VideoPyQT```)
 
-To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details.
+To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that Subtitles, Webcam, and VideoPlayer only work with Pygame installed.
 
 # Get Version
 

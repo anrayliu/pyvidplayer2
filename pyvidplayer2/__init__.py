@@ -20,6 +20,7 @@ else:
     from .video_pygame import VideoPygame as Video
     from .subtitles import Subtitles
     from .video_player import VideoPlayer
+    from .webcam import Webcam
 
 try:
     import pyglet
@@ -29,7 +30,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-_VERSION = "0.9.6"
+_VERSION = "0.9.7"
 
 def get_version_info() -> dict:
 

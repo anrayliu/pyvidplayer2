@@ -20,14 +20,13 @@ class VideoPygame(Video):
         surf.blit(self.frame_surf, pos)
     
     def preview(self) -> None:
-        pygame.init()
         win = pygame.display.set_mode(self.current_size)
         pygame.display.set_caption(f"pygame - {self.name}")
         self.play()
         while self.active:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.active = False
+                    self.stop()
             pygame.time.wait(16)
             self.draw(win, (0, 0), force_draw=False)
             pygame.display.update()

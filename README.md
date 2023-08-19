@@ -1,4 +1,4 @@
-# pyvidplayer2
+# pyvidplayer2 (please report all bugs!)
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in
 pretty much every way, and finally allows an easy and reliable way to play videos in Python.
@@ -6,23 +6,26 @@ pretty much every way, and finally allows an easy and reliable way to play video
 All the features from the original library have been ported over, with the exception of ```alt_resize()```. Since pyvidplayer2 has a completely revamped foundation, the unreliability of ```set_size()``` has been quashed, and a fallback function is now redundant.
 
 # Features (tested on Windows)
-- Easy to implement
+- Easy to implement (4 lines of code)
 - Reliable playback
 - Fast load times
+- Adjust playback speed
 - No audio/video sync issues
 - Low cpu usage
-- Subtitle support
+- Subtitle support (.srt)
 - Play multiple videos in parallel
 - Built in GUI
 - Support for Pygame, Pyglet, Tkinter, and PyQT6
 - Can play all ffmpeg supported video formats
 - Post process effects
+- Webcam feed
 
 # Installation
 ```
 pip install pyvidplayer2
 ```
-Note: FFMPEG must be installed and accessible via PATH.
+Note: FFMPEG must be installed and accessible via the system PATH. Here's an online article on how to do this (windows):
+https://phoenixnap.com/kb/ffmpeg-windows
 
 # Quickstart
 
@@ -72,3 +75,8 @@ while True:
     pygame.time.wait(16) # around 60 fps
 
 ```
+
+# Potential Features (help welcome)
+
+- Stream online videos
+- Support for subtitle formats other than .srt

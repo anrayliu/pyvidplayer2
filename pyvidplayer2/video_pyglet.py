@@ -20,10 +20,9 @@ class VideoPyglet(Video):
         self.frame_surf.blit(*pos)
 
     def draw(self, pos: Tuple[int, int], force_draw=True) -> bool:
-        if self._update() or force_draw:
-            if self.frame_surf is not None:
-                self._render_frame(pos) # (0, 0) pos draws the video bottomleft
-                return True
+        if (self._update() or force_draw) and self.frame_surf is not None:
+            self._render_frame(pos) # (0, 0) pos draws the video bottomleft
+            return True
         return False
     
     def preview(self) -> None:

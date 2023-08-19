@@ -25,12 +25,13 @@ class PyaudioHandler:
         self.active = False
 
         self.volume = 1.0
+        self.muted = False
 
     def get_busy(self):
         return self.active
 
     def load(self, bytes):
-        if self.active:
+        if self.loaded:
             self.unload()
 
         try:
@@ -81,7 +82,7 @@ class PyaudioHandler:
             else:
                 audio = numpy.frombuffer(data, dtype=numpy.int16)
 
-                if self.volume == 0.0:
+                if self.volume == 0.0 or self.muted:
                     audio = numpy.zeros_like(audio)
                 else:
                     db = 20 * math.log10(self.volume)
@@ -104,7 +105,7 @@ class PyaudioHandler:
         return self.position
 
     def stop(self):
-        if self.active:
+        if self.loaded:
             self.stop_thread = True
             self.thread.join()
             self.position = 0
@@ -114,3 +115,9 @@ class PyaudioHandler:
 
     def unpause(self):
         self.paused = False
+
+    def mute(self):
+        self.muted = True 
+
+    def unmute(self):
+        self.muted = False 

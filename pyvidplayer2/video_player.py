@@ -241,12 +241,13 @@ class VideoPlayer:
     def close(self) -> None:
         self.video.close()
         self._close_queue()
+        
     def skip(self) -> None:
         self.video.stop() if self.loop else self.video.close()
 
     def get_next(self) -> None | Video | str:
         return self.queue_[0] if self.queue_ else None
     
-    def clear_queue(self):
+    def clear_queue(self) -> None:
         self._close_queue()
         self.queue_ = []

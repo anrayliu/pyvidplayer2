@@ -5,4 +5,4 @@ dist/
 build.txt
 test.py
 resources/
-music/
+.VSCodeCounter/

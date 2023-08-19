@@ -45,6 +45,13 @@ class VideoPlayer:
     def __str__(self) -> str:
         return f"<VideoPlayer(path={self.path})>"
     
+    def _close_queue(self):
+        for video in self.queue_:
+            try:
+                video.close()
+            except AttributeError:
+                pass
+    
     def _get_interval_frames(self):
         size = (int(70 * self.video.aspect_ratio), 70)
         for i in range(self.preview_thumbnails):
@@ -233,11 +240,13 @@ class VideoPlayer:
 
     def close(self) -> None:
         self.video.close()
-        for video in self.queue_:
-            try:
-                video.close()
-            except AttributeError:
-                pass
-
+        self._close_queue()
     def skip(self) -> None:
         self.video.stop() if self.loop else self.video.close()
+
+    def get_next(self) -> None | Video | str:
+        return self.queue_[0] if self.queue_ else None
+    
+    def clear_queue(self):
+        self._close_queue()
+        self.queue_ = []

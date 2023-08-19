@@ -1,6 +1,7 @@
 import cv2
 import pygame
 import time
+import numpy
 from .post_processing import PostProcessing
 from typing import Tuple
 
@@ -10,7 +11,7 @@ class Webcam:
         self._vid = cv2.VideoCapture(0)
 
         if not self._vid.isOpened():
-            raise FileNotFoundError(f'Failed to open webcam.')
+            raise FileNotFoundError(f"Failed to find webcam.")
 
         self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         self.current_size = self.original_size
@@ -84,10 +85,10 @@ class Webcam:
                 return True
         return False
 
-    def _create_frame(self, data):
+    def _create_frame(self, data: numpy.ndarray) -> pygame.Surface:
         return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
     
-    def _render_frame(self, surf, pos):
+    def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]):
         surf.blit(self.frame_surf, pos)
     
     def preview(self):

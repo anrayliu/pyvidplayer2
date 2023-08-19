@@ -3,7 +3,6 @@ import subprocess
 import os
 from typing import Tuple 
 from threading import Thread
-from io import BytesIO
 from .pyaudio_handler import PyaudioHandler
 
 try:
@@ -52,6 +51,7 @@ class Video:
         self.active = False
         self.buffering = False
         self.paused = False
+        self.muted = False
 
         self.subs = subs
         self.post_func = post_process
@@ -65,6 +65,8 @@ class Video:
         else:    
             self._audio = PyaudioHandler()
         self.use_pygame_audio = use_pygame_audio
+
+        self.speed = 1
         
         self.play()
 
@@ -89,7 +91,7 @@ class Video:
 
         self._chunks.append(None)
 
-        s = self._convert_seconds(self._starting_time + (self._chunks_claimed - 1) * self.chunk_size)
+        s = self._convert_seconds((self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) * (1 / self.speed))
 
         command = [
             "ffmpeg",
@@ -99,6 +101,9 @@ class Video:
             str(s),
             "-t",
             str(self._convert_seconds(self.chunk_size)),
+            "-filter:a",
+            f"atempo={self.speed}",
+            "-vn",
             "-f",
             "wav",
             "-loglevel",
@@ -163,7 +168,7 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                self._audio.load(BytesIO(self._chunks.pop(0)))
+                self._audio.load(self._chunks.pop(0))
                 self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()
@@ -171,7 +176,24 @@ class Video:
                 self.buffering = True
     
         return n
-    
+
+    def mute(self) -> None:
+        if self.active:
+            self.muted = True
+            self._audio.mute()
+
+    def unmute(self) -> None:
+        if self.active:
+            self.muted = False
+            self._audio.unmute()
+
+    def set_speed(self, speed: float) -> None:
+        self.speed = max(0.5, min(10, speed))
+        self.seek(0)
+
+    def get_speed(self) -> float:
+        return self.speed
+
     def play(self) -> None:
         self.active = True
 
@@ -223,7 +245,7 @@ class Video:
             self._audio.unpause()
 
     def get_pos(self) -> float:
-        return min(self.duration, self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos())
+        return min(self.duration, self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed)
 
     def seek(self, time: float, relative=True) -> None:
         # seeking accurate to 1 tenth of a second
@@ -237,6 +259,7 @@ class Video:
         self._threads = []
         self._chunks_claimed = 0
         self._chunks_played = 0
+
         self._audio.unload()
 
         self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)

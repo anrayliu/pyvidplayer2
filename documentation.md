@@ -31,6 +31,8 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```active``` - Whether the video is currently playing. This is unaffected by pausing and resuming.
  - ```buffering``` - Whether the video is waiting for audio to extract.
  - ```paused```
+ - ```muted```
+ - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
  - ```subs``` - Same as given argument.
  - ```post_func``` - Same as given argument.
  - ```interp``` - Same as given argument.
@@ -43,15 +45,19 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
  - ```close()``` - Releases resources. Always recommended to call when done.
  - ```restart() ```
+ - ```set_speed(speed)``` - Accepts a float from 0.5 (half speed) to 10.0 (ten times speed)
+ - ```get_speed()```
  - ```set_volume(volume)``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
  - ```get_volume()```
  - ```get_paused()```
  - ```toggle_pause()``` - Pauses if the video is playing, and resumes if the video is paused.
  - ```pause()```
  - ```resume()```
+ - ```mute()```
+ - ```unmute()```
  - ```get_pos()``` - Returns the current position in seconds.
  - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one tenth of a second.
-  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
+ - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - ```preview()``` - Opens a window and plays the video. This method will hang until the video closes. Videos are played at 60 fps with force_draw disabled.
 
 # VideoPlayer(video, rect, interactable=True, loop=False, preview_thumbnails=0)
@@ -97,7 +103,6 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```encoding``` - Encoding used to open the srt file.
 
 ## Attributes
-
  - ```path``` - Same as given argument.
  - ```encoding``` - Same as given argument.
  - ```start``` - Starting timestamp of current subtitle.
@@ -109,7 +114,6 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```font``` - Same as given argument.
 
 ## Methods 
-
  - ```set_font(font)```
  - ```get_font()```
 
@@ -123,7 +127,6 @@ Object used for displaying a webcam feed.
  - ```fps``` - Maximum number of frames captured from the webcam per second.
 
 ## Attributes
-
  - ```post_process``` - Same as given argument.
  - ```interp``` - Same as given argument.
  - ```fps``` - Same as given argument.
@@ -135,19 +138,17 @@ Object used for displaying a webcam feed.
  - ```frame_surf``` - Current video frame as a Pygame Surface.
 
 ## Methods
-
  - ```play()```
  - ```stop()```
  - ```resize(size)```
  - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
  - ```close()``` - Releases resources. Always recommended to call when done.
  - ```get_pos()``` - Returns how long the webcam has been active. Is not reset if webcam is stopped.
-  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn. 
+ - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - ```preview()``` - Opens a window and plays the webcam. This method will hang until the window is closed. Videos are played at whatever fps the webcam object is set to.
 
 # PostProcessing
 Used to apply various filters to video playback. Mostly for fun. Works across all graphics libraries.
-
  - ```none``` - Default. Nothing happens.
  - ```blur``` - Slightly blurs frames.
  - ```sharpen``` - An okay-looking sharpen. Looks pretty bad for small resolutions.
@@ -157,13 +158,12 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - ```cel_shading``` - Thickens borders for a comic book style filter.
 
 # Supported Graphics Libraries
-
  - Pygame (```Video```) <- default and best supported
  - Tkinter (```VideoTkinter```)
  - Pyglet (```VideoPyglet```)
  - PyQT6 (```VideoPyQT```)
 
-To use other libraries instead of Pygame, use their respective video object. Subtitle support is lost, but they otherwise behave just like a Video. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details.
+To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that Subtitles, Webcam, and VideoPlayer only work with Pygame installed.
 
 # Get Version
 

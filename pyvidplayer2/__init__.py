@@ -30,7 +30,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-_VERSION = "0.9.6"
+_VERSION = "0.9.7"
 
 def get_version_info() -> dict:
 

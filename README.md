@@ -7,11 +7,9 @@ All the features from the original library have been ported over, with the excep
 
 # Features (tested on Windows)
 - Easy to implement (4 lines of code)
-- Reliable playback
-- Fast load times
+- Fast and reliable
 - Adjust playback speed
 - No audio/video sync issues
-- Low cpu usage
 - Subtitle support (.srt)
 - Play multiple videos in parallel
 - Built in GUI
@@ -80,3 +78,4 @@ while True:
 
 - Stream online videos
 - Support for subtitle formats other than .srt
+- Reverse video playing

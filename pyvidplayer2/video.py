@@ -56,6 +56,7 @@ class Video:
         self.subs = subs
         self.post_func = post_process
         self.interp = interp
+        self.use_pygame_audio = use_pygame_audio
 
         if use_pygame_audio:
             try:
@@ -64,7 +65,6 @@ class Video:
                 raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed.")
         else:    
             self._audio = PyaudioHandler()
-        self.use_pygame_audio = use_pygame_audio
 
         self.speed = 1
         
@@ -101,8 +101,6 @@ class Video:
             str(s),
             "-t",
             str(self._convert_seconds(self.chunk_size)),
-            "-filter:a",
-            f"atempo={self.speed}",
             "-vn",
             "-f",
             "wav",
@@ -110,6 +108,9 @@ class Video:
             "quiet",
             "-"
         ]
+
+        if self.speed != 1:
+            command = command[:7] + ["-filter:a", f"atempo={self.speed}"] + command[7:]
 
         try:
             p = subprocess.run(command, capture_output=True)

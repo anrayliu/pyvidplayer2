@@ -32,8 +32,8 @@ else:
 
 _VERSION = "0.9.7"
 
-def get_version_info() -> dict:
 
+def get_version_info() -> dict:
     try:
         pygame_ver = pygame.version.ver
     except NameError:

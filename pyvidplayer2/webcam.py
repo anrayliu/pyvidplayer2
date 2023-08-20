@@ -3,6 +3,7 @@ import pygame
 import time
 import numpy
 from .post_processing import PostProcessing
+from .error import Pyvidplayer2Error
 from typing import Tuple
 
 
@@ -11,7 +12,7 @@ class Webcam:
         self._vid = cv2.VideoCapture(0)
 
         if not self._vid.isOpened():
-            raise FileNotFoundError(f"Failed to find webcam.")
+            raise Pyvidplayer2Error("Failed to find webcam.")
 
         self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         self.current_size = self.original_size

@@ -7,9 +7,6 @@ amount of ParallelVideos as one
 import pygame
 from pyvidplayer2 import Video, VideoPlayer
 
-PATH1 = r"resources\trailer1.mp4"
-PATH2 = r"resources\trailer2.mp4"
-
 win = pygame.display.set_mode((1066, 744))
 pygame.display.set_caption("video collection demo")
 

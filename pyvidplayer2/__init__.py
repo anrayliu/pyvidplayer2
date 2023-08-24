@@ -1,7 +1,7 @@
 import subprocess 
 
 from .post_processing import PostProcessing 
-from .video_tkinter import VideoTkinter
+from .video_tkinter import VideoTkinter as Video
 
 try:
     import PyQt6
@@ -30,7 +30,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-_VERSION = "0.9.7"
+_VERSION = "0.9.8"
 
 
 def get_version_info() -> dict:

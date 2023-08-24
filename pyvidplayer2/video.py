@@ -85,9 +85,8 @@ class Video:
         d = round(seconds % 1, 1)
         return f"{h}:{m}:{s}.{int(d * 10)}"
 
-    def _threaded_load(self) -> None:
-        self._chunks_claimed += 1
-        i = self._chunks_claimed # assigned to variable so another thread does not change it
+    def _threaded_load(self, index) -> None:
+        i = index # assigned to variable so another thread does not change it
 
         self._chunks.append(None)
 
@@ -126,7 +125,8 @@ class Video:
 
         self._stop_loading = self._starting_time + self._chunks_claimed * self.chunk_size >= self.duration
         if not self._stop_loading and len(self._threads) < self.max_threads and self._chunks_len() + len(self._threads) < self.max_chunks:
-            self._threads.append(Thread(target=self._threaded_load))
+            self._chunks_claimed += 1
+            self._threads.append(Thread(target=self._threaded_load, args=(self._chunks_claimed,)))
             self._threads[-1].start()
 
     def _write_subs(self) -> None:

@@ -1,5 +1,5 @@
-numpy==1.24.3
-opencv_python==4.7.0.72
-pygame==2.4.0
-srt==3.5.3
-PyAudio==0.2.13
+numpy
+opencv_python
+pygame
+srt
+PyAudio

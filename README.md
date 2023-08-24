@@ -22,8 +22,8 @@ All the features from the original library have been ported over, with the excep
 ```
 pip install pyvidplayer2
 ```
-Note: FFMPEG must be installed and accessible via the system PATH. Here's an online article on how to do this (windows):
-https://phoenixnap.com/kb/ffmpeg-windows
+Note: FFMPEG (just the essentials is fine) must be installed and accessible via the system PATH. Here's an online article on how to do this (windows):
+https://phoenixnap.com/kb/ffmpeg-windows.
 
 # Quickstart
 

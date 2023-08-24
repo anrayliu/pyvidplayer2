@@ -16,7 +16,7 @@ setup(
     author_email="anrayliu@gmail.com",
     license="MIT",
     packages=["pyvidplayer2"],
-    install_requires=["numpy",
+    install_requires=["numpy<1.25,>=1.21",
                     "opencv_python",
                     "pygame",
                     "srt",

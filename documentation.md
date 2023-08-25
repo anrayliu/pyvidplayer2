@@ -16,6 +16,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```path``` - Same as given argument.
  - ```name``` - Name of file without the directory and extension.
  - ```ext``` - Type of video (mp4, mkv, mov, etc).
+ - ```frame``` - Current frame index. Starts from 0.
  - ```frame_rate``` - How many frames are in one second.
  - ```frame_count``` - How many total frames there are.
  - ```frame_delay``` - Time between frames in order to maintain frame rate (in fractions of a second).

@@ -44,6 +44,7 @@ class Video:
         self._chunks_claimed = 0
         self._chunks_played = 0
         self._stop_loading = False
+        self.frame = 0
 
         self.frame_data = None
         self.frame_surf = None
@@ -108,8 +109,11 @@ class Video:
             "-"
         ]
 
+        filters = []
         if self.speed != 1:
-            command = command[:7] + ["-filter:a", f"atempo={self.speed}"] + command[7:]
+            filters += ["-filter:a", f"atempo={self.speed}"]
+
+        command = command[:7] + filters + command[7:]
 
         try:
             p = subprocess.run(command, capture_output=True)
@@ -147,9 +151,10 @@ class Video:
 
         if self._audio.get_busy() or self.paused:
 
-            while self.get_pos() > self._vid.get(cv2.CAP_PROP_POS_FRAMES) * self.frame_delay:
+            while self.get_pos() > self.frame * self.frame_delay:
 
                 has_frame, data = self._vid.read()
+                self.frame += 1
                 
                 if has_frame:
                     if self.original_size != self.current_size:
@@ -215,6 +220,8 @@ class Video:
         self._audio.unload()
         for t in self._threads:
             t.join()
+        if not self.use_pygame_audio:
+            self._audio.close()
 
     def restart(self) -> None:
         self.seek(0, relative=False)
@@ -262,6 +269,7 @@ class Video:
         self._audio.unload()
 
         self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)
+        self.frame = int(self._vid.get(cv2.CAP_PROP_POS_FRAMES))
         if self.subs is not None:
             self.subs._seek(self._starting_time)
 

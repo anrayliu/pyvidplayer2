@@ -78,4 +78,3 @@ while True:
 
 - Stream online videos
 - Support for subtitle formats other than .srt
-- Reverse video playing

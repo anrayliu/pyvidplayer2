@@ -7,9 +7,6 @@ from threading import Thread
 from io import BytesIO
 
 
-_p = pyaudio.PyAudio()
-
-
 class PyaudioHandler:
     def __init__(self) -> None:
         self.stream = None
@@ -27,36 +24,41 @@ class PyaudioHandler:
         self.volume = 1.0
         self.muted = False
 
+        self.p = pyaudio.PyAudio()
+        self.stream = None 
+
     def get_busy(self):
         return self.active
 
     def load(self, bytes):
-        if self.loaded:
-            self.unload()
+        self.unload()
 
         try:
             self.wave = wave.open(BytesIO(bytes), "rb")
         except EOFError:
             raise EOFError("Audio is empty. This may mean the file is corrupted.")
 
-        self.stream = _p.open(
-        format=_p.get_format_from_width(self.wave.getsampwidth()),
-        channels=self.wave.getnchannels(),
-        rate=self.wave.getframerate(),
-        output=True)
+        if self.stream is None:
+            self.stream = self.p.open(
+            format=self.p.get_format_from_width(self.wave.getsampwidth()),
+            channels=self.wave.getnchannels(),
+            rate=self.wave.getframerate(),
+            output=True)
 
         self.loaded = True
+
+    def close(self):
+        self.stream.stop_stream()
+        self.stream.close()
+        self.p.terminate()
 
     def unload(self):
         if self.loaded:
             self.stop()
 
-            self.stream.stop_stream()
-            self.stream.close()
             self.wave.close()
 
             self.wave = None 
-            self.stream = None
             self.thread = None
 
             self.loaded = False

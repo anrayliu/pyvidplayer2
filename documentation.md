@@ -54,6 +54,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```toggle_pause()``` - Pauses if the video is playing, and resumes if the video is paused.
  - ```pause()```
  - ```resume()```
+ - ```toggle_mute()```
  - ```mute()```
  - ```unmute()```
  - ```get_pos()``` - Returns the current position in seconds.
@@ -99,7 +100,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 Object used for handling subtitles. Only supported for Pygame.
 
 ## Arguments
- - ```path``` - Path to subtitle file. Currently only srt files are supported.
+ - ```path``` - Path to subtitle file. This can be any file pysubs2 can read, including .srt, .ass, .vtt, and others.
  - ```colour``` - Colour of text.
  - ```highlight``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
  - ```font``` - Pygame Font or SysFont object used to render Surfaces. This includes the size of the text.

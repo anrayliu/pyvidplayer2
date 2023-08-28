@@ -91,7 +91,7 @@ class Webcam:
     def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]):
         surf.blit(self.frame_surf, pos)
     
-    def preview(self):
+    def preview(self) -> None:
         win = pygame.display.set_mode(self.current_size)
         pygame.display.set_caption(f"webcam")
         self.play()

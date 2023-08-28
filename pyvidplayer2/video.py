@@ -68,6 +68,8 @@ class Video:
             self._audio = PyaudioHandler()
 
         self.speed = 1
+
+        self._missing_ffmpeg = False # for throwing errors
         
         self.play()
 
@@ -118,7 +120,7 @@ class Video:
         try:
             p = subprocess.run(command, capture_output=True)
         except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFMPEG")
+            self._missing_ffmpeg = True
         
         self._chunks[i - self._chunks_played - 1] = p.stdout
 
@@ -144,6 +146,9 @@ class Video:
                 self.subs._write_subs(self.frame_surf)
 
     def _update(self) -> bool:
+        if self._missing_ffmpeg:
+            raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via $PATH.")
+        
         self._update_threads()
 
         n = False
@@ -192,8 +197,10 @@ class Video:
         self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
-        self.speed = max(0.5, min(10, speed))
-        self.seek(0) # must reload audio chunks
+        speed = max(0.5, min(10, speed))
+        if speed != self.speed:
+            self.speed = speed
+            self.seek(0) # must reload audio chunks
 
     def get_speed(self) -> float:
         return self.speed
@@ -239,6 +246,9 @@ class Video:
     
     def toggle_pause(self) -> None:
         self.resume() if self.paused else self.pause()
+
+    def toggle_mute(self) -> None:
+        self.unmute() if self.muted else self.mute()
 
     def pause(self) -> None:
         if self.active:
@@ -286,5 +296,4 @@ class Video:
         pass
     
     def preview(self):
-        pass 
-
+        pass

@@ -21,7 +21,7 @@ class VideoPyQT(Video):
     def _render_frame(self, win: QMainWindow, pos: Tuple[int, int]) -> None: #must be called in paintEvent
         QPainter(win).drawPixmap(*pos, QPixmap.fromImage(self.frame_surf))
 
-    def preview(self):
+    def preview(self) -> None:
         class Window(QMainWindow):
             def __init__(self):
                 super().__init__()

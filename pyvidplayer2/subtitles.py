@@ -1,15 +1,13 @@
 import pygame 
-import srt 
-import re 
+import pysubs2
 
 
 class Subtitles:
-    def __init__(self, path: str, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50) -> None:
+    def __init__(self, path: str, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8", offset=50) -> None:
         self.path = path
         self.encoding = encoding
 
-        with open(self.path, "r", encoding=self.encoding) as f:
-            self._subs = srt.parse(f.read())
+        self._subs = iter(pysubs2.load(path, encoding=encoding))
 
         self.start = 0
         self.end = 0
@@ -20,8 +18,6 @@ class Subtitles:
         self.colour = colour
         self.highlight = highlight 
         self.font = font
-
-        self._re_compile = re.compile('<.*?>')
 
     def __str__(self) -> str:
         return f"<Subtitles(path={self.path})>"
@@ -49,21 +45,20 @@ class Subtitles:
             self.surf = pygame.Surface((0, 0))
             return False 
         else:
-            self.start = s.start.total_seconds()
-            self.end = s.end.total_seconds()
-            self.text = re.sub(self._re_compile, '', s.content)
+            self.start = s.start / 1000
+            self.end = s.end / 1000
+            self.text = s.plaintext
             self.surf = self._to_surf(self.text)
             return True
 
     def _seek(self, time: float) -> None:
-        with open(self.path, "r", encoding=self.encoding) as f:
-            self._subs = srt.parse(f.read())
+        self._subs = iter(pysubs2.load(self.path, encoding=self.encoding))
 
         while not (self.start <= time <= self.end):
             if not self._get_next():
                 break
 
-    def _write_subs(self, surf):
+    def _write_subs(self, surf: pygame.Surface) -> None:
         surf.blit(self.surf, (surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
         
     def set_font(self, font: pygame.font.SysFont) -> None:

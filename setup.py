@@ -18,7 +18,6 @@ setup(
     packages=["pyvidplayer2"],
     install_requires=["numpy<1.25,>=1.21",
                     "opencv_python",
-                    "pygame",
                     "pysubs2",
                     "PyAudio"],
     url="https://github.com/ree1261/pyvidplayer2",

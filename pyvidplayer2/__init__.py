@@ -1,7 +1,13 @@
 import subprocess 
 
 from .post_processing import PostProcessing 
-from .video_tkinter import VideoTkinter
+
+try:
+    import tkinter
+except ImportError:
+    pass 
+else:
+    from .video_tkinter import VideoTkinter
 
 try:
     import PyQt6
@@ -30,7 +36,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-_VERSION = "0.9.11"
+_VERSION = "0.9.12"
 
 
 def get_version_info() -> dict:

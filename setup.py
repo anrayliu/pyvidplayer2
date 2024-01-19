@@ -24,4 +24,5 @@ setup(
     url="https://github.com/ree1261/pyvidplayer2",
     platforms=["windows"],
     keywords=["pygame", "video", "playback"],
+    python_requires=">=3.10"
 )

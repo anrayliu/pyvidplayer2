@@ -1,5 +1,6 @@
 # pyvidplayer2 (please report all bugs!)
-https://github.com/anrayliu/pyvidplayer2/blob/Update-README/README.cn.md
+语言: English | [中文](https://github.com/anrayliu/pyvidplayer2/blob/Update-README/README.cn.md)
+
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in
 pretty much every way, and finally allows an easy and reliable way to play videos in Python.

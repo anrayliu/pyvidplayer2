@@ -1,5 +1,5 @@
 # pyvidplayer2 (please report all bugs!)
-Languages: English | [中文](https://github.com/anrayliu/pyvidplayer2/blob/Update-README/README.cn.md)
+Languages: English | [中文](https://github.com/anrayliu/pyvidplayer2/blob/main/README.cn.md)
 
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in

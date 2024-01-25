@@ -1,4 +1,5 @@
 # pyvidplayer2（请报告所有的错误！）
+语言: [English](https://github.com/anrayliu/pyvidplayer2/blob/Update-README/README.md) | 中文
 
 介绍 pyvidplayer2，它是 pyvidplayer 的继任者。在几乎所有方面都更好，终于可以轻松可靠地在 Python 中播放视频。
 

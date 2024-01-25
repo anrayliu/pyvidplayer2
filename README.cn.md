@@ -19,7 +19,9 @@
 - 摄像头视频捕获
 
 # 安装
+```
 pip install pyvidplayer2
+```
 
 注意：必须安装并通过系统 PATH 访问 FFMPEG（仅需要基本组件）。这里有一篇关于如何在 Windows 上执行此操作的在线文章：
 https://phoenixnap.com/kb/ffmpeg-windows。

@@ -177,4 +177,5 @@ To use other libraries instead of Pygame, use their respective video object. Eac
 print(pyvidplayer2.get_version_info())
 ```
 
-Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame.
+Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
+with ```pyvidplayer2.VERSION```.

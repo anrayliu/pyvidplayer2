@@ -36,7 +36,7 @@ class PyaudioHandler:
         try:
             self.wave = wave.open(BytesIO(bytes), "rb")
         except EOFError:
-            raise EOFError("Audio is empty. This may mean the file is corrupted.")
+            raise EOFError("Audio is empty. This may mean the file is corrupted or FFMPEG is not working properly.")
 
         if self.stream is None:
             self.stream = self.p.open(

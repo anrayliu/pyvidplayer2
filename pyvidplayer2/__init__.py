@@ -36,7 +36,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-_VERSION = "0.9.12"
+VERSION = "0.9.13"
 
 
 def get_version_info() -> dict:
@@ -50,6 +50,6 @@ def get_version_info() -> dict:
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 
-    return {"pyvidplayer2": _VERSION,
+    return {"pyvidplayer2": VERSION,
             "ffmpeg": ffmpeg_ver,
             "pygame": pygame_ver}

@@ -2,6 +2,7 @@
 A quick example showing how pyvidplayer2 can be used in more complicated applications
 This is a Picture-in-Picture app
 '''
+# pip install pywin32 before using
 
 
 import pygame
@@ -49,7 +50,10 @@ while True:
         # weird behaviour with SetForegroundWindow that requires the alt key to be pressed before it's called
 
         shell.SendKeys("%")
-        SetForegroundWindow(hwnd)
+        try:
+            SetForegroundWindow(hwnd)
+        except: # catches weird errors
+            pass
 
     # handles video playback
 

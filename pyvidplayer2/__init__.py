@@ -1,7 +1,13 @@
 import subprocess 
 
 from .post_processing import PostProcessing 
-from .video_tkinter import VideoTkinter
+
+try:
+    import tkinter
+except ImportError:
+    pass 
+else:
+    from .video_tkinter import VideoTkinter
 
 try:
     import PyQt6
@@ -44,6 +50,6 @@ def get_version_info() -> dict:
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 
-    return {"pyvidplayer2": _VERSION,
+    return {"pyvidplayer2": VERSION,
             "ffmpeg": ffmpeg_ver,
             "pygame": pygame_ver}

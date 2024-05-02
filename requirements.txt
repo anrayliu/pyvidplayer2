@@ -1,4 +1,4 @@
-numpy<1.25,>=1.21
+numpy
 opencv_python
 pygame
 pysubs2

@@ -1,6 +1,5 @@
 '''
-This is an example of a VideoCollection, which allows you to treat a large
-amount of ParallelVideos as one
+This is an example of playing many videos at once
 '''
 
 
@@ -8,7 +7,7 @@ import pygame
 from pyvidplayer2 import Video, VideoPlayer
 
 win = pygame.display.set_mode((1066, 744))
-pygame.display.set_caption("video collection demo")
+pygame.display.set_caption("many videos demo")
 
 
 videos = [VideoPlayer(Video(r"resources\billiejean.mp4"), (0, 0, 426, 240),  interactable=False),

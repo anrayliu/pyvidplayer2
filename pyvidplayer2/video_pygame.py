@@ -2,24 +2,23 @@ import cv2
 import pygame 
 import numpy
 from .video import Video
-from typing import Tuple
 from .post_processing import PostProcessing
 
 
 class VideoPygame(Video):
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio)
+    def __init__(self, path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False):
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoPygame(path={self.path})>"
 
-    def _create_frame(self, data: numpy.ndarray) -> pygame.Surface:
+    def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
     
-    def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]) -> None:
+    def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)
     
-    def preview(self) -> None:
+    def preview(self):
         win = pygame.display.set_mode(self.current_size)
         pygame.display.set_caption(f"pygame - {self.name}")
         self.play()

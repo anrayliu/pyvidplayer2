@@ -36,10 +36,10 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-_VERSION = "0.9.14"
+VERSION = "0.9.14"
 
 
-def get_version_info() -> dict:
+def get_version_info():
     try:
         pygame_ver = pygame.version.ver
     except NameError:

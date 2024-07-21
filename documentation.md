@@ -1,4 +1,4 @@
-# Video(path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False)
+# Video(path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False)
 
 Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). This object uses Pygame for graphics. See bottom for other supported libraries.
 
@@ -11,6 +11,8 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
  - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio.
+ - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer.
+ - ```no_audio``` - Set this to true if the given video has no audio track. Otherwise, the video will be read as corrupted. Setting this to true can also be used to mute existing audio tracks.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -38,6 +40,8 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```post_func``` - Same as given argument.
  - ```interp``` - Same as given argument.
  - ```use_pygame_audio``` - Same as given argument.
+ - ```reverse``` - Same as given argument.
+ - ```no_audio``` - Same as given argument.
 
 ## Methods
  - ```play()```

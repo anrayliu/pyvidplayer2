@@ -4,11 +4,10 @@ import time
 import numpy
 from .post_processing import PostProcessing
 from .error import Pyvidplayer2Error
-from typing import Tuple
 
 
 class Webcam:
-    def __init__(self, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30) -> None:
+    def __init__(self, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30):
         self._vid = cv2.VideoCapture(0)
 
         if not self._vid.isOpened():
@@ -33,10 +32,10 @@ class Webcam:
 
         self.play()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<Webcam(fps={self.fps})>"
     
-    def _update(self) -> bool:
+    def _update(self):
         if self.active:
 
             if time.time() - self._last_tick > self._frame_delay:
@@ -58,40 +57,40 @@ class Webcam:
 
         return False
     
-    def play(self) -> None:
+    def play(self):
         self.active = True
 
-    def stop(self) -> None:
+    def stop(self):
         self.active = False
         self.frame_data = None
         self.frame_surf = None
 
-    def resize(self, size: Tuple[int, int]) -> None:
+    def resize(self, size):
         self.current_size = size
 
-    def change_resolution(self, height: int) -> None:
+    def change_resolution(self, height):
         self.current_size = (int(height * self.aspect_ratio), height)
 
-    def close(self) -> None:
+    def close(self):
         self.stop()
         self._vid.release()
 
-    def get_pos(self) -> float:
+    def get_pos(self):
         return self._frames / self.fps
 
-    def draw(self, surf, pos: Tuple[int, int], force_draw=True) -> bool:
+    def draw(self, surf, pos, force_draw=True):
         if (self._update() or force_draw) and self.frame_surf is not None:
             self._render_frame(surf, pos)
             return True
         return False
 
-    def _create_frame(self, data: numpy.ndarray) -> pygame.Surface:
+    def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
     
-    def _render_frame(self, surf: pygame.Surface, pos: Tuple[int, int]):
+    def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)
     
-    def preview(self) -> None:
+    def preview(self):
         win = pygame.display.set_mode(self.current_size)
         pygame.display.set_caption(f"webcam")
         self.play()

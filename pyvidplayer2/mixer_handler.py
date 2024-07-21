@@ -3,7 +3,7 @@ from io import BytesIO
 
 
 class MixerHandler:
-    def __init__(self) -> None:
+    def __init__(self):
         self.muted = False
         self.volume = 1
 

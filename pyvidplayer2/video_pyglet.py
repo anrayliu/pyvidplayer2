@@ -2,30 +2,29 @@ import cv2
 import pyglet 
 import numpy
 from .video import Video
-from typing import Tuple
 from .post_processing import PostProcessing
 
 
 class VideoPyglet(Video):
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio)
+    def __init__(self, path, chunk_size=300, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False):
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoPyglet(path={self.path})>"
 
-    def _create_frame(self, data: numpy.ndarray) -> pyglet.image.ImageData:
+    def _create_frame(self, data):
         return pyglet.image.ImageData(*self.current_size, "BGR", cv2.flip(data, 0).tobytes())
     
-    def _render_frame(self, pos: Tuple[int, int]) -> None:
+    def _render_frame(self, pos):
         self.frame_surf.blit(*pos)
 
-    def draw(self, pos: Tuple[int, int], force_draw=True) -> bool:
+    def draw(self, pos, force_draw=True):
         if (self._update() or force_draw) and self.frame_surf is not None:
             self._render_frame(pos) # (0, 0) pos draws the video bottomleft
             return True
         return False
     
-    def preview(self) -> None:
+    def preview(self):
         def update(dt):
             self.draw((0, 0), force_draw=False)
             if not self.active:

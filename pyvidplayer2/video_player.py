@@ -1,12 +1,11 @@
 import pygame
 import cv2 
 import math
-from typing import Tuple, List
 from . import Video
 
 
 class VideoPlayer:
-    def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable=True, loop=False, preview_thumbnails=0) -> None:
+    def __init__(self, video, rect, interactable=True, loop=False, preview_thumbnails=0):
 
         self.video = video
         self.frame_rect = pygame.Rect(rect)
@@ -42,7 +41,7 @@ class VideoPlayer:
             self._interval_frames = []
             self._get_interval_frames()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoPlayer(path={self.path})>"
     
     def _close_queue(self):
@@ -80,7 +79,7 @@ class VideoPlayer:
         else:
             return self._interval_frames[i + 1]
         
-    def _best_fit(self, rect: pygame.Rect, r: float) -> pygame.Rect:
+    def _best_fit(self, rect, r):
         s = rect.size
         r = self.video.aspect_ratio
         
@@ -96,7 +95,7 @@ class VideoPlayer:
             
         return pygame.Rect(rect.x + x, rect.y + y, w, h)
 
-    def _transform(self, rect: pygame.Rect) -> None:
+    def _transform(self, rect):
         self.frame_rect = rect
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
         self.video.resize(self.vid_rect.size)
@@ -112,10 +111,10 @@ class VideoPlayer:
         self._buffer_rect = pygame.Rect(0, 0, 200, 200)
         self._buffer_rect.center = self.frame_rect.center
 
-    def _move_angle(self, pos: Tuple[int, int], angle: float, distance: int) -> Tuple[float, float]:
+    def _move_angle(self, pos, angle, distance):
         return pos[0] + math.cos(angle) * distance, pos[1] + math.sin(angle) * distance
     
-    def _convert_seconds(self, time: float) -> str:
+    def _convert_seconds(self, time):
         return self.video._convert_seconds(time).split(".")[0]
     
     def zoom_to_fill(self):
@@ -128,7 +127,7 @@ class VideoPlayer:
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
         self.video.resize(self.vid_rect.size)
 
-    def queue(self, input_: str | Video) -> None:
+    def queue(self, input_):
         self.queue_.append(input_)
 
         # update once to trigger audio loading
@@ -138,18 +137,18 @@ class VideoPlayer:
         except AttributeError:
             pass
         
-    def resize(self, size: Tuple[int, int]) -> None:
+    def resize(self, size):
         self.frame_rect.size = size
         self._transform(self.frame_rect)
 
-    def move(self, pos: Tuple[int, int], relative=False) -> None:
+    def move(self, pos, relative=False):
         if relative:
             self.frame_rect.move_ip(*pos)
         else:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)
 
-    def update(self, events: List[pygame.event.Event] = None, show_ui=None) -> bool:
+    def update(self, events=None, show_ui=None):
         dt = self._clock.tick()
 
         if not self.video.active:
@@ -201,7 +200,7 @@ class VideoPlayer:
 
         return self._show_ui
 
-    def draw(self, win: pygame.Surface) -> None:
+    def draw(self, win):
         pygame.draw.rect(win, "black", self.frame_rect)
         if self.video.frame_surf is not None:
             win.blit(self.video.frame_surf, self.frame_rect.topleft if self.video.current_size > self.frame_rect.size else self.vid_rect.topleft)
@@ -238,22 +237,22 @@ class VideoPlayer:
                 pygame.draw.rect(win, "white", (self.frame_rect.centerx - 15, self.frame_rect.centery - 20, 10, 40))
                 pygame.draw.rect(win, "white", (self.frame_rect.centerx + 5, self.frame_rect.centery - 20, 10, 40))
 
-    def close(self) -> None:
+    def close(self):
         self.video.close()
         self._close_queue()
         
-    def skip(self) -> None:
+    def skip(self):
         self.video.stop() if self.loop else self.video.close()
 
-    def get_next(self) -> None | Video | str:
+    def get_next(self):
         return self.queue_[0] if self.queue_ else None
     
-    def clear_queue(self) -> None:
+    def clear_queue(self):
         self._close_queue()
         self.queue_ = []
 
-    def get_video(self) -> Video:
+    def get_video(self):
         return self.video
     
-    def get_queue(self) -> List:
+    def get_queue(self):
         return self.queue_

@@ -2,25 +2,24 @@ import cv2
 import numpy
 import tkinter
 from .video import Video
-from typing import Tuple
 from .post_processing import PostProcessing
 
 
 class VideoTkinter(Video):
-    def __init__(self, path: str, chunk_size=300, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio)
+    def __init__(self, path, chunk_size=300, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False):
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoTkinter(path={self.path})>"
 
-    def _create_frame(self, data: numpy.ndarray) -> tkinter.PhotoImage:
+    def _create_frame(self, data):
         h, w = data.shape[:2]
         return tkinter.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + cv2.cvtColor(data, cv2.COLOR_BGR2RGB).tobytes(), format='PPM')
 
-    def _render_frame(self, canvas: tkinter.Canvas, pos: Tuple[int, int]) -> None:
+    def _render_frame(self, canvas, pos):
         canvas.create_image(*pos, image=self.frame_surf)
 
-    def preview(self) -> None:
+    def preview(self):
         def update():
             self.draw(canvas, (self.current_size[0] / 2, self.current_size[1] / 2), force_draw=False)
             if self.active:

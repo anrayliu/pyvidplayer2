@@ -11,6 +11,7 @@ All the features from the original library have been ported over, with the excep
 - Easy to implement (4 lines of code)
 - Fast and reliable
 - Adjust playback speed
+- Reverse playback
 - No audio/video sync issues
 - Subtitle support (.srt, .ass, etc)
 - Play multiple videos in parallel

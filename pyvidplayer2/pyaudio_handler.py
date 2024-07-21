@@ -8,7 +8,7 @@ from io import BytesIO
 
 
 class PyaudioHandler:
-    def __init__(self) -> None:
+    def __init__(self):
         self.stream = None
         self.wave = None
 
@@ -36,7 +36,7 @@ class PyaudioHandler:
         try:
             self.wave = wave.open(BytesIO(bytes), "rb")
         except EOFError:
-            raise EOFError("Audio is empty. This may mean the file is corrupted or that the video does not contain any audio.")
+            raise EOFError("Audio is empty. This may mean the file is corrupted. If your video has no audio track, initialize it with no_audio=True.")
 
         if self.stream is None:
             self.stream = self.p.open(

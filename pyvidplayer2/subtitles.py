@@ -3,7 +3,7 @@ import pysubs2
 
 
 class Subtitles:
-    def __init__(self, path: str, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8", offset=50) -> None:
+    def __init__(self, path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8", offset=50):
         self.path = path
         self.encoding = encoding
 
@@ -19,10 +19,10 @@ class Subtitles:
         self.highlight = highlight 
         self.font = font
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<Subtitles(path={self.path})>"
 
-    def _to_surf(self, text: str) -> pygame.Surface:
+    def _to_surf(self, text):
         h = self.font.render(" ", True, "black").get_height()
 
         lines = text.strip().split("\n")
@@ -35,7 +35,7 @@ class Subtitles:
 
         return surface
     
-    def _get_next(self) -> bool:
+    def _get_next(self):
         try:
             s = next(self._subs)
         except StopIteration:
@@ -51,18 +51,18 @@ class Subtitles:
             self.surf = self._to_surf(self.text)
             return True
 
-    def _seek(self, time: float) -> None:
+    def _seek(self, time):
         self._subs = iter(pysubs2.load(self.path, encoding=self.encoding))
-
-        while not (self.start <= time <= self.end):
+        self.end = 0
+        while self.end < time:
             if not self._get_next():
                 break
 
-    def _write_subs(self, surf: pygame.Surface) -> None:
+    def _write_subs(self, surf):
         surf.blit(self.surf, (surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
         
-    def set_font(self, font: pygame.font.SysFont) -> None:
+    def set_font(self, font):
         self.font = font
 
-    def get_font(self) -> pygame.font.SysFont:
+    def get_font(self):
         return self.font

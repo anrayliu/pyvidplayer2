@@ -1,8 +1,9 @@
 '''
 A quick example showing how pyvidplayer2 can be used in more complicated applications
 This is a Picture-in-Picture app
+
+install pywin32 via pip before using
 '''
-# pip install pywin32 before using
 
 
 import pygame
@@ -21,7 +22,7 @@ win = pygame.display.set_mode(SIZE, pygame.NOFRAME)
 
 # creates the video player
 
-vid = VideoPlayer(Video(FILE, interp=INTER_AREA), (0, 0, *SIZE))
+vid = VideoPlayer(Video(FILE, interp=INTER_AREA), (0, 0, *SIZE), interactable=True)
 
 # moves the window to the bottom right corner and pins it above other windows
 
@@ -53,7 +54,7 @@ while True:
         try:
             SetForegroundWindow(hwnd)
         except: # catches weird errors
-            pass
+            pass    
 
     # handles video playback
 

@@ -1,7 +1,6 @@
 import cv2
 import pygame
 import time
-import numpy
 from .post_processing import PostProcessing
 from .error import Pyvidplayer2Error
 

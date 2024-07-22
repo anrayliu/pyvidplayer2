@@ -67,10 +67,6 @@ while vid.active:
         vid.set_volume(1.0)     #max volume
     elif key == "down":
         vid.set_volume(0.0)     #min volume
-    elif key == "1":
-        vid.set_speed(1.0)      #regular playback speed
-    elif key == "2":
-        vid.set_speed(2.0)      #doubles video speed
 
     # only draw new frames, and only update the screen if something is drawn
     

@@ -13,7 +13,7 @@ else:
 
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio):
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
         
         self.path = path
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
@@ -66,16 +66,16 @@ class Video:
         else:    
             self._audio = PyaudioHandler()
 
-        self.speed = 1
+        self.speed = max(0.5, min(10, speed))
         self.reverse = reverse
-        self.no_audio = no_audio
+        self.no_audio = no_audio or self._test_no_audio()
 
         self._missing_ffmpeg = False # for throwing errors
 
         self._preloaded_frames = []
         if self.reverse:
             self._preload_frames()
-        
+
         self.play()
 
     def _preload_frames(self):
@@ -106,21 +106,13 @@ class Video:
         d = round(seconds % 1, 1)
         return f"{h}:{m}:{s}.{int(d * 10)}"
 
-    def _threaded_load(self, index):
-        i = index # assigned to variable so another thread does not change it
-
-        self._chunks.append(None)
-
-        s = self._convert_seconds((self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) * (1 / self.speed))
-
+    def _test_no_audio(self):
         command = [
             "ffmpeg",
             "-i",
             self.path,
-            "-ss",
-            str(s),
             "-t",
-            str(self._convert_seconds(self.chunk_size)),
+            str(self._convert_seconds(self.frame_delay)),
             "-vn",
             "-f",
             "wav",
@@ -129,13 +121,19 @@ class Video:
             "-"
         ]
 
-        filters = []
-        if self.speed != 1:
-            filters += ["-filter:a", f"atempo={self.speed}"]
-        if self.reverse:
-            filters += ["-af", "areverse"]
+        try:
+            p = subprocess.run(command, capture_output=True)
+        except FileNotFoundError:
+            self._missing_ffmpeg = True
 
-        command = command[:7] + filters + command[7:]
+        return p.stdout == b''
+
+    def _threaded_load(self, index):
+        i = index # assigned to variable so another thread does not change it
+
+        self._chunks.append(None)
+
+        s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / self.speed
 
         if self.no_audio:
             command = [
@@ -145,11 +143,39 @@ class Video:
                 "-i",
                 "anullsrc",
                 "-t",
-                str(self._convert_seconds(self.chunk_size)),
+                str(self._convert_seconds(min(self.chunk_size, self.duration - s) / self.speed)),
                 "-f",
                 "wav",
+                "-loglevel",
+                "quiet",
                 "-"
             ]
+
+        else:
+
+            command = [
+                "ffmpeg",
+                "-i",
+                self.path,
+                "-ss",
+                self._convert_seconds(s),
+                "-t",
+                str(self._convert_seconds(self.chunk_size / self.speed)),
+                "-vn",
+                "-f",
+                "wav",
+                "-loglevel",
+                "quiet",
+                "-"
+            ]
+
+            filters = []
+            if self.speed != 1:
+                filters += ["-filter:a", f"atempo={self.speed}"]
+            if self.reverse:
+                filters += ["-af", "areverse"]
+
+            command = command[:7] + filters + command[7:]
 
         try:
             p = subprocess.run(command, capture_output=True)
@@ -241,10 +267,7 @@ class Video:
         self._audio.unmute()
 
     def set_speed(self, speed):
-        speed = max(0.5, min(10, speed))
-        if speed != self.speed:
-            self.speed = speed
-            self.seek(0) # must reload audio chunks
+        raise DeprecationWarning(f"set_speed depreciated. Initialize video object with speed={speed} instead.")
 
     def get_speed(self):
         return self.speed

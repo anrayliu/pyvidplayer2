@@ -1,4 +1,5 @@
-import subprocess 
+from subprocess import run 
+from cv2 import INTER_NEAREST, INTER_LINEAR, INTER_AREA, INTER_CUBIC, INTER_LANCZOS4
 
 from .post_processing import PostProcessing 
 
@@ -46,7 +47,7 @@ def get_version_info():
         pygame_ver = "not installed"
 
     try:
-        ffmpeg_ver = subprocess.run(["ffmpeg", "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
+        ffmpeg_ver = run(["ffmpeg", "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 

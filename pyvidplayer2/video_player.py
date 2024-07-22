@@ -5,7 +5,7 @@ from . import Video
 
 
 class VideoPlayer:
-    def __init__(self, video, rect, interactable=True, loop=False, preview_thumbnails=0):
+    def __init__(self, video, rect, interactable=False, loop=False, preview_thumbnails=0):
 
         self.video = video
         self.frame_rect = pygame.Rect(rect)
@@ -226,6 +226,7 @@ class VideoPlayer:
                     surf = self._get_closest_frame(self._seek_time)
                     x = self._seek_pos - surf.get_width() // 2
                     x = min(max(x, self.frame_rect.x), self.frame_rect.right - surf.get_width())
+                    pygame.draw.rect(win, (0, 0, 0), (x - 2, self._progress_back.y - 80 - f.get_height() - 2, surf.get_width() + 4, surf.get_height() + 4), 2)
                     win.blit(surf, (x, self._progress_back.y - 80 - f.get_height()))
 
         if self.interactable:

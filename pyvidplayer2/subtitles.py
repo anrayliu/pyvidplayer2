@@ -23,7 +23,7 @@ class Subtitles:
         return f"<Subtitles(path={self.path})>"
 
     def _to_surf(self, text):
-        h = self.font.render(" ", True, "black").get_height()
+        h = self.font.get_height()
 
         lines = text.strip().split("\n")
         surfs = [self.font.render(line, True, self.colour) for line in lines]

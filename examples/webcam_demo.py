@@ -1,5 +1,5 @@
 '''
-Webcam example
+This is an example showing off webcam streaming
 '''
 
 import pygame

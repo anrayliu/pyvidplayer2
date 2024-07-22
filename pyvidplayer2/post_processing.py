@@ -1,5 +1,5 @@
 import cv2
-import numpy
+import numpy as np
 
 
 class PostProcessing:
@@ -10,18 +10,18 @@ class PostProcessing:
         return cv2.blur(data, (5, 5))
     
     def sharpen(data):
-        return cv2.filter2D(data, -1, numpy.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]]))
+        return cv2.filter2D(data, -1, np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]]))
     
     def greyscale(data):
-        return numpy.stack((cv2.cvtColor(data, cv2.COLOR_BGR2GRAY),) * 3, axis=-1)
+        return np.stack((cv2.cvtColor(data, cv2.COLOR_BGR2GRAY),) * 3, axis=-1)
     
     def noise(data):
-        noise = numpy.zeros(data.shape, dtype=numpy.uint8)
+        noise = np.zeros(data.shape, dtype=np.uint8)
         cv2.randn(noise, (0,) * 3, (20,) * 3)
         return data + noise
     
     def letterbox(data):
-        background = numpy.zeros((*data.shape[:2], 3), dtype=numpy.uint8)
+        background = np.zeros((*data.shape[:2], 3), dtype=np.uint8)
 
         x1, y1 = 0, int(data.shape[0] * 0.1)                            # topleft crop
         x2, y2 = data.shape[1], int(data.shape[0] * 0.9)                # bottomright crop

@@ -9,7 +9,7 @@ from pyvidplayer2 import VideoPlayer, Video
 win = pygame.display.set_mode((1124, 868))
 pygame.display.set_caption("video player demo")
 
-vid = VideoPlayer(Video(r"resources\ocean.mkv"), (50, 50, 1024, 768), preview_thumbnails=11)
+vid = VideoPlayer(Video(r"resources\ocean.mkv"), (50, 50, 1024, 768), interactable=True)
 
 
 while True:

@@ -9,6 +9,7 @@
 - 易于实现（4行代码）
 - 快速可靠
 - 调整播放速度
+- 反向视频播放
 - 没有音视频同步问题
 - 字幕支持（.srt，.ass等）
 - 并行播放多个视频
@@ -65,10 +66,6 @@ while vid.active:
         vid.set_volume(1.0)     # 最大音量
     elif key == "down":
         vid.set_volume(0.0)     # 最小音量
-    elif key == "1":
-        vid.set_speed(1.0)      # 正常播放速度
-    elif key == "2":
-        vid.set_speed(2.0)      # 倍速播放视频
 
     # 只绘制新帧，并且只在绘制了内容时更新屏幕
     

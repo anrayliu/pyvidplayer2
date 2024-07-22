@@ -1,18 +1,19 @@
-# Video(path, chunk_size=300, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1)
 
 Main object used to play videos. It uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). This object uses Pygame for graphics. See bottom for other supported libraries.
 
 ## Arguments
- - ```path``` - Path to video file. I tested a few popular video types, such as mkv, mp4, mov, avi, and 3gp, but theoretically anything FFMPEG can extract data from should work.
+ - ```path``` - Path to video file. Supports most file types such as mkv, mp4, mov, avi, 3gp, etc.
  - ```chunk_size``` - How much audio is extracted at a time, in seconds. Increasing this value can mean less total extracts, but slower extracts.
  - ```max_threads``` - Maximum number of chunks that can be extracted at any given time. Increasing this value can speed up extract at the expense of cpu usage.
  - ```max_chunks``` - Maximum number of chunks allowed to be extracted and reserved. Increasing this value can help with buffering, but will use more memory.
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
- - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
- - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio.
- - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer.
- - ```no_audio``` - Set this to true if the given video has no audio track. Otherwise, the video will be read as corrupted. Setting this to true can also be used to mute existing audio tracks.
+ - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. This option is mainly for those with problems installing Pyaudio. 
+ - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
+ - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
+ - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -25,7 +26,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```duration``` - Length of video in seconds.
  - ```original_size```
  - ```current_size```
- - ```aspect_ratio``` - Width divided by height.
+ - ```aspect_ratio``` - Width divided by height of original size.
  - ```chunk_size``` - Same as given argument.
  - ```max_chunks``` - Same as given argument.
  - ```max_threads``` - Same as given argument.
@@ -35,7 +36,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```buffering``` - Whether the video is waiting for audio to extract.
  - ```paused```
  - ```muted```
- - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
+ - ```speed``` - Same as given argument.
  - ```subs``` - Same as given argument.
  - ```post_func``` - Same as given argument.
  - ```interp``` - Same as given argument.
@@ -50,7 +51,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
  - ```close()``` - Releases resources. Always recommended to call when done.
  - ```restart() ```
- - ```set_speed(speed)``` - Accepts a float from 0.5 (half speed) to 10.0 (ten times speed)
+ - ```set_speed(speed)``` - Depreciated. Use the argument speed= when initializing video objects.
  - ```get_speed()```
  - ```set_volume(volume)``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
  - ```get_volume()```
@@ -66,7 +67,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - ```preview()``` - Opens a window and plays the video. This method will hang until the video closes. Videos are played at 60 fps with force_draw disabled.
 
-# VideoPlayer(video, rect, interactable=True, loop=False, preview_thumbnails=0)
+# VideoPlayer(video, rect, interactable=False, loop=False, preview_thumbnails=0)
 
 VideoPlayers are GUI containers for videos. This seeks to mimic standard video players, so clicking it will play/pause playback, and the GUI will only show when the mouse is hovering over it. Only supported for Pygame.
 
@@ -90,7 +91,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
  - ```zoom_to_fill()``` - Zooms in the video so that the entire frame_rect is filled in, while maintaining aspect ratio.
  - ```zoom_out()``` - Reverts zoom_to_fill()
  - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
- - ```get_queue()```
+ - ```get_queue()``` - Returns list of queued video objects.
  - ```resize(size)```
  - ```move(pos, relative)``` - Moves the VideoPlayer. If relative is true, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
  - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
@@ -99,9 +100,9 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
  - ```skip()``` - Moves onto the next video in the queue.
  - ```get_video()``` - Returns currently playing video.
 
-# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig")
+# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50)
 
-Object used for handling subtitles. Only supported for Pygame.
+Object used for handling subtitles. Only supported for Pygame. 
 
 ## Arguments
  - ```path``` - Path to subtitle file. This can be any file pysubs2 can read, including .srt, .ass, .vtt, and others.
@@ -163,7 +164,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - ```blur``` - Slightly blurs frames.
  - ```sharpen``` - An okay-looking sharpen. Looks pretty bad for small resolutions.
  - ```greyscale``` - Removes colour from frame.
- - ```noise``` - Adds a static-like filter. Very intensive.
+ - ```noise``` - Adds a static-like filter. Very resource intensive.
  - ```letterbox``` - Adds black bars above and below the frame to look more cinematic.
  - ```cel_shading``` - Thickens borders for a comic book style filter.
 
@@ -175,7 +176,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that Subtitles, Webcam, and VideoPlayer only work with Pygame installed.
 
-# Get Version
+# Misc
 
 ```
 print(pyvidplayer2.get_version_info())
@@ -183,3 +184,12 @@ print(pyvidplayer2.get_version_info())
 
 Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
 with ```pyvidplayer2.VERSION```.
+```
+INTER_NEAREST
+INTER_LINEAR
+INTER_CUBIC
+INTER_LANCSOZ4
+INTER_AREA
+```
+
+The following interpolation flags from cv2 are also accessible through pyvidplayer2 as well. E.g ```cv2.INTER_LINEAR``` is the same as ```pyvidplayer2.INTER_LINEAR```, so importing cv2 isn't necessary.

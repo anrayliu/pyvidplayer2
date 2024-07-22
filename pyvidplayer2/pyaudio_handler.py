@@ -2,7 +2,7 @@ import pyaudio
 import wave
 import math 
 import time
-import numpy
+import numpy as np
 from threading import Thread
 from io import BytesIO
 
@@ -30,13 +30,13 @@ class PyaudioHandler:
     def get_busy(self):
         return self.active
 
-    def load(self, bytes):
+    def load(self, bytes_):
         self.unload()
 
         try:
-            self.wave = wave.open(BytesIO(bytes), "rb")
+            self.wave = wave.open(BytesIO(bytes_), "rb")
         except EOFError:
-            raise EOFError("Audio is empty. This may mean the file is corrupted. If your video has no audio track, initialize it with no_audio=True.")
+            raise EOFError("Audio is empty. This may mean the file is corrupted. If your video has no audio track, try initializing it with no_audio=True.")
 
         if self.stream is None:
             self.stream = self.p.open(
@@ -82,13 +82,13 @@ class PyaudioHandler:
             if self.paused:
                 time.sleep(0.01)
             else:
-                audio = numpy.frombuffer(data, dtype=numpy.int16)
+                audio = np.frombuffer(data, dtype=np.int16)
 
                 if self.volume == 0.0 or self.muted:
-                    audio = numpy.zeros_like(audio)
+                    audio = np.zeros_like(audio)
                 else:
                     db = 20 * math.log10(self.volume)
-                    audio = (audio * 10**(db/20)).astype(numpy.int16)
+                    audio = (audio * 10**(db/20)).astype(np.int16)
                     
                 self.stream.write(audio.tobytes())
                 data = self.wave.readframes(chunk)

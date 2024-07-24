@@ -53,7 +53,12 @@ class Subtitles:
 
     def _seek(self, time):
         self._subs = iter(pysubs2.load(self.path, encoding=self.encoding))
+
         self.end = 0
+        self.start = 0
+        self.text = ""
+        self.surf = pygame.Surface((0, 0))
+
         while self.end < time:
             if not self._get_next():
                 break

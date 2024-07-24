@@ -13,7 +13,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. This option is mainly for those with problems installing Pyaudio. 
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
- - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
+ - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. There is currently a known bug where the audio does not speed up/slow down if the video is reversed, causing visual and audio sync issues.
 
 ## Attributes
  - ```path``` - Same as given argument.

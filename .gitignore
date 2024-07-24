@@ -4,8 +4,9 @@ dist/
 *.egg-info/
 build.txt
 test.py
-test.mp4
+reversed.mp4
+soundless.mp4 
+downloader.py
+changes.txt
 resources/
 .VSCodeCounter/
-video/
-notes.txt

@@ -45,7 +45,11 @@ while True:
 
     # allows the ui to be seamlessly interacted with
 
-    touching = pygame.Rect(GetWindowRect(hwnd)).collidepoint(GetCursorPos())
+    try:
+        touching = pygame.Rect(GetWindowRect(hwnd)).collidepoint(GetCursorPos())
+    except: # windows is buggy
+        touching = False 
+
     if touching and GetForegroundWindow() != hwnd:
 
         # weird behaviour with SetForegroundWindow that requires the alt key to be pressed before it's called

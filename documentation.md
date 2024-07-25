@@ -128,7 +128,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```set_font(font)```
  - ```get_font()```
 
-# Webcam(post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30)
+# Webcam(post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30, cam_id=0)
 
 Object used for displaying a webcam feed. Only supported for Pygame.
 
@@ -136,6 +136,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
  - ```fps``` - Maximum number of frames captured from the webcam per second.
+ - ```cam_id``` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, etc.
 
 ## Attributes
  - ```post_process``` - Same as given argument.
@@ -147,6 +148,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
  - ```active``` - Whether the webcam is currently playing.
  - ```frame_data``` - Current video frame as a NumPy ndarray.
  - ```frame_surf``` - Current video frame as a Pygame Surface.
+ - ```cam_id``` - Same as given argument.
 
 ## Methods
  - ```play()```

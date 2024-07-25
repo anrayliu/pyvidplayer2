@@ -6,8 +6,8 @@ from .error import Pyvidplayer2Error
 
 
 class Webcam:
-    def __init__(self, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30):
-        self._vid = cv2.VideoCapture(0)
+    def __init__(self, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30, cam_id=0):
+        self._vid = cv2.VideoCapture(cam_id)
 
         if not self._vid.isOpened():
             raise Pyvidplayer2Error("Failed to find webcam.")
@@ -24,6 +24,7 @@ class Webcam:
         self.post_func = post_process
         self.interp = interp
         self.fps = fps
+        self.cam_id = cam_id
 
         self._frame_delay = 1 / self.fps
         self._frames = 0

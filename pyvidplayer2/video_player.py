@@ -43,7 +43,7 @@ class VideoPlayer:
 
     def __str__(self):
         return f"<VideoPlayer(path={self.path})>"
-    
+
     def _close_queue(self):
         for video in self.queue_:
             try:
@@ -57,7 +57,7 @@ class VideoPlayer:
             self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, int(i * self.video.frame_rate * self._interval))
             
             self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
-        
+
         # add last readable frame
 
         i = 1

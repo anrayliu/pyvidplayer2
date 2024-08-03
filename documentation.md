@@ -10,7 +10,7 @@ Main object used to play videos. It uses FFMPEG to extract chunks of audio from 
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
- - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. This option is mainly for those with problems installing Pyaudio. 
+ - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
  - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. There is currently a known bug where the audio does not speed up/slow down if the video is reversed, causing visual and audio sync issues.
@@ -195,3 +195,5 @@ INTER_AREA
 ```
 
 The following interpolation flags from cv2 are also accessible through pyvidplayer2 as well. E.g ```cv2.INTER_LINEAR``` is the same as ```pyvidplayer2.INTER_LINEAR```, so importing cv2 isn't necessary.
+
+When there are no suitable exceptions, ```pyvidplayer2.Pyvidplayer2Error``` may be raised.

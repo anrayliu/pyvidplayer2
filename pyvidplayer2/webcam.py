@@ -34,7 +34,7 @@ class Webcam:
 
     def __str__(self):
         return f"<Webcam(fps={self.fps})>"
-    
+
     def _update(self):
         if self.active:
 
@@ -98,7 +98,7 @@ class Webcam:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.stop()
-            pygame.time.wait(int(self._frame_delay * 1000))
+            pygame.time.wait(60)
             self.draw(win, (0, 0), force_draw=False)
             pygame.display.update()
         pygame.display.quit()

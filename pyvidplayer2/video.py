@@ -1,8 +1,10 @@
 import cv2 
 import subprocess 
 import os
+import warnings
 from threading import Thread
 from .pyaudio_handler import PyaudioHandler
+from .error import Pyvidplayer2Error
 
 try:
     import pygame 
@@ -15,6 +17,9 @@ else:
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
         
+        if speed != 1 and reverse:
+            warnings.warn("Warning: Setting speed and reverse parameters simultaneously currently causes video/audio sync issues.")
+
         self.path = path
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
@@ -170,11 +175,12 @@ class Video:
             ]
 
             filters = []
+    
             if self.speed != 1:
-                filters += ["-filter:a", f"atempo={self.speed}"]
+                filters += ["-af", f"atempo={self.speed}"]
             if self.reverse:
                 filters += ["-af", "areverse"]
-
+            
             command = command[:7] + filters + command[7:]
 
         try:
@@ -207,7 +213,7 @@ class Video:
 
     def _update(self):
         if self._missing_ffmpeg:
-            raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via $PATH.")
+            raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
         
         self._update_threads()
 
@@ -216,7 +222,9 @@ class Video:
 
         if self._audio.get_busy() or self.paused:
 
-            while self.get_pos() > self.frame * self.frame_delay:
+            p = self.get_pos()
+
+            while p > self.frame * self.frame_delay:
 
                 if self.reverse:
                     has_frame = True
@@ -230,6 +238,11 @@ class Video:
                     has_frame, data = self._vid.read()
 
                 self.frame += 1
+
+                # optimized for high playback speeds
+                
+                if p > self.frame * self.frame_delay:
+                    continue
                 
                 if has_frame:
                     if self.original_size != self.current_size:

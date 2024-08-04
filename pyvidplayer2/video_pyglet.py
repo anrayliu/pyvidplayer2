@@ -5,8 +5,8 @@ from .post_processing import PostProcessing
 
 
 class VideoPyglet(Video):
-    def __init__(self, path, chunk_size=10, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1):
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio, speed)
+    def __init__(self, path, chunk_size=10, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, quality=0):
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, quality)
 
     def __str__(self):
         return f"<VideoPyglet(path={self.path})>"

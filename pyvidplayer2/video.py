@@ -13,12 +13,25 @@ except ImportError:
 else:
     from .mixer_handler import MixerHandler
 
+try:
+    import yt_dlp
+except ImportError:
+    YTDLP = 0
+else:
+    YTDLP = 1
+
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, quality):
         
         if speed != 1 and reverse:
             warnings.warn("Warning: Setting speed and reverse parameters simultaneously currently causes video/audio sync issues.")
+
+        if youtube:
+            if YTDLP:
+                path = self._get_stream_url(path, quality)
+            else:
+                raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed.")
 
         self.path = path
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
@@ -62,6 +75,8 @@ class Video:
         self.post_func = post_process
         self.interp = interp
         self.use_pygame_audio = use_pygame_audio
+        self.youtube = youtube
+        self.quality = quality
 
         if use_pygame_audio:
             try:
@@ -82,6 +97,24 @@ class Video:
             self._preload_frames()
 
         self.play()
+
+    def _get_stream_url(self, path, quality=0):
+        config = {"quiet": True,
+                  "noplaylist": True}
+
+        with yt_dlp.YoutubeDL(config) as ydl:
+            try:
+                formats = ydl.extract_info(path, download=False).get("formats", None)
+                if formats is None:
+                    raise Pyvidplayer2Error("No streaming links found.")
+            except Pyvidplayer2Error:
+                raise
+            except: # something went wrong with yt_dlp
+                raise Pyvidplayer2Error("Unable to stream video.")
+            else:
+                formats = sorted([f for f in formats if f["ext"] == "mp4"], key=lambda f: f.get("quality", 0), reverse=True)
+
+                return formats[quality]["url"]
 
     def _preload_frames(self):
         self._preloaded_frames = []
@@ -234,8 +267,10 @@ class Video:
                     except IndexError:
                         has_frame = False
                 else:
-
+                    
+                    self.buffering = True
                     has_frame, data = self._vid.read()
+                    self.buffering = False
 
                 self.frame += 1
 

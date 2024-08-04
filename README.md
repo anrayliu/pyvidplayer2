@@ -10,6 +10,7 @@ All the features from the original library have been ported over, with the excep
 # Features (tested on Windows)
 - Easy to implement (4 lines of code)
 - Fast and reliable
+- Stream from Youtube
 - Adjust playback speed
 - Reverse playback
 - No audio/video sync issues

@@ -1,3 +1,9 @@
+'''
+Modified Video class for streaming videos from youtube
+Work in progress
+'''
+
+
 import cv2 
 import subprocess 
 import os
@@ -13,15 +19,28 @@ except ImportError:
 else:
     from .mixer_handler import MixerHandler
 
+try:
+    import yt_dlp
+except ImportError:
+    YTDLP = 0
+else:
+    YTDLP = 1
 
-class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
+
+class VideoYT:
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res):
         
         if speed != 1 and reverse:
             warnings.warn("Warning: Setting speed and reverse parameters simultaneously currently causes video/audio sync issues.")
 
         self._audio_path = path     # used for audio only when streaming
         self.path = path
+
+        if youtube:
+            if YTDLP:
+                self._set_stream_url(path, max_res)
+            else:
+                raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed.")
 
         self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
@@ -64,6 +83,8 @@ class Video:
         self.post_func = post_process
         self.interp = interp
         self.use_pygame_audio = use_pygame_audio
+        self.youtube = youtube
+        self.max_res = max_res
 
         if use_pygame_audio:
             try:
@@ -84,6 +105,25 @@ class Video:
             self._preload_frames()
 
         self.play()
+
+    def _set_stream_url(self, path, max_res=1080):
+        config = {"quiet": True,
+                  "noplaylist": True,
+                  # unfortunately must grab the worst audio because ffmpeg seeking is too slow for high quality audio
+                  "format": f"bestvideo[height<={max_res}]+worstaudio/best[height<={max_res}]"}
+
+        with yt_dlp.YoutubeDL(config) as ydl:
+            try:
+                formats = ydl.extract_info(path, download=False).get("requested_formats", None)
+                if formats is None:
+                    raise Pyvidplayer2Error("No streaming links found.")
+            except Pyvidplayer2Error:
+                raise
+            except: # something went wrong with yt_dlp
+                raise Pyvidplayer2Error("Unable to stream video.")
+            else:
+                self.path = formats[0]["url"]
+                self._audio_path = formats[1]["url"]
 
     def _preload_frames(self):
         self._preloaded_frames = []
@@ -383,3 +423,33 @@ class Video:
     
     def preview(self):
         pass
+
+
+from .post_processing import PostProcessing
+
+class VideoYTPygame(VideoYT):
+    def __init__(self, path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=True, max_res=1080):
+        VideoYT.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res)
+
+    def __str__(self):
+        return f"<VideoYTPygame(path={self.path})>"
+
+    def _create_frame(self, data):
+        return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
+    
+    def _render_frame(self, surf, pos):
+        surf.blit(self.frame_surf, pos)
+    
+    def preview(self):
+        win = pygame.display.set_mode(self.current_size)
+        pygame.display.set_caption(f"pygame - {self.name}")
+        self.play()
+        while self.active:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.stop()
+            pygame.time.wait(16)
+            self.draw(win, (0, 0), force_draw=False)
+            pygame.display.update()
+        pygame.display.quit()
+        self.close()

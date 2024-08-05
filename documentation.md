@@ -1,4 +1,4 @@
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, quality=0)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1)
 
 Main object used to play videos. Videos can be read from disk or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). This object uses Pygame for graphics. See bottom for other supported libraries.
 
@@ -14,8 +14,6 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
  - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. There is currently a known bug where the audio does not speed up/slow down if the video is reversed, causing visual and audio sync issues.
- - ```youtube``` - Set this to true if the provided path is a link to a youtube video. YTDLP will be used to grab stream links.
- - ```quality``` - Only used for streaming from youtube. Specifies which stream link to use. For example, 0 will use the best link, 1 will use the second best link, etc. Usually quality will mean resolution, but it can also mean audio quality as well.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -45,8 +43,6 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```use_pygame_audio``` - Same as given argument.
  - ```reverse``` - Same as given argument.
  - ```no_audio``` - Same as given argument.
- - ```youtube``` - Same as given argument.
- - ```quality``` - Same as given argument.
 
 ## Methods
  - ```play()```

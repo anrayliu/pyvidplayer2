@@ -162,13 +162,13 @@ class Video:
 
             command = [
                 "ffmpeg",
-                "-vn",
                 "-i",
                 self._audio_path,
                 "-ss",
                 self._convert_seconds(s),
                 "-t",
                 str(self._convert_seconds(self.chunk_size / self.speed)),
+                "-vn",
                 "-f",
                 "wav",
                 "-loglevel",

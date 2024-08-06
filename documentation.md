@@ -90,6 +90,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 ## Methods
  - ```zoom_to_fill()``` - Zooms in the video so that the entire frame_rect is filled in, while maintaining aspect ratio.
  - ```zoom_out()``` - Reverts zoom_to_fill()
+ - ```toggle_zoom()``` - Switches between zoomed in and zoomed out
  - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
  - ```get_queue()``` - Returns list of queued video objects.
  - ```resize(size)```

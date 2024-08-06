@@ -23,6 +23,10 @@ class VideoPlayer:
         self._buffer_rect = pygame.Rect(0, 0, 0, 0)
         self._buffer_angle = 0
 
+        self._zoomed = False
+
+        self._buffer_frame = None # updated with new video frames
+
         self._transform(self.frame_rect)
 
         self._show_ui = False
@@ -79,6 +83,35 @@ class VideoPlayer:
         else:
             return self._interval_frames[i + 1]
         
+    def _transform(self, rect):
+        self.frame_rect = rect
+        self.zoom_out()
+
+        self._progress_back = pygame.Rect(self.frame_rect.x + 10, self.frame_rect.bottom - 25, self.frame_rect.w - 20, 15)
+        self._progress_bar = self._progress_back.copy()
+
+        self._font = pygame.font.SysFont("arial", 10)
+
+        if self._buffer_frame is not None:
+            self._buffer_frame = pygame.transform.smoothscale(self._buffer_frame, self.vid_rect.size)
+
+        self._buffer_rect = pygame.Rect(0, 0, 200, 200)
+        self._buffer_rect.center = self.frame_rect.center
+
+    def _move_angle(self, pos, angle, distance):
+        return pos[0] + math.cos(angle) * distance, pos[1] + math.sin(angle) * distance
+    
+    def _convert_seconds(self, time):
+        return self.video._convert_seconds(time).split(".")[0]
+    
+    def zoom_to_fill(self):
+        s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
+        self.vid_rect.inflate_ip(s, s)
+        self.video.resize(self.vid_rect.size)
+        self._zoomed = True
+
+    # takes a rect and an aspect ratio, returns the largest rect of the aspect ratio that can be fit inside
+    
     def _best_fit(self, rect, r):
         s = rect.size
         r = self.video.aspect_ratio
@@ -95,37 +128,16 @@ class VideoPlayer:
             
         return pygame.Rect(rect.x + x, rect.y + y, w, h)
 
-    def _transform(self, rect):
-        self.frame_rect = rect
-        self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
-        self.video.resize(self.vid_rect.size)
-
-        self._progress_back = pygame.Rect(self.frame_rect.x + 10, self.frame_rect.bottom - 25, self.frame_rect.w - 20, 15)
-        self._progress_bar = self._progress_back.copy()
-
-        self._font = pygame.font.SysFont("arial", 10)
-
-        if self.video.frame_data is not None:
-            self.video.frame_surf = pygame.transform.smoothscale(self.video.frame_surf, self.vid_rect.size)
-
-        self._buffer_rect = pygame.Rect(0, 0, 200, 200)
-        self._buffer_rect.center = self.frame_rect.center
-
-    def _move_angle(self, pos, angle, distance):
-        return pos[0] + math.cos(angle) * distance, pos[1] + math.sin(angle) * distance
-    
-    def _convert_seconds(self, time):
-        return self.video._convert_seconds(time).split(".")[0]
-    
-    def zoom_to_fill(self):
-        s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
-        self.vid_rect.inflate_ip(s, s)
-        self.video.resize(self.vid_rect.size)
-        self.vid_rect.center = self.frame_rect.center
-
     def zoom_out(self):
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
         self.video.resize(self.vid_rect.size)
+        self._zoomed = False
+
+    def toggle_zoom(self):
+        if self._zoomed:
+            self.zoom_out()
+        else:
+            self.zoom_to_fill()
 
     def queue(self, input_):
         self.queue_.append(input_)
@@ -165,8 +177,8 @@ class VideoPlayer:
             elif self.loop:
                 self.video.restart()
 
-        if self.video._update() and self.video.current_size > self.frame_rect.size:
-            self.video.frame_surf = self.video.frame_surf.subsurface(self.frame_rect.x - self.vid_rect.x, self.frame_rect.y - self.vid_rect.y, *self.frame_rect.size)
+        if self.video._update():
+            self._buffer_frame = self.video.frame_surf   
 
         if self.interactable:
 
@@ -202,8 +214,8 @@ class VideoPlayer:
 
     def draw(self, win):
         pygame.draw.rect(win, "black", self.frame_rect)
-        if self.video.frame_surf is not None:
-            win.blit(self.video.frame_surf, self.frame_rect.topleft if self.video.current_size > self.frame_rect.size else self.vid_rect.topleft)
+        if self._buffer_frame is not None:
+            win.blit(self._buffer_frame, self.vid_rect.topleft)
 
         if self._show_ui:
             pygame.draw.line(win, (50, 50, 50), (self._progress_back.x, self._progress_back.centery), (self._progress_back.right, self._progress_back.centery), 5)

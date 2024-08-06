@@ -8,6 +8,7 @@ from pyvidplayer2 import Webcam
 webcam = Webcam()
 
 win = pygame.display.set_mode(webcam.current_size)
+pygame.display.set_caption("webcam_demo")
 clock = pygame.time.Clock()
 
 while True:

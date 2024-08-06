@@ -25,7 +25,7 @@ class VideoPyglet(Video):
     
     def preview(self):
         def update(dt):
-            self.draw((0, 0), force_draw=False)
+            self.draw((0, 0), force_draw=True)
             if not self.active:
                 win.close()
         win = pyglet.window.Window(width=self.current_size[0], height=self.current_size[1], config=pyglet.gl.Config(double_buffer=False), caption=f"pyglet - {self.name}")

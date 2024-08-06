@@ -10,7 +10,7 @@ from pyvidplayer2 import VideoPyglet
 video = VideoPyglet(r"resources\trailer1.mp4")
 
 def update(dt):
-    video.draw((0, 0), force_draw=False)
+    video.draw((0, 0), force_draw=True)
     if not video.active:
         win.close()
 

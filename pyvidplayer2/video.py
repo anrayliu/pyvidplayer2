@@ -13,6 +13,10 @@ except ImportError:
 else:
     from .mixer_handler import MixerHandler
 
+# from logging import getLogger
+from pyvidplayer2.pyvidplayer2logging import getLogger
+logger = getLogger(__name__)
+
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
@@ -76,8 +80,10 @@ class Video:
         self.speed = max(0.5, min(10, speed))
         self.reverse = reverse
         self.no_audio = no_audio or self._test_no_audio()
+        if self.no_audio:
+            logger.warning("Warning: No audio")
 
-        self._missing_ffmpeg = False # for throwing errors
+        self._missing_ffmpeg = False  # for throwing errors
 
         self._preloaded_frames = []
         if self.reverse:
@@ -207,7 +213,7 @@ class Video:
 
     def _write_subs(self):
         p = self.get_pos()
-        
+
         if p >= self.subs.start:
             if p > self.subs.end:
                 if self.subs._get_next():
@@ -218,7 +224,7 @@ class Video:
     def _update(self):
         if self._missing_ffmpeg:
             raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
-        
+
         self._update_threads()
 
         n = False

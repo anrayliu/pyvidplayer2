@@ -1,7 +1,6 @@
 import cv2 
 import subprocess 
 import os
-import warnings
 from threading import Thread
 from .pyaudio_handler import PyaudioHandler
 from .error import Pyvidplayer2Error
@@ -13,17 +12,31 @@ except ImportError:
 else:
     from .mixer_handler import MixerHandler
 
+try:
+    import yt_dlp
+except ImportError:
+    YTDLP = 0
+else:
+    YTDLP = 1
+
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
-        
-        if speed != 1 and reverse:
-            warnings.warn("Warning: Setting speed and reverse parameters simultaneously currently causes video/audio sync issues.")
-
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube=False, max_res=1080):
         self._audio_path = path     # used for audio only when streaming
         self.path = path
 
-        self.name, self.ext = os.path.splitext(os.path.basename(self.path))
+        self.name = None 
+        self.ext = None 
+
+        if youtube:
+            if YTDLP:
+                # sets path and audio path for cv2 and ffmpeg
+                # also sets name and ext
+                self._set_stream_url(path, max_res)
+            else:
+                raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
+        else:
+            self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         self._vid = cv2.VideoCapture(self.path)
 
@@ -64,6 +77,8 @@ class Video:
         self.post_func = post_process
         self.interp = interp
         self.use_pygame_audio = use_pygame_audio
+        self.youtube = youtube
+        self.max_res = max_res
 
         if use_pygame_audio:
             try:
@@ -84,6 +99,28 @@ class Video:
             self._preload_frames()
 
         self.play()
+
+    def _set_stream_url(self, path, max_res=1080):
+        config = {"quiet": True,
+                  "noplaylist": True,
+                  # unfortunately must grab the worst audio because ffmpeg seeking is too slow for high quality audio
+                  "format": f"bestvideo[height<={max_res}]+worstaudio/best[height<={max_res}]"}
+
+        with yt_dlp.YoutubeDL(config) as ydl:
+            try:
+                info = ydl.extract_info(path, download=False)
+                formats = info.get("requested_formats", None)
+                if formats is None:
+                    raise Pyvidplayer2Error("No streaming links found. Please ensure the url is a valid Youtube vidoe.")
+            except Pyvidplayer2Error:
+                raise
+            except: # something went wrong with yt_dlp
+                raise Pyvidplayer2Error("Unable to stream video.")
+            else:
+                self.path = formats[0]["url"]
+                self._audio_path = formats[1]["url"]
+                self.name = info.get("title", "")
+                self.ext = "webm"
 
     def _preload_frames(self):
         self._preloaded_frames = []
@@ -132,6 +169,7 @@ class Video:
             p = subprocess.run(command, capture_output=True)
         except FileNotFoundError:
             self._missing_ffmpeg = True
+            return
 
         return p.stdout == b''
 
@@ -140,7 +178,7 @@ class Video:
 
         self._chunks.append(None)
 
-        s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / self.speed
+        s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / (self.speed if not self.reverse else 1)
 
         if self.no_audio:
             command = [
@@ -150,7 +188,7 @@ class Video:
                 "-i",
                 "anullsrc",
                 "-t",
-                str(self._convert_seconds(min(self.chunk_size, self.duration - s) / self.speed)),
+                str(self._convert_seconds(min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
                 "-f",
                 "wav",
                 "-loglevel",
@@ -167,7 +205,7 @@ class Video:
                 "-ss",
                 self._convert_seconds(s),
                 "-t",
-                str(self._convert_seconds(self.chunk_size / self.speed)),
+                self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
                 "-vn",
                 "-f",
                 "wav",
@@ -178,21 +216,32 @@ class Video:
 
             filters = []
     
-            if self.speed != 1:
-                filters += ["-af", f"atempo={self.speed}"]
+            # doesn't work when both are stacked
+            # if they are, speed is handled post reversal
+
             if self.reverse:
                 filters += ["-af", "areverse"]
-            
+            elif self.speed != 1:
+                filters += ["-af", f"atempo={self.speed}"]
+
             command = command[:7] + filters + command[7:]
 
+        audio = None
+
         try:
-            
             p = subprocess.run(command, capture_output=True)
+            audio = p.stdout
+
+            if not self.no_audio and self.speed != 1 and self.reverse:
+                process = subprocess.Popen(f"ffmpeg -i - -af atempo={self.speed} -f wav -loglevel quiet -", stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                out = process.communicate(input=p.stdout)[0]
+                process.wait()
+                audio = out
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
         
-        self._chunks[i - self._chunks_played - 1] = p.stdout
+        self._chunks[i - self._chunks_played - 1] = audio
 
     def _update_threads(self):
         for t in self._threads:
@@ -246,10 +295,9 @@ class Video:
                 self.frame += 1
 
                 # optimized for high playback speeds
-                
                 if p > self.frame * self.frame_delay:
                     continue
-                
+
                 if has_frame:
                     if self.original_size != self.current_size:
                         data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)

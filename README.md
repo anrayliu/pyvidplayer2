@@ -1,3 +1,5 @@
+[![downloads](https://static.pepy.tech/badge/pyvidplayer2)](http://pepy.tech/project/pyvidplayer2)
+
 # pyvidplayer2 (please report all bugs!)
 Languages: English | [中文](https://github.com/anrayliu/pyvidplayer2/blob/main/README.cn.md)
 
@@ -10,6 +12,7 @@ All the features from the original library have been ported over, with the excep
 # Features (tested on Windows)
 - Easy to implement (4 lines of code)
 - Fast and reliable
+- Stream videos from Youtube
 - Adjust playback speed
 - Reverse playback
 - No audio/video sync issues
@@ -82,3 +85,6 @@ vid.close()
 pygame.quit()
 
 ```
+
+Documentation also available in repository as documentation.md.
+

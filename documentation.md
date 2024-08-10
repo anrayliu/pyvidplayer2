@@ -1,6 +1,6 @@
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080)
 
-Main object used to play videos. Videos can be read from disk or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). This object uses Pygame for graphics. See bottom for other supported libraries.
+Main object used to play videos. Videos can be read from disk or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). YTDLP is required to stream videos from Youtube. This object uses Pygame for graphics. See bottom for other supported libraries.
 
 ## Arguments
  - ```path``` - Path to video file. Supports most file types such as mkv, mp4, mov, avi, 3gp, etc.
@@ -13,7 +13,9 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
- - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. There is currently a known bug where the audio does not speed up/slow down if the video is reversed, causing visual and audio sync issues.
+ - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
+ - ```youtube``` - Set this to true to stream a youtube video. Path must be a valid youtube video url. Note that reverse playback and playback speed are not supported for youtube videos. Also note that for longer videos (15+ minutes), it is recommended to increase chunk_size to 300+. Leave max_threads and max_chunks at 1 to prevent stuttering. The python package yt_dlp is required for this feature. It can be installed through pip.
+ - ```max_res``` - Only used when streaming youtube videos. Sets the highest possible resolution when choosing video quality.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -43,6 +45,9 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```use_pygame_audio``` - Same as given argument.
  - ```reverse``` - Same as given argument.
  - ```no_audio``` - Same as given argument.
+ - ```youtube``` - Same as given argument.
+ - ```max_res``` - Same as given argument.
+
 
 ## Methods
  - ```play()```
@@ -65,7 +70,7 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```get_pos()``` - Returns the current position in seconds.
  - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one tenth of a second.
  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
- - ```preview()``` - Opens a window and plays the video. This method will hang until the video closes. Videos are played at 60 fps with force_draw disabled.
+ - ```preview(show_fps=False)``` - Opens a window and plays the video. This method will hang until the video closes. Setting show_fps to True will display a counter showing how many new frames a second the preview is currently playing. Show_fps only supported for Pygame.
 
 # VideoPlayer(video, rect, interactable=False, loop=False, preview_thumbnails=0)
 

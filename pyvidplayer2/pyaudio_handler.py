@@ -75,7 +75,7 @@ class PyaudioHandler:
         self.thread.start()
 
     def _threaded_play(self):
-        chunk = 2048
+        chunk = 256
         data = self.wave.readframes(chunk)
 
         while data != b'' and not self.stop_thread:
@@ -94,7 +94,7 @@ class PyaudioHandler:
                 self.stream.write(audio.tobytes())
                 data = self.wave.readframes(chunk)
 
-                self.position += chunk / self.wave.getframerate()
+                self.position += chunk / float(self.wave.getframerate())
 
         self.active = False
 

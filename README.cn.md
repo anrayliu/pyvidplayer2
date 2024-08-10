@@ -1,3 +1,5 @@
+[![下载的](https://static.pepy.tech/badge/pyvidplayer2)](http://pepy.tech/project/pyvidplayer2)
+
 # pyvidplayer2（请报告所有的错误！）
 语言: [English](https://github.com/anrayliu/pyvidplayer2/blob/main/README.md) | 中文
 
@@ -8,6 +10,7 @@
 # 特性（在 Windows 上测试）
 - 易于实现（4行代码）
 - 快速可靠
+- 播放Youtube的视频
 - 调整播放速度
 - 反向视频播放
 - 没有音视频同步问题

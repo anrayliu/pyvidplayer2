@@ -4,8 +4,7 @@ import wave
 import math
 import time
 import numpy as np
-import sys
-import warnings
+#import warnings    Currently exploring other logging methods
 
 from threading import Thread
 from io import BytesIO
@@ -89,10 +88,10 @@ class PyaudioHandler:
             if info["name"] == name:
                 if info['maxOutputChannels'] > 0:
                     return i
-                else:
-                    warnings.warn(
-                        "Warning: preferred device '{}' is invalid"
-                        " (has no output)".format(info['name']))
+                #else:
+                #    warnings.warn(
+                #        "Warning: preferred device '{}' is invalid"
+                #        " (has no output)".format(info['name']))
         return -1
 
     def load(self, bytes_):
@@ -114,27 +113,27 @@ class PyaudioHandler:
             for try_name in self.preferred_device_names:
                 device_index = self.find_device_by_name(try_name)
                 if device_index >= 0:
-                    warnings.warn("Detected {}".format(try_name))
+                    #warnings.warn("Detected {}".format(try_name))
                     break
-            if device_index < 0:
-                warnings.warn(
-                    "No preferred device was present: {}"
-                    .format(self.preferred_device_names))
+            #if device_index < 0:
+                #warnings.warn(
+                #    "No preferred device was present: {}"
+                #    .format(self.preferred_device_names))
 
             if device_index < 0:
                 # If no device was present, load the first output device
                 #   (may stutter and fail under pipewire+jack):
                 for i in range(self.p.get_device_count()):
                     info = self.p.get_device_info_by_index(i)
-                    warnings.warn("Device {}: {}".format(i, info['name']))
+                    #warnings.warn("Device {}: {}".format(i, info['name']))
                     if info['maxOutputChannels'] > 0:
-                        warnings.warn("- selected (first output device)")
+                        #warnings.warn("- selected (first output device)")
                         # Use the first device that has output
                         device_index = i
                         break
 
             if device_index < 0:
-                warnings.warn("Error: No suitable output device found.")
+                #warnings.warn("Error: No suitable output device found.")
                 return
             try:
                 self.stream = self.p.open(
@@ -167,7 +166,6 @@ class PyaudioHandler:
             self.stream.stop_stream()
             self.stream.close()
         self.p.terminate()
-        # print("Stopped pyaudio.", file=sys.stderr)
 
     def unload(self):
         if self.loaded:

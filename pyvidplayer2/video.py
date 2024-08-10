@@ -240,6 +240,7 @@ class Video:
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
+            return
         
         self._chunks[i - self._chunks_played - 1] = audio
 

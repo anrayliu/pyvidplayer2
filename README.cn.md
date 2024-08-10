@@ -30,6 +30,17 @@ pip install pyvidplayer2
 注意：必须安装并通过系统 PATH 访问 FFMPEG（仅需要基本组件）。这里有一篇关于如何在 Windows 上执行此操作的在线文章：
 https://phoenixnap.com/kb/ffmpeg-windows。
 
+## Linux
+
+在运行 pip install pyvidplayer2 之前，您必须先安装所需的开发包。
+
+例如，在 Ubuntu/Debian 上执行以下命令安装所需的依赖项：
+
+```
+sudo apt-get install build-essential python3-dev portaudio19-dev
+```
+Python 和 PortAudio 的开发包分别解决了缺少 Python.h 和 portaudio.h 的问题
+
 # 快速入门
 
 查看示例文件夹以获取更多基本指南，documentation.md 包含更详细的信息。

@@ -41,9 +41,9 @@ class VideoPygame(Video):
             if self.draw(win, (0, 0), force_draw=False):
                 if show_fps:
                     frames += 1
-                surf = font.render(str(fps), True, "white")
-                pygame.draw.rect(win, "black", surf.get_rect(topleft=(0, 0)))
-                win.blit(surf, (0, 0))
+                    surf = font.render(str(fps), True, "white")
+                    pygame.draw.rect(win, "black", surf.get_rect(topleft=(0, 0)))
+                    win.blit(surf, (0, 0))
                 pygame.display.update()
         pygame.display.quit()
         self.close()

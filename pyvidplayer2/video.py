@@ -1,12 +1,12 @@
-import cv2 
-import subprocess 
+import cv2
+import subprocess
 import os
 from threading import Thread
 from .pyaudio_handler import PyaudioHandler
 from .error import Pyvidplayer2Error
 
 try:
-    import pygame 
+    import pygame
 except ImportError:
     pass
 else:
@@ -67,7 +67,7 @@ class Video:
 
         self.frame_data = None
         self.frame_surf = None
-        
+
         self.active = False
         self.buffering = False
         self.paused = False
@@ -85,14 +85,14 @@ class Video:
                 self._audio = MixerHandler()
             except NameError:
                 raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed.")
-        else:    
+        else:
             self._audio = PyaudioHandler()
 
         self.speed = max(0.5, min(10, speed))
         self.reverse = reverse
         self.no_audio = no_audio or self._test_no_audio()
 
-        self._missing_ffmpeg = False # for throwing errors
+        self._missing_ffmpeg = False  # for throwing errors
 
         self._preloaded_frames = []
         if self.reverse:
@@ -125,15 +125,15 @@ class Video:
     def _preload_frames(self):
         self._preloaded_frames = []
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, 0) 
+        self._vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-        has_frame = True 
+        has_frame = True
         while has_frame:
             has_frame, data = self._vid.read()
             if has_frame:
                 self._preloaded_frames.append(data)
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, self.frame) 
+        self._vid.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
 
     def _chunks_len(self):
         i = 0
@@ -256,7 +256,7 @@ class Video:
 
     def _write_subs(self):
         p = self.get_pos()
-        
+
         if p >= self.subs.start:
             if p > self.subs.end:
                 if self.subs._get_next():
@@ -267,7 +267,7 @@ class Video:
     def _update(self):
         if self._missing_ffmpeg:
             raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
-        
+
         self._update_threads()
 
         n = False
@@ -287,7 +287,7 @@ class Video:
                     except IndexError:
                         has_frame = False
                 else:
-                    
+
                     self.buffering = True
                     has_frame, data = self._vid.read()
                     self.buffering = False
@@ -322,7 +322,7 @@ class Video:
                 self.stop()
             else:
                 self.buffering = True
-    
+
         return n
 
     def mute(self):
@@ -347,7 +347,7 @@ class Video:
         self.active = False
         self.frame_data = None
         self.frame_surf = None
-        self.paused = False 
+        self.paused = False
 
     def resize(self, size):
         self.current_size = size
@@ -377,7 +377,7 @@ class Video:
     def get_paused(self):
         # here because the original pyvidplayer had get_paused
         return self.paused
-    
+
     def toggle_pause(self):
         self.resume() if self.paused else self.pause()
 
@@ -425,9 +425,9 @@ class Video:
 
     def _create_frame(self):
         pass
-    
+
     def _render_frame(self):
         pass
-    
+
     def preview(self):
         pass

@@ -1,5 +1,5 @@
-import cv2 
-import subprocess 
+import cv2
+import subprocess
 import os
 import warnings
 from threading import Thread
@@ -7,7 +7,7 @@ from .pyaudio_handler import PyaudioHandler
 from .error import Pyvidplayer2Error
 
 try:
-    import pygame 
+    import pygame
 except ImportError:
     pass
 else:
@@ -20,7 +20,7 @@ logger = getLogger(__name__)
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed):
-        
+
         if speed != 1 and reverse:
             warnings.warn("Warning: Setting speed and reverse parameters simultaneously currently causes video/audio sync issues.")
 
@@ -58,7 +58,7 @@ class Video:
 
         self.frame_data = None
         self.frame_surf = None
-        
+
         self.active = False
         self.buffering = False
         self.paused = False
@@ -74,7 +74,7 @@ class Video:
                 self._audio = MixerHandler()
             except NameError:
                 raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed.")
-        else:    
+        else:
             self._audio = PyaudioHandler()
 
         self.speed = max(0.5, min(10, speed))
@@ -94,15 +94,15 @@ class Video:
     def _preload_frames(self):
         self._preloaded_frames = []
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, 0) 
+        self._vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-        has_frame = True 
+        has_frame = True
         while has_frame:
             has_frame, data = self._vid.read()
             if has_frame:
                 self._preloaded_frames.append(data)
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, self.frame) 
+        self._vid.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
 
     def _chunks_len(self):
         i = 0
@@ -138,6 +138,7 @@ class Video:
             p = subprocess.run(command, capture_output=True)
         except FileNotFoundError:
             self._missing_ffmpeg = True
+            return True
 
         return p.stdout == b''
 
@@ -183,21 +184,22 @@ class Video:
             ]
 
             filters = []
-    
+
             if self.speed != 1:
                 filters += ["-af", f"atempo={self.speed}"]
             if self.reverse:
                 filters += ["-af", "areverse"]
-            
+
             command = command[:7] + filters + command[7:]
 
         try:
-            
+
             p = subprocess.run(command, capture_output=True)
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
-        
+            return
+
         self._chunks[i - self._chunks_played - 1] = p.stdout
 
     def _update_threads(self):
@@ -244,7 +246,7 @@ class Video:
                     except IndexError:
                         has_frame = False
                 else:
-                    
+
                     self.buffering = True
                     has_frame, data = self._vid.read()
                     self.buffering = False
@@ -252,10 +254,10 @@ class Video:
                 self.frame += 1
 
                 # optimized for high playback speeds
-                
+
                 if p > self.frame * self.frame_delay:
                     continue
-                
+
                 if has_frame:
                     if self.original_size != self.current_size:
                         data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
@@ -280,7 +282,7 @@ class Video:
                 self.stop()
             else:
                 self.buffering = True
-    
+
         return n
 
     def mute(self):
@@ -305,7 +307,7 @@ class Video:
         self.active = False
         self.frame_data = None
         self.frame_surf = None
-        self.paused = False 
+        self.paused = False
 
     def resize(self, size):
         self.current_size = size
@@ -335,7 +337,7 @@ class Video:
     def get_paused(self):
         # here because the original pyvidplayer had get_paused
         return self.paused
-    
+
     def toggle_pause(self):
         self.resume() if self.paused else self.pause()
 
@@ -383,9 +385,9 @@ class Video:
 
     def _create_frame(self):
         pass
-    
+
     def _render_frame(self):
         pass
-    
+
     def preview(self):
         pass

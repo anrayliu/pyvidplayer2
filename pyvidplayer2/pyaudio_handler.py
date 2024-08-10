@@ -5,13 +5,10 @@ import math
 import time
 import numpy as np
 import sys
+import warnings
 
 from threading import Thread
 from io import BytesIO
-# from logging import getLogger
-from pyvidplayer2.pyvidplayer2logging import getLogger
-
-logger = getLogger(__name__)
 
 
 class PyaudioHandler:
@@ -80,7 +77,7 @@ class PyaudioHandler:
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
             self.audio_devices.append(copy.deepcopy(info))
-            # logger.info("Device {}: {}".format(i, info['name']))
+            # warnings.warn("Device {}: {}".format(i, info['name']))
 
     def find_device_by_name(self, name):
         # for i in range(self.p.get_device_count()):
@@ -97,8 +94,9 @@ class PyaudioHandler:
                 if info['maxOutputChannels'] > 0:
                     return i
                 else:
-                    logger.warning("Warning: preferred device '{}' is invalid"
-                          " (has no output)".format(info['name']))
+                    warnings.warn(
+                        "Warning: preferred device '{}' is invalid"
+                        " (has no output)".format(info['name']))
         return -1
 
     def load(self, bytes_):
@@ -116,7 +114,7 @@ class PyaudioHandler:
         else:
             # Use the separate audio file's open stream
             self.wave = self.separate_wave
-            logger.info("INFO: Using separate wave file.")
+            print("INFO: Using separate wave file.", file=sys.stderr)
 
         if self.stream is None:
             device_index = -1
@@ -126,10 +124,10 @@ class PyaudioHandler:
             for try_name in self.preferred_device_names:
                 device_index = self.find_device_by_name(try_name)
                 if device_index >= 0:
-                    logger.warning("Detected {}".format(try_name))
+                    warnings.warn("Detected {}".format(try_name))
                     break
             if device_index < 0:
-                logger.warning(
+                warnings.warn(
                     "No preferred device was present: {}"
                     .format(self.preferred_device_names))
 
@@ -138,15 +136,15 @@ class PyaudioHandler:
                 #   (may stutter and fail under pipewire+jack):
                 for i in range(self.p.get_device_count()):
                     info = self.p.get_device_info_by_index(i)
-                    logger.warning("Device {}: {}".format(i, info['name']))
+                    warnings.warn("Device {}: {}".format(i, info['name']))
                     if info['maxOutputChannels'] > 0:
-                        logger.warning("- selected (first output device)")
+                        warnings.warn("- selected (first output device)")
                         # Use the first device that has output
                         device_index = i
                         break
 
             if device_index < 0:
-                logger.error("No suitable output device found.")
+                warnings.warn("Error: No suitable output device found.")
                 return
             try:
                 self.stream = self.p.open(
@@ -179,7 +177,7 @@ class PyaudioHandler:
             self.stream.stop_stream()
             self.stream.close()
         self.p.terminate()
-        logger.info("Stopped pyaudio.")
+        # print("Stopped pyaudio.", file=sys.stderr)
 
     def unload(self):
         if self.loaded:

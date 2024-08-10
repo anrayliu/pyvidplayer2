@@ -27,9 +27,6 @@ class PyaudioHandler:
             otherwise "Failed to open stream with selected device 13:
             OSError: [Errno -9997] Invalid sample rate (name=jack)"
             occurs in self.stream.write.
-        separate_wave (wave): Use audio from a separate file.
-            set this to a stream such as `wave.open(path, 'rb')`
-            (requires `import wave`).
         stream (pyaudio.PyAudio.Stream): The open audio device's output
             stream obtained by self.p.open(...).
     """
@@ -52,7 +49,6 @@ class PyaudioHandler:
         self.p = pyaudio.PyAudio()
         self.stream = None
         self.audio_devices = []
-        self.separate_wave = None
         self.preferred_device_names = [
             "pulse",
             "pipewire",  # pipewire stutters with jack on Ubuntu Studio 24.04
@@ -101,20 +97,14 @@ class PyaudioHandler:
 
     def load(self, bytes_):
         self.unload()
-        if not self.separate_wave:
-            # Open the audio stream from the video file
-            try:
-                self.wave = wave.open(BytesIO(bytes_), "rb")
-            except EOFError:
-                raise EOFError(
-                    "Audio is empty. This may mean the file is corrupted."
-                    " If your video has no audio track,"
-                    " try initializing it with no_audio=True."
-                )
-        else:
-            # Use the separate audio file's open stream
-            self.wave = self.separate_wave
-            print("INFO: Using separate wave file.", file=sys.stderr)
+        try:
+            self.wave = wave.open(BytesIO(bytes_), "rb")
+        except EOFError:
+            raise EOFError(
+                "Audio is empty. This may mean the file is corrupted."
+                " If your video has no audio track,"
+                " try initializing it with no_audio=True."
+            )
 
         if self.stream is None:
             device_index = -1

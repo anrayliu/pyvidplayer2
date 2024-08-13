@@ -37,6 +37,7 @@ class PyaudioHandler:
         self.stop_thread = False
 
         self.position = 0
+        self.chunks_played = 0
 
         self.loaded = False
         self.paused = False
@@ -181,6 +182,7 @@ class PyaudioHandler:
     def play(self):
         self.stop_thread = False
         self.position = 0
+        self.chunks_played = 0
         self.active = True
 
         self.wave.rewind()
@@ -208,7 +210,8 @@ class PyaudioHandler:
                 self.stream.write(audio.tobytes())
                 data = self.wave.readframes(chunk)
 
-                self.position += chunk / float(self.wave.getframerate())
+                self.chunks_played += chunk 
+                self.position = self.chunks_played / float(self.wave.getframerate())
 
         self.active = False
 
@@ -226,6 +229,7 @@ class PyaudioHandler:
             self.stop_thread = True
             self.thread.join()
             self.position = 0
+            self.chunks_played = 0
 
     def pause(self):
         self.paused = True

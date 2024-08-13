@@ -39,6 +39,7 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Multimedia :: Video",
         "Topic :: Multimedia :: Video :: Display",
+        "Topic :: Software Development :: Libraries :: pygame",
 
         # Pick your license as you wish (see also "license" above)
         "License :: OSI Approved :: MIT License",

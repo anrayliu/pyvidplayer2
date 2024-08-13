@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# [tool.setuptools_scm]
+# write_to = "pyvidplayer2/_version.py"
+# Uncomment and version will be managed by setuptools_scm and written to _version.py
+#   based on the latest git tag.
+
+[project]
+name = "pyvidplayer2"
+dynamic = ["version"]
+# version: See [tool.setuptools.dynamic]
+description = "Video playback in Python"
+readme = "README.md"
+readme-content-type = "text/markdown"
+authors = [
+    {name = "Anray Liu", email = "anrayliu@gmail.com"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.6"
+dependencies = [
+    "numpy",
+    "opencv-python",
+    "pygame",
+    "pysubs2",
+    "PyAudio"
+]
+keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyglet"]
+
+
+[tool.setuptools.dynamic]
+version = {attr = "pyvidplayer2._version.__version__"}
+
+[project.urls]
+homepage = "https://github.com/ree1261/pyvidplayer2"
+
+[project.classifiers]
+platforms = ["Windows", "Linux"]

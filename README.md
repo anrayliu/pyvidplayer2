@@ -35,6 +35,17 @@ https://phoenixnap.com/kb/ffmpeg-windows.
 Before running `pip install pyvidplayer2`, you must first install the required development packages.
 - Ubuntu/Debian example: `sudo apt-get install build-essential python3-dev portaudio19-dev`
   - The Python and PortAudio development packages prevent missing Python.h and missing portaudio.h errors, respectively.
+  - In some circumstances, such as if you are using the kxstudio repo with Linux Mint, incompatible packages may be removed (See <https://github.com/anrayliu/pyvidplayer2/issues/36> for the latest updates on this issue):
+```
+The following additional packages will be installed:
+  libjack-dev libjack0 libportaudiocpp0
+Suggested packages:
+  jackd1 portaudio19-doc
+The following packages will be REMOVED:
+  libasound2-plugins:i386 libjack-jackd2-0 libjack-jackd2-0:i386 wine-stable wine-stable-i386:i386 winehq-stable
+The following NEW packages will be installed:
+  libjack-dev libjack0 libportaudiocpp0 portaudio19-dev
+```
 
 # Quickstart
 
@@ -60,7 +71,7 @@ while vid.active:
             vid.stop()
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
-    
+
     if key == "r":
         vid.restart()           #rewind video to beginning
     elif key == "p":
@@ -77,7 +88,7 @@ while vid.active:
         vid.set_volume(0.0)     #min volume
 
     # only draw new frames, and only update the screen if something is drawn
-    
+
     if vid.draw(win, (0, 0), force_draw=False):
         pygame.display.update()
 
@@ -91,7 +102,7 @@ pygame.quit()
 
 ```
 
-# Documentation 
+# Documentation
 
 Documentation also available in repository as documentation.md.
 
@@ -107,7 +118,7 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
- - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
+ - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel.
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
  - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
@@ -180,7 +191,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
  - ```loop``` - Whether the contained video will restart after it finishes. If the queue is not empty, the entire queue will loop, not just the current video.
  - ```preview_thumbnails``` - Number of preview thumbnails loaded and saved in memory. When seeking, a preview window will show the closest loaded frame. The higher this number is, the more frames are loaded, increasing the preview accuracy, but also increasing initial load time and memory usage. Because of this, this value is defaulted to 0, which turns seek previewing off.
 
-## Attributes 
+## Attributes
  - ```video``` - Same as given argument.
  - ```frame_rect``` - Same as given argument.
  - ```vid_rect``` - This is the video fitted into the frame_rect while maintaining aspect ratio. Black bars will appear in any unused space.
@@ -205,7 +216,7 @@ VideoPlayers are GUI containers for videos. This seeks to mimic standard video p
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50)
 
-Object used for handling subtitles. Only supported for Pygame. 
+Object used for handling subtitles. Only supported for Pygame.
 
 ## Arguments
  - ```path``` - Path to subtitle file. This can be any file pysubs2 can read, including .srt, .ass, .vtt, and others.
@@ -227,7 +238,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```font``` - Same as given argument.
  - ```offset``` - Same as given argument.
 
-## Methods 
+## Methods
  - ```set_font(font)```
  - ```get_font()```
 

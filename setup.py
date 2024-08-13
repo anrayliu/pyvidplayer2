@@ -19,7 +19,7 @@ setup(
     long_description_content_type = "text/markdown",
     author="Anray Liu",
     author_email="anrayliu@gmail.com",
-    license="MIT",
+    # license="MIT",
     packages=["pyvidplayer2"],
     install_requires=["numpy",
                     "opencv_python",
@@ -28,5 +28,27 @@ setup(
                     "PyAudio"],
     url="https://github.com/anrayliu/pyvidplayer2",
     platforms=["windows", "linux"],
-    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyglet", "youtube", "stream"]
+    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyglet", "youtube", "stream"],
+    classifiers = [
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        "Development Status :: 4 - Beta",
+
+        "Intended Audience :: Developers",
+        "Topic :: Multimedia :: Video",
+        "Topic :: Multimedia :: Video :: Display",
+
+        # Pick your license as you wish (see also "license" above)
+        "License :: OSI Approved :: MIT License",
+
+        # Specify the Python versions you support here.
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+    ]
 )

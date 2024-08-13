@@ -12,8 +12,7 @@ name = "pyvidplayer2"
 dynamic = ["version"]
 # version: See [tool.setuptools.dynamic]
 description = "Reliable, easy, and fast video playback in Python"
-readme = {file = "README.txt", content-type = "text/markdown"}
-readme-content-type = "text/markdown"
+readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
     {name = "Anray Liu", email = "anrayliu@gmail.com"}
 ]

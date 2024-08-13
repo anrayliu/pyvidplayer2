@@ -11,13 +11,16 @@ build-backend = "setuptools.build_meta"
 name = "pyvidplayer2"
 dynamic = ["version"]
 # version: See [tool.setuptools.dynamic]
-description = "Video playback in Python"
-readme = "README.md"
+description = "Reliable, easy, and fast video playback in Python"
+readme = {file = "README.txt", content-type = "text/markdown"}
 readme-content-type = "text/markdown"
 authors = [
     {name = "Anray Liu", email = "anrayliu@gmail.com"}
 ]
-license = {text = "MIT"}
+# license = {text = "MIT License"}
+# license = {file = "LICENSE"}
+# ^ "If you are using a standard, well-known license, it is not necessary to use this field. Instead, you should use one of the classifiers starting with License ::"
+#   -<https://packaging.python.org/en/latest/guides/writing-pyproject-toml/>
 requires-python = ">=3.6"
 dependencies = [
     "numpy",
@@ -27,13 +30,35 @@ dependencies = [
     "PyAudio"
 ]
 keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyglet"]
+classifiers = [
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 4 - Beta",
 
+  "Intended Audience :: Developers",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Multimedia :: Video :: Display",
+
+  # Pick your license as you wish (see also "license" above)
+  "License :: OSI Approved :: MIT License",
+
+  # Specify the Python versions you support here.
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+]
 
 [tool.setuptools.dynamic]
 version = {attr = "pyvidplayer2._version.__version__"}
 
 [project.urls]
-homepage = "https://github.com/ree1261/pyvidplayer2"
-
-[project.classifiers]
-platforms = ["Windows", "Linux"]
+Homepage = "https://github.com/anrayliu/pyvidplayer2"
+# Documentation = "https://github.com/anrayliu/pyvidplayer2"
+Repository = "https://github.com/anrayliu/pyvidplayer2.git"
+Issues = "https://github.com/anrayliu/pyvidplayer2/issues"
+# Changelog =

@@ -18,7 +18,7 @@ class VideoPygame(Video):
     def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)
     
-    def preview(self, show_fps=False):
+    def preview(self, show_fps=False, max_fps=60):
         win = pygame.display.set_mode(self.current_size)
         clock = pygame.time.Clock()
         pygame.display.set_caption(f"pygame - {self.name}")
@@ -31,7 +31,7 @@ class VideoPygame(Video):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.stop()
-            dt = clock.tick(self.frame_rate * 2)
+            dt = clock.tick(max_fps)
             if show_fps:
                 timer += dt 
                 if timer >= 1000:

@@ -4,8 +4,6 @@ import wave
 import math
 import time
 import numpy as np
-#import warnings    Currently exploring other logging methods
-
 from threading import Thread
 from io import BytesIO
 
@@ -76,11 +74,8 @@ class PyaudioHandler:
             # warnings.warn("Device {}: {}".format(i, info['name']))
 
     def find_device_by_name(self, name):
-        # for i in range(self.p.get_device_count()):
         if self.audio_devices is None:
-            raise RuntimeError(
-                "find_device_by_name was called before refresh_devices")
-            # return -1
+            raise RuntimeError("find_device_by_name was called before refresh_devices")
         for i in range(len(self.audio_devices)):
             # self.audio_devices[i] = self.p.get_device_info_by_index(i)
             # ^ Commenting this assumes refresh_devices was called
@@ -113,7 +108,7 @@ class PyaudioHandler:
 
             for try_name in self.preferred_device_names:
                 device_index = self.find_device_by_name(try_name)
-                if device_index >= 0:
+                if device_index != -1:
                     #warnings.warn("Detected {}".format(try_name))
                     break
             #if device_index < 0:
@@ -124,18 +119,17 @@ class PyaudioHandler:
             if device_index < 0:
                 # If no device was present, load the first output device
                 #   (may stutter and fail under pipewire+jack):
-                for i in range(self.p.get_device_count()):
-                    info = self.p.get_device_info_by_index(i)
-                    #warnings.warn("Device {}: {}".format(i, info['name']))
-                    if info['maxOutputChannels'] > 0:
+                for i, info in enumerate(self.audio_devices):
+                    if info["maxOutputChannels"] > 0:
                         #warnings.warn("- selected (first output device)")
                         # Use the first device that has output
-                        device_index = i
+                        device_index = i 
                         break
 
             if device_index < 0:
                 #warnings.warn("Error: No suitable output device found.")
                 return
+            
             try:
                 self.stream = self.p.open(
                     format=self.p.get_format_from_width(
@@ -149,15 +143,15 @@ class PyaudioHandler:
                 )
 
             except Exception as e:
-                # traceback.format_exc()
                 name = None
-                if ((device_index >= 0)
-                        and (device_index < len(self.audio_devices))):
-                    name = self.audio_devices[device_index].get('name')
+                if 0 <= device_index < len(self.audio_devices):
+                    name = self.audio_devices[device_index].get("name")
+                '''
                 print("Failed to open stream with selected device {}:"
                       " {}: {} (name={})"
                       .format(device_index,
                               type(e).__name__, e, name))
+                '''
                 return
 
         self.loaded = True
@@ -191,8 +185,9 @@ class PyaudioHandler:
         self.thread.start()
 
     def _threaded_play(self):
-        chunk = 256
-        data = self.wave.readframes(chunk)
+        chunk_ = 128
+
+        data = self.wave.readframes(chunk_)
 
         while data != b'' and not self.stop_thread:
 
@@ -208,10 +203,11 @@ class PyaudioHandler:
                     audio = (audio * 10**(db/20)).astype(np.int16)  # noqa: E226, E501
 
                 self.stream.write(audio.tobytes())
-                data = self.wave.readframes(chunk)
 
-                self.chunks_played += chunk 
+                self.chunks_played += chunk_ 
                 self.position = self.chunks_played / float(self.wave.getframerate())
+                
+                data = self.wave.readframes(chunk_)
 
         self.active = False
 

@@ -13,9 +13,9 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
- - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed.
- - ```youtube``` - Set this to true to stream a youtube video. Path must be a valid youtube video url. Note that reverse playback and playback speed are not supported for youtube videos. Also note that for longer videos (15+ minutes), it is recommended to increase chunk_size to 300+. Leave max_threads and max_chunks at 1 to prevent stuttering. The python package yt_dlp is required for this feature. It can be installed through pip.
- - ```max_res``` - Only used when streaming youtube videos. Sets the highest possible resolution when choosing video quality.
+ - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. Note that speed if for example, speed=2, the video will play twice as fast. However, every video frame will still be processed. Therefore, the frame rate of your program must be at least twice that of the video's frame rate to prevent dropped frames. So for example, for a 24 fps video, the draw method will have to be called at least, but ideally more than 48 times a second to achieve true x2 speed.
+ - ```youtube``` - Set this to true to stream a youtube video. Path must be a valid youtube video url. Note that reverse playback and playback speed are not supported for youtube videos. Also note that for longer videos (15+ minutes), it is recommended to increase chunk_size to 300+. Leave max_threads and max_chunks at 1 to prevent stuttering. The python package yt_dlp is required for this feature. It can be installed through pip. Cannot play active livestreams.
+ - ```max_res``` - Only used when streaming youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest youtube supports.
 
 ## Attributes
  - ```path``` - Same as given argument.
@@ -68,9 +68,10 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```mute()```
  - ```unmute()```
  - ```get_pos()``` - Returns the current position in seconds.
- - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one tenth of a second.
+ - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second.
+ - ```seek_frame(index, relative=False)``` - Seeks to a particular frame instead of a timestamp.
  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
- - ```preview(show_fps=False)``` - Opens a window and plays the video. This method will hang until the video closes. Setting show_fps to True will display a counter showing how many new frames a second the preview is currently playing. Show_fps only supported for Pygame.
+ - ```preview(show_fps=False, max_fps=60)``` - Opens a window and plays the video. This method will hang until the video closes. Max_fps enforces how many times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number of new frames being rendered every second.
 
 # VideoPlayer(video, rect, interactable=False, loop=False, preview_thumbnails=0)
 

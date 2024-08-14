@@ -9,7 +9,7 @@ pretty much every way, and finally allows an easy and reliable way to play video
 
 All the features from the original library have been ported over, with the exception of ```alt_resize()```. Since pyvidplayer2 has a completely revamped foundation, the unreliability of ```set_size()``` has been quashed, and a fallback function is now redundant.
 
-# Features (tested on Windows)
+# Features (see examples folder)
 - Easy to implement (4 lines of code)
 - Fast and reliable
 - Stream videos from Youtube

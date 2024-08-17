@@ -71,6 +71,7 @@ class PyaudioHandler:
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
             self.audio_devices.append(copy.deepcopy(info))
+            
             # warnings.warn("Device {}: {}".format(i, info['name']))
 
     def find_device_by_name(self, name):
@@ -122,7 +123,6 @@ class PyaudioHandler:
                 for i, info in enumerate(self.audio_devices):
                     if info["maxOutputChannels"] > 0:
                         #warnings.warn("- selected (first output device)")
-                        # Use the first device that has output
                         device_index = i 
                         break
 

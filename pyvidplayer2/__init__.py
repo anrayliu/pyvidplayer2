@@ -1,6 +1,4 @@
 from subprocess import run
-from logging import basicConfig, INFO
-from cv2 import INTER_NEAREST, INTER_LINEAR, INTER_AREA, INTER_CUBIC, INTER_LANCZOS4
 
 from .post_processing import PostProcessing
 from .error import Pyvidplayer2Error
@@ -40,8 +38,6 @@ else:
 
 
 VERSION = "0.9.16"
-
-basicConfig(level=INFO, format="[pyvidlayer2] %(levelname)s: %(message)s")
 
 
 def get_version_info():

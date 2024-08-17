@@ -9,7 +9,7 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```max_chunks``` - Maximum number of chunks allowed to be extracted and reserved. Increasing this value can help with buffering, but will use more memory.
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
- - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling. There is also cv2.INTER_NEAREST for maximum performance and cv2.INTER_LANCZOS4 for maximum quality. For convenience, entering the interpolation technique as a string will also work. For example, "cubic" will set the interpolation to cv2.INTER_CUBIC automatically.
  - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
@@ -67,8 +67,11 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```toggle_mute()```
  - ```mute()```
  - ```unmute()```
+ - ```set_interp(interp)``` - Changes the interpolation technique. Works the same as interp= during class instantiation. 
+ - ```set_post_func(func)``` - Changes the post processing function. Also works the same post_func= during class instantiation. 
  - ```get_pos()``` - Returns the current position in seconds.
- - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second.
+ - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
+ frames and audio within the video will not be updated yet after calling seek.
  - ```seek_frame(index, relative=False)``` - Seeks to a particular frame instead of a timestamp.
  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - ```preview(show_fps=False, max_fps=60)``` - Opens a window and plays the video. This method will hang until the video closes. Max_fps enforces how many times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number of new frames being rendered every second.
@@ -141,7 +144,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
 
 ## Arguments
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
- - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling.
+ - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling. There is also cv2.INTER_NEAREST for maximum performance and cv2.INTER_LANCZOS4 for maximum quality.
  - ```fps``` - Maximum number of frames captured from the webcam per second.
  - ```cam_id``` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, etc.
 
@@ -193,14 +196,5 @@ print(pyvidplayer2.get_version_info())
 
 Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
 with ```pyvidplayer2.VERSION```.
-```
-INTER_NEAREST
-INTER_LINEAR
-INTER_CUBIC
-INTER_LANCSOZ4
-INTER_AREA
-```
-
-The following interpolation flags from cv2 are also accessible through pyvidplayer2 as well. E.g ```cv2.INTER_LINEAR``` is the same as ```pyvidplayer2.INTER_LINEAR```, so importing cv2 isn't necessary.
 
 When there are no suitable exceptions, ```pyvidplayer2.Pyvidplayer2Error``` may be raised.

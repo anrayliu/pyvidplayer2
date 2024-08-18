@@ -33,8 +33,9 @@ https://phoenixnap.com/kb/ffmpeg-windows.
 
 ## Linux
 Before running `pip install pyvidplayer2`, you must first install the required development packages.
-- Ubuntu/Debian example: `sudo apt-get install build-essential python3-dev portaudio19-dev`
+- Ubuntu/Debian example: `sudo apt install build-essential python3-dev portaudio19-dev libjack-jackd2-dev`
   - The Python and PortAudio development packages prevent missing Python.h and missing portaudio.h errors, respectively.
+  - Installing `libjack-jackd2-dev` manually prevents `portaudio19-dev` from downgrading to libjack0 and removing wine etc (<https://bugs.launchpad.net/ubuntu/+source/portaudio19/+bug/132002>).
   - In some circumstances, such as if you are using the kxstudio repo with Linux Mint, incompatible packages may be removed (See <https://github.com/anrayliu/pyvidplayer2/issues/36> for the latest updates on this issue):
 ```
 The following additional packages will be installed:
@@ -118,7 +119,7 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
  - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
  - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling. There is also cv2.INTER_NEAREST for maximum performance and cv2.INTER_LANCZOS4 for maximum quality. For convenience, entering the interpolation technique as a string will also work. For example, "cubic" will set the interpolation to cv2.INTER_CUBIC automatically.
- - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
+ - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel.
  - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
  - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
  - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. Note that speed if for example, speed=2, the video will play twice as fast. However, every video frame will still be processed. Therefore, the frame rate of your program must be at least twice that of the video's frame rate to prevent dropped frames. So for example, for a 24 fps video, the draw method will have to be called at least, but ideally more than 48 times a second to achieve true x2 speed.
@@ -175,10 +176,10 @@ Main object used to play videos. Videos can be read from disk or streamed from Y
  - ```toggle_mute()```
  - ```mute()```
  - ```unmute()```
- - ```set_interp(interp)``` - Changes the interpolation technique. Works the same as interp= during class instantiation. 
- - ```set_post_func(func)``` - Changes the post processing function. Also works the same post_func= during class instantiation. 
+ - ```set_interp(interp)``` - Changes the interpolation technique. Works the same as interp= during class instantiation.
+ - ```set_post_func(func)``` - Changes the post processing function. Also works the same post_func= during class instantiation.
  - ```get_pos()``` - Returns the current position in seconds.
- - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
+ - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that
  frames and audio within the video will not be updated yet after calling seek.
  - ```seek_frame(index, relative=False)``` - Seeks to a particular frame instead of a timestamp.
  - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.

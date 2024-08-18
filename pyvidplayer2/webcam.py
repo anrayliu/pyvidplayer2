@@ -30,6 +30,8 @@ class Webcam:
         self._frames = 0
         self._last_tick = 0
 
+        self.set_interp(self.interp)
+
         self.play()
 
     def __str__(self):
@@ -56,7 +58,21 @@ class Webcam:
                     return True
 
         return False
-    
+
+    def set_interp(self, interp):
+        if interp in ("nearest", 0):
+            self.interp = cv2.INTER_NEAREST
+        elif interp in ("linear", 1):
+            self.interp = cv2.INTER_LINEAR
+        elif interp in ("area", 3):
+            self.interp = cv2.INTER_AREA
+        elif interp in ("cubic", 2):
+            self.interp = cv2.INTER_CUBIC
+        elif interp in ("lanczos4", 4):
+            self.interp = cv2.INTER_LANCZOS4
+        else:
+            raise ValueError("Interpolation technique not recognized.")
+
     def play(self):
         self.active = True
 

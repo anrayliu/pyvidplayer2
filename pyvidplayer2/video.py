@@ -41,7 +41,10 @@ class Video:
         self._vid = cv2.VideoCapture(self.path)
 
         if not self._vid.isOpened():
-            raise FileNotFoundError(f'Could not find "{self.path}"')
+            if youtube:
+                raise Pyvidplayer2Error("Open-cv could not open stream.")
+            else:
+                raise FileNotFoundError(f'Could not find "{self.path}"')
 
         # file information
 
@@ -93,12 +96,43 @@ class Video:
         self.no_audio = no_audio or self._test_no_audio()
 
         self._missing_ffmpeg = False  # for throwing errors
+        self._generated_frame = False # for when used as a generator
 
         self._preloaded_frames = []
         if self.reverse:
             self._preload_frames()
 
+        self.set_interp(self.interp)
+
         self.play()
+
+    def __len__(self):
+        return self.duration
+    
+    def __iter__(self):
+        self.seek(0)
+        return self
+        
+    def __next__(self):
+        self._generated_frame = True
+        data = None
+
+        if self.reverse:
+            if self.frame < self.frame_count:
+                self.frame += 1
+                data = self._preloaded_frames[self.frame_count - self.frame - 1]
+        else:
+            has_frame, data = self._vid.read()
+            if has_frame:
+                self.frame += 1
+
+        if data is not None:
+            if self.original_size != self.current_size:
+                data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
+
+            return cv2.cvtColor(self.post_func(data), cv2.COLOR_BGR2RGB)
+        else:
+            raise StopIteration
 
     def _set_stream_url(self, path, max_res=1080):
         config = {"quiet": True,
@@ -111,11 +145,11 @@ class Video:
                 info = ydl.extract_info(path, download=False)
                 formats = info.get("requested_formats", None)
                 if formats is None:
-                    raise Pyvidplayer2Error("No streaming links found. Please ensure the url is a valid Youtube vidoe.")
+                    raise Pyvidplayer2Error("No streaming links found.")
             except Pyvidplayer2Error:
                 raise
             except: # something went wrong with yt_dlp
-                raise Pyvidplayer2Error("Unable to stream video.")
+                raise Pyvidplayer2Error("Yt-dlp could not open video. Please ensure the url is a valid Youtube video.")
             else:
                 self.path = formats[0]["url"]
                 self._audio_path = formats[1]["url"]
@@ -325,7 +359,24 @@ class Video:
                 self.buffering = True
 
         return n
+    
+    def set_interp(self, interp):
+        if interp in ("nearest", 0):
+            self.interp = cv2.INTER_NEAREST
+        elif interp in ("linear", 1):
+            self.interp = cv2.INTER_LINEAR
+        elif interp in ("area", 3):
+            self.interp = cv2.INTER_AREA
+        elif interp in ("cubic", 2):
+            self.interp = cv2.INTER_CUBIC
+        elif interp in ("lanczos4", 4):
+            self.interp = cv2.INTER_LANCZOS4
+        else:
+            raise ValueError("Interpolation technique not recognized.")
 
+    def set_post_func(self, func):
+        self.post_func = func
+    
     def mute(self):
         self.muted = True
         self._audio.mute()
@@ -342,9 +393,12 @@ class Video:
 
     def play(self):
         self.active = True
+        if self._generated_frame:
+            self._generated_frame = False 
+            self.seek_frame(self.frame)
 
     def stop(self):
-        self.restart()
+        self.seek(0, relative=False)
         self.active = False
         self.frame_data = None
         self.frame_surf = None
@@ -399,10 +453,10 @@ class Video:
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time, relative=True):
-        # seeking accurate to 1 tenth of a second
+        # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
-        self._starting_time = round(min(max(0, self._starting_time), self.duration), 1)
+        self._starting_time = round(min(max(0, self._starting_time), self.duration), 2)
 
         for t in self._threads:
             t.join()
@@ -410,11 +464,32 @@ class Video:
         self._threads = []
         self._chunks_claimed = 0
         self._chunks_played = 0
-
         self._audio.unload()
 
         self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)
         self.frame = int(self._vid.get(cv2.CAP_PROP_POS_FRAMES))
+
+        if self.subs is not None:
+            self.subs._seek(self._starting_time)
+
+    def seek_frame(self, index, relative=False):
+        # seeking accurate to 1/100 of a second 
+
+        index = (self.frame + index) if relative else index
+
+        self._starting_time = round(min(max(0, index * self.frame_delay), self.duration), 2)
+
+        for t in self._threads:
+            t.join()
+        self._chunks = []
+        self._threads = []
+        self._chunks_claimed = 0
+        self._chunks_played = 0
+        self._audio.unload()
+
+        self._vid.set(cv2.CAP_PROP_POS_FRAMES, index)
+        self.frame = index
+
         if self.subs is not None:
             self.subs._seek(self._starting_time)
 

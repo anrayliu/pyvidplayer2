@@ -1,6 +1,5 @@
 from pyvidplayer2._version import __version__
 from subprocess import run
-from cv2 import INTER_NEAREST, INTER_LINEAR, INTER_AREA, INTER_CUBIC, INTER_LANCZOS4
 
 from .post_processing import PostProcessing
 from .error import Pyvidplayer2Error

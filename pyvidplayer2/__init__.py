@@ -25,9 +25,15 @@ else:
     pygame.init()
 
     from .video_pygame import VideoPygame as Video
-    from .subtitles import Subtitles
     from .video_player import VideoPlayer
     from .webcam import Webcam
+
+    try:
+        import pysubs2
+    except ImportError:
+        pass 
+    else:
+        from .subtitles import Subtitles
 
 try:
     import pyglet

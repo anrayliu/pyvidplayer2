@@ -6,7 +6,7 @@ import pygame
 from pyvidplayer2 import VideoPlayer, Video
 
 win = pygame.display.set_mode((1280, 720))
-
+pygame.display.set_caption("queue demo")
 
 vid = VideoPlayer(Video(r"resources\clip.mp4"), (0, 0, 1280, 720), loop=True)
 

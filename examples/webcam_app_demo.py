@@ -15,6 +15,7 @@ webcam = Webcam(interp=INTER_AREA)
 webcam.change_resolution(360)
 
 win = pygame.display.set_mode(webcam.current_size, pygame.NOFRAME)
+pygame.display.set_caption("webcam app demo")
 clock = pygame.time.Clock()
 
 dragging = False 

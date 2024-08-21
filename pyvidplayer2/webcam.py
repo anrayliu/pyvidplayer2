@@ -1,16 +1,18 @@
 import cv2
 import pygame
 import time
+import numpy as np 
+from typing import Callable, Union, Tuple
 from .post_processing import PostProcessing
 from .error import Pyvidplayer2Error
 
 
 class Webcam:
-    def __init__(self, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30, cam_id=0):
+    def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none, interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0) -> None:
         self._vid = cv2.VideoCapture(cam_id)
 
         if not self._vid.isOpened():
-            raise Pyvidplayer2Error("Failed to find webcam.")
+            raise Pyvidplayer2Error("Failed to find a webcam.")
 
         self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         self.current_size = self.original_size
@@ -34,7 +36,7 @@ class Webcam:
 
         self.play()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<Webcam(fps={self.fps})>"
 
     def _update(self):
@@ -59,7 +61,7 @@ class Webcam:
 
         return False
 
-    def set_interp(self, interp):
+    def set_interp(self, interp: Union[str, int]) -> None:
         if interp in ("nearest", 0):
             self.interp = cv2.INTER_NEAREST
         elif interp in ("linear", 1):
@@ -73,28 +75,28 @@ class Webcam:
         else:
             raise ValueError("Interpolation technique not recognized.")
 
-    def play(self):
+    def play(self) -> None:
         self.active = True
 
-    def stop(self):
+    def stop(self) -> None:
         self.active = False
         self.frame_data = None
         self.frame_surf = None
 
-    def resize(self, size):
+    def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
 
-    def change_resolution(self, height):
+    def change_resolution(self, height: int) -> None:
         self.current_size = (int(height * self.aspect_ratio), height)
 
-    def close(self):
+    def close(self) -> None:
         self.stop()
         self._vid.release()
 
-    def get_pos(self):
+    def get_pos(self) -> float:
         return self._frames / self.fps
 
-    def draw(self, surf, pos, force_draw=True):
+    def draw(self, surf: pygame.Surface, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         if (self._update() or force_draw) and self.frame_surf is not None:
             self._render_frame(surf, pos)
             return True
@@ -106,7 +108,7 @@ class Webcam:
     def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)
     
-    def preview(self):
+    def preview(self) -> None:
         win = pygame.display.set_mode(self.current_size)
         pygame.display.set_caption(f"webcam")
         self.play()

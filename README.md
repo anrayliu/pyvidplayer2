@@ -12,7 +12,6 @@ All the features from the original library have been ported over, with the excep
 # Features (see examples folder)
 - Easy to implement (4 lines of code)
 - Fast and reliable
-- Stream videos from Youtube
 - Adjust playback speed
 - Reverse playback
 - No audio/video sync issues
@@ -20,9 +19,11 @@ All the features from the original library have been ported over, with the excep
 - Play multiple videos in parallel
 - Built in GUI
 - Support for Pygame, Pyglet, Tkinter, and PyQT6
-- Can play all ffmpeg supported video formats
+- Can play all FFMPEG supported video formats
 - Post process effects
 - Webcam feed
+- Stream videos from Youtube (beta)
+- Play videos from memory (beta)
 
 # Installation
 ```
@@ -95,180 +96,214 @@ pygame.quit()
 
 Documentation also available in repository as documentation.md.
 
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0)
 
-Main object used to play videos. Videos can be read from disk or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. Finally, it uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). YTDLP is required to stream videos from Youtube. This object uses Pygame for graphics. See bottom for other supported libraries.
+Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see ```use_pygame_audio``` below). YTDLP is required to stream videos from Youtube. Pysubs2 and Pygame is required to render subtitles. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is ```VideoPygame```.
 
-## Arguments
- - ```path``` - Path to video file. Supports most file types such as mkv, mp4, mov, avi, 3gp, etc.
- - ```chunk_size``` - How much audio is extracted at a time, in seconds. Increasing this value can mean less total extracts, but slower extracts.
- - ```max_threads``` - Maximum number of chunks that can be extracted at any given time. Increasing this value can speed up extract at the expense of cpu usage.
- - ```max_chunks``` - Maximum number of chunks allowed to be extracted and reserved. Increasing this value can help with buffering, but will use more memory.
- - ```subs``` - Pass a Subtitle class here for the video to display subtitles.
- - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
- - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is fast, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling. There is also cv2.INTER_NEAREST for maximum performance and cv2.INTER_LANCZOS4 for maximum quality. For convenience, entering the interpolation technique as a string will also work. For example, "cubic" will set the interpolation to cv2.INTER_CUBIC automatically.
- - ```use_pygame_audio``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mainly only for those with problems installing Pyaudio. Using pygame audio will not allow videos to be played in parallel. 
- - ```reverse``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are unaffected by reverse playback.
- - ```no_audio``` - Set this to true if the given video has no audio track. Setting this to true can also be used to disable existing audio tracks.
- - ```speed``` - Float from 0.5 to 10.0 that multiplies the playback speed. Note that speed if for example, speed=2, the video will play twice as fast. However, every video frame will still be processed. Therefore, the frame rate of your program must be at least twice that of the video's frame rate to prevent dropped frames. So for example, for a 24 fps video, the draw method will have to be called at least, but ideally more than 48 times a second to achieve true x2 speed.
- - ```youtube``` - Set this to true to stream a youtube video. Path must be a valid youtube video url. Note that reverse playback and playback speed are not supported for youtube videos. Also note that for longer videos (15+ minutes), it is recommended to increase chunk_size to 300+. Leave max_threads and max_chunks at 1 to prevent stuttering. The python package yt_dlp is required for this feature. It can be installed through pip. Cannot play active livestreams.
- - ```max_res``` - Only used when streaming youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest youtube supports.
+## Parameters
+ - ```path: str | bytes``` - Path to video file. Supports almost all file types such as mkv, mp4, mov, avi, 3gp, etc. Can also provide the video in bytes (see ```as_bytes``` below). If streaming from Youtube (see ```youtube``` below), provide the URL here.
+ - ```chunk_size: int | float``` - How much audio is extracted at a time, in seconds. Increasing this value will slow the initial loading of video, but is necessary to prevent stuttering. Recommended to keep over 60 if streaming from Youtube (see ```youtube``` below).
+ - ```max_threads: int``` - Maximum number of chunks that can be extracted at any given time. Do not change if streaming from Youtube (see ```youtube``` below).
+ - ```max_chunks: int``` - Maximum number of chunks allowed to be extracted and reserved. Do not change if streaming from Youtube (see ```youtube``` below).
+ - ```subs: pyvidplayer2.Subtitles``` - Pass a ```Subtitles``` object here for the video to display subtitles.
+ - ```post_process: function(numpy.ndarray) -> numpy.ndarray``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place. Post processing functions should accept a NumpPy image (see ```frame_data``` below) and return the processed image.
+ - ```interp: str | int``` - Interpolation technique used when resizing frames. Accepts ```"nearest"```, ```"linear"```, ```"cubic"```, ```"lanczos4"``` and ```"area"```. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in ```cv2.INTER_LINEAR```.
+ - ```use_pygame_audio: bool``` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mostly obsolete. Using Pygame audio will not allow videos to be played in parallel. 
+ - ```reverse: bool``` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are currently unaffected by reverse playback.
+ - ```no_audio: bool``` - Specifies whether the given video has no audio tracks. Setting this to ```True``` can also be used to disable all existing audio tracks.
+ - ```speed: float | int``` - Float from 0.5 to 10.0 that multiplies the playback speed. Note that if for example, speed=2, the video will play twice as fast. However, every single video frame will still be processed. Therefore, the frame rate of your program must be at least twice that of the video's frame rate to prevent dropped frames. So for example, for a 24 fps video, the video will have to be updated (see ```draw``` below) at least, but ideally more than 48 times a second to achieve true x2 speed.
+ - ```youtube: bool``` - Specifies whether to stream a Youtube video. Path must be a valid Youtube video URL. The python package yt_dlp is required for this feature. It can be installed through pip. Setting this to ```True``` will force ```chunk_size``` to be at least 60, ```max_threads``` to be 1, and ```max_chunks``` to be 1. Cannot play active livestreams.
+ - ```max_res: int``` - Only used when streaming Youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest Youtube supports. Note that actual video quality is not guaranteed to match ```max_res```.
+ - ```as_bytes: bool``` - Specifies whether ```path``` is a video in byte form.
+ - ```audio_track: int``` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
 
 ## Attributes
- - ```path``` - Same as given argument.
- - ```name``` - Name of file without the directory and extension.
- - ```ext``` - Type of video (mp4, mkv, mov, etc).
- - ```frame``` - Current frame index. Starts from 0.
- - ```frame_rate``` - How many frames are in one second.
- - ```frame_count``` - How many total frames there are.
- - ```frame_delay``` - Time between frames in order to maintain frame rate (in fractions of a second).
- - ```duration``` - Length of video in seconds.
- - ```original_size```
- - ```current_size```
- - ```aspect_ratio``` - Width divided by height of original size.
- - ```chunk_size``` - Same as given argument.
- - ```max_chunks``` - Same as given argument.
- - ```max_threads``` - Same as given argument.
- - ```frame_data``` - Current video frame as a NumPy ndarray.
- - ```frame_surf``` - Current video frame as a Pygame Surface.
- - ```active``` - Whether the video is currently playing. This is unaffected by pausing and resuming.
- - ```buffering``` - Whether the video is waiting for audio to extract.
- - ```paused```
- - ```muted```
- - ```speed``` - Same as given argument.
- - ```subs``` - Same as given argument.
- - ```post_func``` - Same as given argument.
- - ```interp``` - Same as given argument.
- - ```use_pygame_audio``` - Same as given argument.
- - ```reverse``` - Same as given argument.
- - ```no_audio``` - Same as given argument.
- - ```youtube``` - Same as given argument.
- - ```max_res``` - Same as given argument.
-
+ - ```path: str | bytes``` - Same as given argument.
+ - ```name: str``` - Name of file without the directory and extension. Will be ```None``` if video is given in byte form (see ```as_bytes``` above).
+ - ```ext: str``` - Type of video (mp4, mkv, mov, etc). Will be ```"webm"``` if streaming from Youtube (see ```youtube``` above). Will be ```None``` if video is given in byte form (see ```as_bytes``` above).
+ - ```frame: int``` - Current frame index. Starts from 0.
+ - ```frame_rate: float``` - Float that indicates how many frames are in one second.
+ - ```frame_count: int``` - How many total frames there are.
+ - ```frame_delay: float``` - Time between frames in order to maintain frame rate (in fractions of a second).
+ - ```duration: float``` - Length of video in seconds.
+ - ```original_size: (int, int)``` - Tuple containing the width and height of each original frame. Unaffected by resizing.
+ - ```current_size: (int, int)``` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
+ - ```aspect_ratio: float``` - Width divided by height of original size.
+ - ```chunk_size: int | float``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
+ - ```max_chunks: int``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
+ - ```max_threads: int``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
+ - ```frame_data: numpy.ndarray``` - Current video frame as a NumPy ```ndarray```.
+ - ```frame_surf: pygame.Surface``` - Current video frame as a Pygame ```Surface```.
+ - ```active: bool``` - Whether the video is currently playing. This is unaffected by pausing and resuming.
+ - ```buffering: bool``` - Whether the video is waiting for audio to extract.
+ - ```paused: bool```
+ - ```volume: float```
+ - ```muted: bool```
+ - ```speed: float | int``` - Same as given argument.
+ - ```subs: pyvidplayer2.Subtitles``` - Same as given argument.
+ - ```post_func: function(numpy.ndarray) -> numpy.ndarray``` - Same as given argument. Can be changed with ```set_post_func```.
+ - ```interp: int``` - Same as given argument. Can be changed with ```set_interp```. Will be converted to an integer if given a string. For example, if ```"linear"``` is given during initialization, this will be converted to cv2.INTER_LINEAR.
+ - ```use_pygame_audio: bool``` - Same as given argument.
+ - ```reverse: bool``` - Same as given argument.
+ - ```no_audio: bool``` - Same as given argument. May change if no audio is automatically detected.
+ - ```youtube: bool``` - Same as given argument.
+ - ```max_res: int``` - Same as given argument.
+ - ```as_bytes: bool``` - Same as given argument. May change if bytes are automatically detected.
+ - ```audio_track: int``` - Same as given argument.
 
 ## Methods
- - ```play()```
- - ```stop()```
- - ```resize(size)```
- - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
- - ```close()``` - Releases resources. Always recommended to call when done.
- - ```restart() ```
- - ```set_speed(speed)``` - Depreciated. Use the argument speed= when initializing video objects.
- - ```get_speed()```
- - ```set_volume(volume)``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
- - ```get_volume()```
- - ```get_paused()```
- - ```toggle_pause()``` - Pauses if the video is playing, and resumes if the video is paused.
- - ```pause()```
- - ```resume()```
- - ```toggle_mute()```
- - ```mute()```
- - ```unmute()```
- - ```set_interp(interp)``` - Changes the interpolation technique. Works the same as interp= during class instantiation. 
- - ```set_post_func(func)``` - Changes the post processing function. Also works the same post_func= during class instantiation. 
- - ```get_pos()``` - Returns the current position in seconds.
- - ```seek(time, relative=True)``` - Changes the current position in the video. If relative is true, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
- frames and audio within the video will not be updated yet after calling seek.
- - ```seek_frame(index, relative=False)``` - Seeks to a particular frame instead of a timestamp.
- - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
- - ```preview(show_fps=False, max_fps=60)``` - Opens a window and plays the video. This method will hang until the video closes. Max_fps enforces how many times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number of new frames being rendered every second.
+ - ```play() -> None``` - Sets ```active``` to ```True```.
+ - ```stop() -> None``` - Resets video and sets ```active``` to ```False```.
+ - ```resize(size: (int, int)) -> None```
+ - ```change_resolution(height: int) -> None``` - Given a height, the video will scale it's dimensions while maintaining aspect ratio.
+ - ```close() -> None``` - Releases resources. Always recommended to call when done.
+ - ```restart() -> None```
+ - ```get_speed() -> float | int```
+ - ```set_volume(volume: float) -> None``` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
+ - ```get_volume() -> float```
+ - ```get_paused() -> bool```
+ - ```toggle_pause() -> None``` - Pauses if the video is playing, and resumes if the video is paused.
+ - ```pause() -> None```
+ - ```resume() -> None```
+ - ```set_audio_path(index: int)``` - Sets the audio track used (see ```audio_track``` above).
+ - ```toggle_mute() -> None```
+ - ```mute() -> None```
+ - ```unmute() -> None```
+ - ```set_interp(interp: str | int) -> None``` - Changes the interpolation technique. Works the same as the ```interp``` parameter (see ```interp``` above). 
+ - ```set_post_func(func: function(numpy.ndarray) -> numpy.ndarray) -> None``` - Changes the post processing function. Works the same as the ```post_func``` parameter (see ```post_func``` above). 
+ - ```get_pos(): float``` - Returns the current position in seconds.
+ - ```seek(time: float | int, relative: bool = True) -> None``` - Changes the current position in the video. If relative is ```True```, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
+ frames and audio within the video will not yet be updated after calling seek.
+ - ```seek_frame(index: int, relative: bool = False) -> None``` - Same as ```seek``` but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on.
+ - ```draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool``` - Draws the current video frame onto the given surface, at the given position. If ```force_draw``` is ```True```, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces CPU usage but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
+ - ```preview(show_fps: bool = False, max_fps: int = 60) -> None``` - Opens a window and plays the video. This method will hang until the video finishes. ```max_fps``` enforces how many times a second the video is updated. If ```show_fps``` is ```True```, a counter will be displayed showing the actual number of new frames being rendered every second.
+
+## Supported Graphics Libraries
+ - Pygame (```Video```) <- default and best supported
+ - Tkinter (```VideoTkinter```)
+ - Pyglet (```VideoPyglet```)
+ - PyQT6 (```VideoPyQT```)
+
+To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that ```Subtitles```, ```Webcam```, and ```VideoPlayer``` only work with Pygame installed. Preview methods for other graphics libraries also do not accept any arguments.
+
+## As a Generator
+
+Video objects can be iterated through as a generator, returning each subsequent frame. Frames will be given in reverse if video is reversed, and post processing and resizing will still take place. After iterating through frames, ```play()``` will resume the video from where the last frame left off.
+```
+for frame in Video("example.mp4"):
+    print(frame)
+```
+
+## In a Context Manager
+
+Video objects can also be opened using context managers which will automatically call ```close()``` (see ```close()``` above) when out of use.
+```
+with Video("example.mp4") as vid:
+    vid.preview()
+```
+
 
 # VideoPlayer(video, rect, interactable=False, loop=False, preview_thumbnails=0)
 
-VideoPlayers are GUI containers for videos. This seeks to mimic standard video players, so clicking it will play/pause playback, and the GUI will only show when the mouse is hovering over it. Only supported for Pygame.
+VideoPlayers are GUI containers for videos. They are useful for scaling a video to fit an area or looping videos. Only supported for Pygame.
 
-## Arguments
- - ```video``` - Video object to play.
- - ```rect``` - An x, y, width, and height of the VideoPlayer. The topleft corner will be the x, y coordinate.
- - ```interactable``` - Enables the GUI.
- - ```loop``` - Whether the contained video will restart after it finishes. If the queue is not empty, the entire queue will loop, not just the current video.
- - ```preview_thumbnails``` - Number of preview thumbnails loaded and saved in memory. When seeking, a preview window will show the closest loaded frame. The higher this number is, the more frames are loaded, increasing the preview accuracy, but also increasing initial load time and memory usage. Because of this, this value is defaulted to 0, which turns seek previewing off.
+## Parameters
+ - ```video: pyvidplayer2.VideoPygame``` - Video object to play.
+ - ```rect: (int, int, int, int)``` - An x, y, width, and height of the VideoPlayer. The top left corner will be the x, y coordinate.
+ - ```interactable: bool``` - Enables the GUI.
+ - ```loop: bool``` - Specifies whether the contained video will restart after it finishes. If the queue is not empty, the entire queue will loop, not just the current video.
+ - ```preview_thumbnails: int``` - Number of preview thumbnails loaded and saved in memory. When seeking, a preview window will show the closest loaded frame. The higher this number is, the more frames are loaded, increasing the preview accuracy but also increasing initial load time and memory usage. Because of this, this value is defaulted to 0, which turns seek previewing off.
 
 ## Attributes 
- - ```video``` - Same as given argument.
- - ```frame_rect``` - Same as given argument.
- - ```vid_rect``` - This is the video fitted into the frame_rect while maintaining aspect ratio. Black bars will appear in any unused space.
- - ```interactable``` - Same as given argument.
- - ```loop``` - Same as given argument.
- - ```queue_``` - Videos to play after the current one finishes.
- - ```preview_thumbnails``` - Same as given argument.
+ - ```video: pyvidplayer2.VideoPygame``` - Same as given argument.
+ - ```frame_rect: (int, int, int, int)``` - Same as given argument.
+ - ```vid_rect: (int, int, int, int)``` - Location and dimensions (x, y, width, height) of the video fitted into ```frame_rect``` while maintaining aspect ratio. Black bars will appear in any unused space.
+ - ```interactable: bool``` - Same as given argument.
+ - ```loop: bool``` - Same as given argument.
+ - ```queue_: list[pyvidplayer2.VideoPygame | str]``` - Videos to play after the current one finishes.
+ - ```preview_thumbnails: int``` - Same as given argument.
 
 ## Methods
- - ```zoom_to_fill()``` - Zooms in the video so that the entire frame_rect is filled in, while maintaining aspect ratio.
- - ```zoom_out()``` - Reverts zoom_to_fill()
- - ```toggle_zoom()``` - Switches between zoomed in and zoomed out
- - ```queue(input)``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
- - ```get_queue()``` - Returns list of queued video objects.
- - ```resize(size)```
- - ```move(pos, relative)``` - Moves the VideoPlayer. If relative is true, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
- - ```update(events, show_ui=None)``` - Allows the VideoPlayer to make calculations. It must be given the returns of pygame.event.get(). The GUI automatically shows up when your mouse hovers over the video player, so show_ui can be used to override that. This method also returns show_ui.
- - ```draw(surface)``` - Draws the VideoPlayer onto the given Surface.
- - ```close()``` - Releases resources. Always recommended to call when done.
- - ```skip()``` - Moves onto the next video in the queue.
- - ```get_video()``` - Returns currently playing video.
+ - ```zoom_to_fill() -> None``` - Zooms in the video so that ```frame_rect``` is entirely filled in while maintaining aspect ratio.
+ - ```zoom_out() -> None``` - Reverts ```zoom_to_fill()```.
+ - ```toggle_zoom() -> None``` - Switches between zoomed in and zoomed out.
+ - ```queue(input: pyvidplayer2.VideoPygame | str) -> None``` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - ```get_queue(): list[pyvidplayer2.VideoPygame]``` - Returns list of queued video objects.
+ - ```resize(size: (int, int)) -> None``` - Resizes the video player. The contained video will automatically readjust to fit the player.
+ - ```move(pos: (int, int), relative: bool = False) -> None``` - Moves the VideoPlayer. If ```relative``` is ```True```, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
+ - ```update(events: list[pygame.event.Event], show_ui: bool = None): bool``` - Allows the VideoPlayer to make calculations. It must be given the returns of ```pygame.event.get()```. The GUI automatically shows up when your mouse hovers over the video player, so setting ```show_ui``` to ```False``` can be used to override that. This method also returns whether the UI was shown.
+ - ```draw(surface: pygame.Surface) -> None``` - Draws the VideoPlayer onto the given Pygame surface.
+ - ```close() -> None``` - Releases resources. Always recommended to call when done.
+ - ```skip() -> None``` - Moves onto the next video in the queue.
+ - ```get_video() -> pyvidplayer2.VideoPygame``` - Returns currently playing video.
+
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50)
 
 Object used for handling subtitles. Only supported for Pygame. 
 
-## Arguments
- - ```path``` - Path to subtitle file. This can be any file pysubs2 can read, including .srt, .ass, .vtt, and others.
- - ```colour``` - Colour of text.
- - ```highlight``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
- - ```font``` - Pygame Font or SysFont object used to render Surfaces. This includes the size of the text.
- - ```encoding``` - Encoding used to open the srt file.
- - ```offset``` - The higher this number is, the close the subtitle is to the top of the screen.
+## Parameters
+ - ```path: str``` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others.
+ - ```colour: str | (int, int, int)``` - Colour of text as an RGB value or a string recognized by Pygame.
+ - ```highlight: str | (int, int, int, int)``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
+ - ```font: pygame.font.Font | pygame.font.SysFont``` - Pygame ```Font``` or ```SysFont``` object used to render surfaces. This includes the size of the text.
+ - ```encoding: str``` - Encoding used to open subtitle files.
+ - ```offset: int | float``` - The higher this number is, the closer the subtitle is to the top of the screen.
 
 ## Attributes
- - ```path``` - Same as given argument.
- - ```encoding``` - Same as given argument.
- - ```start``` - Starting timestamp of current subtitle.
- - ```end``` - Ending timestamp of current subtitle.
- - ```text``` - Current subtitle text.
- - ```surf``` - Current text in a Pygame Surface.
- - ```colour``` - Same as given argument.
- - ```highlight``` - Same as given argument.
- - ```font``` - Same as given argument.
- - ```offset``` - Same as given argument.
+ - ```path: str``` - Same as given argument.
+ - ```encoding: str``` - Same as given argument.
+ - ```start: float``` - Starting timestamp of current subtitle.
+ - ```end: float``` - Ending timestamp of current subtitle.
+ - ```text: str``` - Current subtitle text.
+ - ```surf: pygame.Surface``` - Current text in a Pygame ```Surface```.
+ - ```colour: str | (int, int, int)``` - Same as given argument.
+ - ```highlight: str | (int, int, int, int)``` - Same as given argument.
+ - ```font: pygame.font.Font | pygame.font.SysFont``` - Same as given argument.
+ - ```offset: int | float``` - Same as given argument.
 
 ## Methods 
- - ```set_font(font)```
- - ```get_font()```
+ - ```set_font(font: pygame.font.Font | pygame.font.SysFont) -> None``` - Same as ```font``` parameter (see ```font``` above).
+ - ```get_font() -> pygame.font.Font | pygame.font.SysFont```
 
-# Webcam(post_process=PostProcessing.none, interp=cv2.INTER_LINEAR, fps=30, cam_id=0)
+
+# Webcam(post_process=PostProcessing.none, interp="linear", fps=30, cam_id=0)
 
 Object used for displaying a webcam feed. Only supported for Pygame.
 
-## Arguments
- - ```post_process``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place.
- - ```interp``` - Interpolation technique used when resizing frames. In general, the three main ones are cv2.INTER_LINEAR, which is balanced, cv2.INTER_CUBIC, which is slower but produces better results, and cv2.INTER_AREA, which is better for downscaling. There is also cv2.INTER_NEAREST for maximum performance and cv2.INTER_LANCZOS4 for maximum quality.
- - ```fps``` - Maximum number of frames captured from the webcam per second.
- - ```cam_id``` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, etc.
+## Parameters
+ - ```post_process: function(numpy.ndarray) -> numpy.ndarray``` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place. Post processing functions should accept a NumpPy image (see ```frame_data``` below) and return the processed image.
+ - ```interp: str | int``` - Interpolation technique used when resizing frames. Accepts ```"nearest"```, ```"linear"```, ```"cubic"```, ```"lanczos4"``` and ```"area"```. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in ```cv2.INTER_LINEAR```.
+ - ```fps: int``` - Maximum number of frames captured from the webcam per second.
+ - ```cam_id: int``` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, and so on.
 
 ## Attributes
- - ```post_process``` - Same as given argument.
- - ```interp``` - Same as given argument.
- - ```fps``` - Same as given argument.
- - ```original_size```
- - ```current_size```
- - ```aspect_ratio``` - Width divided by height.
- - ```active``` - Whether the webcam is currently playing.
- - ```frame_data``` - Current video frame as a NumPy ndarray.
- - ```frame_surf``` - Current video frame as a Pygame Surface.
- - ```cam_id``` - Same as given argument.
+ - ```post_process: function(numpy.ndarray) -> numpy.ndarray``` - Same as given argument.
+ - ```interp: int``` - Same as given argument.
+ - ```fps: int``` - Same as given argument.
+ - ```original_size: (int, int)``` - Tuple containing the width and height of each frame captured. Unaffected by resizing.
+ - ```current_size: (int, int)``` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
+ - ```aspect_ratio: float``` - Width divided by height of original size.
+ - ```active: bool``` - Whether the webcam is currently playing.
+ - ```frame_data: numpy.ndarray``` - Current video frame as a NumPy ```ndarray```. Will be in BGR format.
+ - ```frame_surf: pygame.Surface``` - Current video frame as a Pygame ```Surface```.
+ - ```cam_id: int``` - Same as given argument.
 
 ## Methods
- - ```play()```
- - ```stop()```
- - ```resize(size)```
- - ```change_resolution(height)``` - Given a height, the video will scale its width while maintaining aspect ratio.
- - ```close()``` - Releases resources. Always recommended to call when done.
- - ```get_pos()``` - Returns how long the webcam has been active. Is not reset if webcam is stopped.
- - ```draw(surf, pos, force_draw=True)``` - Draws the current video frame onto the given surface, at the given position. If force_draw is true, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces cpu usage, but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
- - ```preview()``` - Opens a window and plays the webcam. This method will hang until the window is closed. Videos are played at whatever fps the webcam object is set to.
+ - ```play() -> None```
+ - ```stop() -> None```
+ - ```resize(size: (int, int)) -> None```
+ - ```change_resolution(height: int) -> None``` - Given a height, the video will scale its width while maintaining aspect ratio.
+ - ```close() -> None``` - Releases resources. Always recommended to call when done.
+ - ```get_pos() -> float``` - Returns how long the webcam has been active. Is not reset if webcam is stopped.
+ - ```draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool``` - Draws the current video frame onto the given surface, at the given position. If ```force_draw``` is ```True```, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces CPU usage but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
+ - ```preview() -> None``` - Opens a window and plays the webcam. This method will hang until the window is closed. Videos are played at whatever fps the webcam object is set to.
+
 
 # PostProcessing
+
 Used to apply various filters to video playback. Mostly for fun. Works across all graphics libraries.
+
  - ```none``` - Default. Nothing happens.
  - ```blur``` - Slightly blurs frames.
  - ```sharpen``` - An okay-looking sharpen. Looks pretty bad for small resolutions.
@@ -276,14 +311,6 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - ```noise``` - Adds a static-like filter. Very resource intensive.
  - ```letterbox``` - Adds black bars above and below the frame to look more cinematic.
  - ```cel_shading``` - Thickens borders for a comic book style filter.
-
-# Supported Graphics Libraries
- - Pygame (```Video```) <- default and best supported
- - Tkinter (```VideoTkinter```)
- - Pyglet (```VideoPyglet```)
- - PyQT6 (```VideoPyQT```)
-
-To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that Subtitles, Webcam, and VideoPlayer only work with Pygame installed.
 
 # Misc
 

@@ -100,6 +100,8 @@ class PyaudioHandler:
                 "Audio is empty. This may mean the file is corrupted."
                 " If your video has no audio track,"
                 " try initializing it with no_audio=True."
+                " If it has several tracks, make sure the correct one"
+                " is selected with the audio_track parameter."
             )
 
         if self.stream is None:
@@ -185,9 +187,9 @@ class PyaudioHandler:
         self.thread.start()
 
     def _threaded_play(self):
-        chunk_ = 128
+        CHUNK = 128
 
-        data = self.wave.readframes(chunk_)
+        data = self.wave.readframes(CHUNK)
 
         while data != b'' and not self.stop_thread:
 
@@ -204,10 +206,10 @@ class PyaudioHandler:
 
                 self.stream.write(audio.tobytes())
 
-                self.chunks_played += chunk_ 
+                self.chunks_played += CHUNK 
                 self.position = self.chunks_played / float(self.wave.getframerate())
                 
-                data = self.wave.readframes(chunk_)
+                data = self.wave.readframes(CHUNK)
 
         self.active = False
 

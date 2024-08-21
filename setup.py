@@ -23,5 +23,6 @@ setup(
                     "PyAudio"],
     url="https://github.com/ree1261/pyvidplayer2",
     platforms=["windows", "linux"],
-    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyglet", "youtube", "stream"]
+    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyglet", "youtube", "stream"],
+    python_requires=">=3.9"
 )

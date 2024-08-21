@@ -1,9 +1,11 @@
 import pygame 
 import pysubs2
+from typing import Union, Tuple
 
 
 class Subtitles:
-    def __init__(self, path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8", offset=50):
+    def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
+                 font: Union[pygame.font.SysFont, pygame.font.Font] = pygame.font.SysFont("arial", 30), encoding: str = "utf-8", offset: int = 50) -> None:
         self.path = path
         self.encoding = encoding
 
@@ -66,8 +68,8 @@ class Subtitles:
     def _write_subs(self, surf):
         surf.blit(self.surf, (surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
         
-    def set_font(self, font):
+    def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
         self.font = font
 
-    def get_font(self):
+    def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
         return self.font

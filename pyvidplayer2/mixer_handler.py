@@ -7,6 +7,8 @@ class MixerHandler:
         self.muted = False
         self.volume = 1
 
+        pygame.mixer.music.unload()
+
     def get_busy(self):
         return pygame.mixer.music.get_busy()
 

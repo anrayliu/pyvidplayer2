@@ -11,8 +11,6 @@ PATH = r"resources\ocean.mkv"
 win = pygame.display.set_mode((960, 240))
 pygame.display.set_caption("post processing demo")
 
-# using a video collection to play videos in parallel for a side to side comparison
-
 videos = [Video(PATH, post_process=PostProcessing.sharpen),
           Video(PATH),
           Video(PATH, post_process=PostProcessing.blur)]

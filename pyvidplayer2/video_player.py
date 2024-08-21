@@ -1,12 +1,12 @@
 import pygame
 import cv2 
 import math
+from typing import Tuple, Union, List
 from . import Video
 
 
 class VideoPlayer:
-    def __init__(self, video, rect, interactable=False, loop=False, preview_thumbnails=0):
-
+    def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop:bool = False, preview_thumbnails: int = 0):
         self.video = video
         self.frame_rect = pygame.Rect(rect)
         self.interactable = interactable
@@ -45,7 +45,7 @@ class VideoPlayer:
             self._interval_frames = []
             self._get_interval_frames()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<VideoPlayer(path={self.path})>"
 
     def _close_queue(self):
@@ -58,7 +58,7 @@ class VideoPlayer:
     def _get_interval_frames(self):
         size = (int(70 * self.video.aspect_ratio), 70)
         for i in range(self.preview_thumbnails):
-            self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, int(i * self.video.frame_rate * self._interval))
+            self.video._vid.seek(int(i * self.video.frame_rate * self._interval))
             
             self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
 
@@ -66,7 +66,7 @@ class VideoPlayer:
 
         i = 1
         while True:
-            self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, self.video.frame_count - i)
+            self.video._vid.seek(self.video.frame_count - i)
             try:
                 self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
             except:
@@ -74,7 +74,7 @@ class VideoPlayer:
             else:
                 break 
 
-        self.video._vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        self.video._vid.seek(0)
     
     def _get_closest_frame(self, time):
         i = math.floor(time // self._interval)
@@ -104,12 +104,6 @@ class VideoPlayer:
     def _convert_seconds(self, time):
         return self.video._convert_seconds(time).split(".")[0]
     
-    def zoom_to_fill(self):
-        s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
-        self.vid_rect.inflate_ip(s, s)
-        self.video.resize(self.vid_rect.size)
-        self._zoomed = True
-
     # takes a rect and an aspect ratio, returns the largest rect of the aspect ratio that can be fit inside
     
     def _best_fit(self, rect, r):
@@ -127,19 +121,25 @@ class VideoPlayer:
             y = 0
             
         return pygame.Rect(rect.x + x, rect.y + y, w, h)
+    
+    def zoom_to_fill(self) -> None:
+        s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
+        self.vid_rect.inflate_ip(s, s)
+        self.video.resize(self.vid_rect.size)
+        self._zoomed = True
 
-    def zoom_out(self):
+    def zoom_out(self) -> None:
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
         self.video.resize(self.vid_rect.size)
         self._zoomed = False
 
-    def toggle_zoom(self):
+    def toggle_zoom(self) -> None:
         if self._zoomed:
             self.zoom_out()
         else:
             self.zoom_to_fill()
 
-    def queue(self, input_):
+    def queue(self, input_: Union[str, Video]) -> None:
         self.queue_.append(input_)
 
         # update once to trigger audio loading
@@ -149,18 +149,18 @@ class VideoPlayer:
         except AttributeError:
             pass
         
-    def resize(self, size):
+    def resize(self, size: Tuple[int, int]) -> None:
         self.frame_rect.size = size
         self._transform(self.frame_rect)
 
-    def move(self, pos, relative=False):
+    def move(self, pos: Tuple[int, int], relative: bool = False) -> None:
         if relative:
             self.frame_rect.move_ip(*pos)
         else:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)
 
-    def update(self, events=None, show_ui=None):
+    def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None) -> bool:
         dt = self._clock.tick()
 
         if not self.video.active:
@@ -168,11 +168,11 @@ class VideoPlayer:
                 if self.loop:
                     self.queue(self.video)
                 input_ = self.queue_.pop(0)
-                try:
-                    self.video = Video(input_)
-                except TypeError:
+                if isinstance(input_, Video):
                     self.video = input_
                     self.video.play()
+                else:
+                    self.video = Video(input_)
                 self._transform(self.frame_rect)
             elif self.loop:
                 self.video.restart()
@@ -212,7 +212,7 @@ class VideoPlayer:
 
         return self._show_ui
 
-    def draw(self, win):
+    def draw(self, win: pygame.Surface) -> None:
         pygame.draw.rect(win, "black", self.frame_rect)
         if self._buffer_frame is not None:
             win.blit(self._buffer_frame, self.vid_rect.topleft)
@@ -250,22 +250,22 @@ class VideoPlayer:
                 pygame.draw.rect(win, "white", (self.frame_rect.centerx - 15, self.frame_rect.centery - 20, 10, 40))
                 pygame.draw.rect(win, "white", (self.frame_rect.centerx + 5, self.frame_rect.centery - 20, 10, 40))
 
-    def close(self):
+    def close(self) -> None:
         self.video.close()
         self._close_queue()
         
-    def skip(self):
+    def skip(self) -> None:
         self.video.stop() if self.loop else self.video.close()
 
-    def get_next(self):
+    def get_next(self) -> Union[str, Video]:
         return self.queue_[0] if self.queue_ else None
     
-    def clear_queue(self):
+    def clear_queue(self) -> None:
         self._close_queue()
         self.queue_ = []
 
-    def get_video(self):
+    def get_video(self) -> Video:
         return self.video
     
-    def get_queue(self):
+    def get_queue(self) -> List[Union[str, Video]]:
         return self.queue_

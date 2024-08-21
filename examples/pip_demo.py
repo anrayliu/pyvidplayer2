@@ -19,6 +19,7 @@ SIZE = (426, 240)
 FILE = r"resources\billiejean.mp4"
 
 win = pygame.display.set_mode(SIZE, pygame.NOFRAME)
+pygame.display.set_caption("pip demo")
 
 # creates the video player
 

@@ -1,9 +1,13 @@
 import cv2
 import subprocess
 import os
+import numpy as np
+from typing import Union, Callable, Tuple
 from threading import Thread
-from .pyaudio_handler import PyaudioHandler
+from .ffmpeg_reader import FFMPEGReader
+from .cv_reader import CVReader
 from .error import Pyvidplayer2Error
+from .pyaudio_handler import PyaudioHandler
 
 try:
     import pygame
@@ -19,40 +23,62 @@ except ImportError:
 else:
     YTDLP = 1
 
+try:
+    import pysubs2
+except ImportError:
+    PYSUBS2 = 0
+else:
+    PYSUBS2 = 1
+
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube=False, max_res=1080):
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track):
+        
         self._audio_path = path     # used for audio only when streaming
         self.path = path
 
         self.name = None 
-        self.ext = None 
+        self.ext = None
+
+        as_bytes = as_bytes or isinstance(path, bytes)
 
         if youtube:
             if YTDLP:
                 # sets path and audio path for cv2 and ffmpeg
                 # also sets name and ext
                 self._set_stream_url(path, max_res)
+                self._vid = CVReader(self.path)
             else:
                 raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
-        else:
-            self.name, self.ext = os.path.splitext(os.path.basename(self.path))
+            
+            if chunk_size < 60:
+                chunk_size = 60
+            if max_chunks > 1:
+                max_chunks = 1
+            if max_threads > 1:
+                max_threads = 1
 
-        self._vid = cv2.VideoCapture(self.path)
+        elif as_bytes:
+            self._vid = FFMPEGReader(self.path)
+            self._audio_path = "-"  # read from pipe
+
+        else:
+            self._vid = CVReader(self.path)
+            self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened():
             if youtube:
                 raise Pyvidplayer2Error("Open-cv could not open stream.")
             else:
-                raise FileNotFoundError(f'Could not find "{self.path}"')
+                raise FileNotFoundError("Could not find file. Make sure the path is correct.")
 
         # file information
 
-        self.frame_count = int(self._vid.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.frame_rate = self._vid.get(cv2.CAP_PROP_FPS)
+        self.frame_count = self._vid.frame_count
+        self.frame_rate = self._vid.frame_rate
         self.frame_delay = 1 / self.frame_rate
         self.duration = self.frame_count / self.frame_rate
-        self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        self.original_size = self._vid.original_size
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
@@ -77,20 +103,25 @@ class Video:
         self.muted = False
 
         self.subs = subs
+        if self.subs is not None and not PYSUBS2:
+            raise ModuleNotFoundError("Subtitles not available because pysubs2 is not installed. Pysubs2 can be installed via pip.")
+
         self.post_func = post_process
         self.interp = interp
         self.use_pygame_audio = use_pygame_audio
         self.youtube = youtube
         self.max_res = max_res
+        self.as_bytes = as_bytes
+        self.audio_track = audio_track
 
         if use_pygame_audio:
             try:
                 self._audio = MixerHandler()
             except NameError:
-                raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed.")
+                raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed. Pygame can be installed via pip.")
         else:
             self._audio = PyaudioHandler()
-
+            
         self.speed = max(0.5, min(10, speed))
         self.reverse = reverse
         self.no_audio = no_audio or self._test_no_audio()
@@ -106,14 +137,20 @@ class Video:
 
         self.play()
 
-    def __len__(self):
+    def __len__(self) -> float:
         return self.duration
     
-    def __iter__(self):
-        self.seek(0)
+    def __enter__(self) -> "self":
+        return self
+
+    def __exit__(self, type, value, traceback) -> None:
+        self.close()
+
+    def __iter__(self) -> "self":
+        self.stop()
         return self
         
-    def __next__(self):
+    def __next__(self) -> np.ndarray:
         self._generated_frame = True
         data = None
 
@@ -130,11 +167,11 @@ class Video:
             if self.original_size != self.current_size:
                 data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
 
-            return cv2.cvtColor(self.post_func(data), cv2.COLOR_BGR2RGB)
+            return self.post_func(data)
         else:
             raise StopIteration
 
-    def _set_stream_url(self, path, max_res=1080):
+    def _set_stream_url(self, path, max_res):
         config = {"quiet": True,
                   "noplaylist": True,
                   # unfortunately must grab the worst audio because ffmpeg seeking is too slow for high quality audio
@@ -149,7 +186,7 @@ class Video:
             except Pyvidplayer2Error:
                 raise
             except: # something went wrong with yt_dlp
-                raise Pyvidplayer2Error("Yt-dlp could not open video. Please ensure the url is a valid Youtube video.")
+                raise Pyvidplayer2Error("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
             else:
                 self.path = formats[0]["url"]
                 self._audio_path = formats[1]["url"]
@@ -159,7 +196,7 @@ class Video:
     def _preload_frames(self):
         self._preloaded_frames = []
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        self._vid.seek(0)
 
         has_frame = True
         while has_frame:
@@ -167,7 +204,7 @@ class Video:
             if has_frame:
                 self._preloaded_frames.append(data)
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, self.frame)
+        self._vid.seek(self.frame)
 
     def _chunks_len(self):
         i = 0
@@ -199,13 +236,17 @@ class Video:
             "-"
         ]
 
+        audio = b''
+
         try:
-            p = subprocess.run(command, capture_output=True)
+            p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE if self.as_bytes else None)
+            audio = p.communicate(input=self.path if self.as_bytes else None)[0]
+
         except FileNotFoundError:
             self._missing_ffmpeg = True
             return
 
-        return p.stdout == b''
+        return audio == b''
 
     def _threaded_load(self, index):
         i = index # assigned to variable so another thread does not change it
@@ -241,6 +282,9 @@ class Video:
                 "-t",
                 self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
                 "-vn",
+                "-sn",
+                "-map",
+                f"0:a:{self.audio_track}",
                 "-f",
                 "wav",
                 "-loglevel",
@@ -263,14 +307,14 @@ class Video:
         audio = None
 
         try:
-            p = subprocess.run(command, capture_output=True)
-            audio = p.stdout
+            p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE if self.as_bytes else None)
+            audio = p.communicate(input=self.path if self.as_bytes else None)[0]
+
+            # apply speed change to already reversed audio chunk
 
             if not self.no_audio and self.speed != 1 and self.reverse:
                 process = subprocess.Popen(f"ffmpeg -i - -af atempo={self.speed} -f wav -loglevel quiet -", stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-                out = process.communicate(input=p.stdout)[0]
-                process.wait()
-                audio = out
+                audio = process.communicate(input=audio)[0]
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
@@ -360,7 +404,11 @@ class Video:
 
         return n
     
-    def set_interp(self, interp):
+    @property
+    def volume(self):
+        return self.get_volume()
+
+    def set_interp(self, interp: Union[str, int]) -> None:
         if interp in ("nearest", 0):
             self.interp = cv2.INTER_NEAREST
         elif interp in ("linear", 1):
@@ -374,43 +422,43 @@ class Video:
         else:
             raise ValueError("Interpolation technique not recognized.")
 
-    def set_post_func(self, func):
+    def set_post_func(self, func: Callable[[np.ndarray], np.ndarray]) -> None:
         self.post_func = func
     
-    def mute(self):
+    def mute(self) -> None:
         self.muted = True
         self._audio.mute()
 
-    def unmute(self):
+    def unmute(self) -> None:
         self.muted = False
         self._audio.unmute()
 
-    def set_speed(self, speed):
-        raise DeprecationWarning(f"set_speed depreciated. Initialize video object with speed={speed} instead.")
+    def set_speed(self, speed: Union[int, float]) -> None:
+        raise DeprecationWarning("set_speed is depreciated. Use the speed parameter instead.")
 
-    def get_speed(self):
+    def get_speed(self) -> Union[int, float]:
         return self.speed
 
-    def play(self):
+    def play(self) -> None:
         self.active = True
         if self._generated_frame:
             self._generated_frame = False 
             self.seek_frame(self.frame)
 
-    def stop(self):
+    def stop(self) -> None:
         self.seek(0, relative=False)
         self.active = False
         self.frame_data = None
         self.frame_surf = None
         self.paused = False
 
-    def resize(self, size):
+    def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
 
-    def change_resolution(self, height):
+    def change_resolution(self, height: int) -> None:
         self.current_size = (int(height * self.aspect_ratio), height)
 
-    def close(self):
+    def close(self) -> None:
         self.stop()
         self._vid.release()
         self._audio.unload()
@@ -419,40 +467,44 @@ class Video:
         if not self.use_pygame_audio:
             self._audio.close()
 
-    def restart(self):
+    def restart(self) -> None:
         self.seek(0, relative=False)
         self.play()
 
-    def set_volume(self, vol):
+    def set_volume(self, vol: float) -> None:
         self._audio.set_volume(vol)
 
-    def get_volume(self):
+    def get_volume(self) -> float:
         return self._audio.get_volume()
 
-    def get_paused(self):
+    def get_paused(self) -> bool:
         # here because the original pyvidplayer had get_paused
         return self.paused
 
-    def toggle_pause(self):
+    def toggle_pause(self) -> None:
         self.resume() if self.paused else self.pause()
 
-    def toggle_mute(self):
+    def toggle_mute(self) -> None:
         self.unmute() if self.muted else self.mute()
 
-    def pause(self):
+    def set_audio_track(self, index: int) -> None:
+        self.audio_track = index
+        self.seek(0)
+
+    def pause(self) -> None:
         if self.active:
             self.paused = True
             self._audio.pause()
 
-    def resume(self):
+    def resume(self) -> None:
         if self.active:
             self.paused = False
             self._audio.unpause()
 
-    def get_pos(self):
+    def get_pos(self) -> float:
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
-    def seek(self, time, relative=True):
+    def seek(self, time: Union[int, float], relative: bool = True) -> None:
         # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
@@ -466,13 +518,13 @@ class Video:
         self._chunks_played = 0
         self._audio.unload()
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, self._starting_time * self.frame_rate)
-        self.frame = int(self._vid.get(cv2.CAP_PROP_POS_FRAMES))
+        self._vid.seek(self._starting_time * self.frame_rate)
+        self.frame = self._vid.frame
 
         if self.subs is not None:
             self.subs._seek(self._starting_time)
 
-    def seek_frame(self, index, relative=False):
+    def seek_frame(self, index: int, relative: bool = False) -> None:
         # seeking accurate to 1/100 of a second 
 
         index = (self.frame + index) if relative else index
@@ -487,13 +539,15 @@ class Video:
         self._chunks_played = 0
         self._audio.unload()
 
-        self._vid.set(cv2.CAP_PROP_POS_FRAMES, index)
+        self._vid.seek(index)
         self.frame = index
 
         if self.subs is not None:
             self.subs._seek(self._starting_time)
 
-    def draw(self, surf, pos, force_draw=True):
+    # type hints declared by inherited subclasses
+
+    def draw(self, surf, pos, force_draw):
         if (self._update() or force_draw) and self.frame_surf is not None:
             self._render_frame(surf, pos)
             return True

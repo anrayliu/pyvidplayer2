@@ -133,7 +133,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - ```get_queue(): list[pyvidplayer2.VideoPygame]``` - Returns list of queued video objects.
  - ```resize(size: (int, int)) -> None``` - Resizes the video player. The contained video will automatically readjust to fit the player.
  - ```move(pos: (int, int), relative: bool = False) -> None``` - Moves the VideoPlayer. If ```relative``` is ```True```, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
- - ```update(events: list[pygame.event.Event], show_ui: bool = None): bool``` - Allows the VideoPlayer to make calculations. It must be given the returns of ```pygame.event.get()```. The GUI automatically shows up when your mouse hovers over the video player, so setting ```show_ui``` to ```False``` can be used to override that. This method also returns whether the UI was shown.
+ - ```update(events: list[pygame.event.Event], show_ui: bool = None) -> bool``` - Allows the VideoPlayer to make calculations. It must be given the returns of ```pygame.event.get()```. The GUI automatically shows up when your mouse hovers over the video player, so setting ```show_ui``` to ```False``` can be used to override that. This method also returns whether the UI was shown.
  - ```draw(surface: pygame.Surface) -> None``` - Draws the VideoPlayer onto the given Pygame surface.
  - ```close() -> None``` - Releases resources. Always recommended to call when done.
  - ```skip() -> None``` - Moves onto the next video in the queue.

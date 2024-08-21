@@ -31,9 +31,6 @@ setup(
         "Topic :: Multimedia :: Video",
         "Topic :: Multimedia :: Video :: Display",
         "Topic :: Software Development :: Libraries :: pygame",
-        "Topic :: Software Development :: Libraries :: tkinter",
-        "Topic :: Software Development :: Libraries :: pyglet",
-        "Topic :: Software Development :: Libraries :: pyqt6",
 
         "License :: OSI Approved :: MIT License",
 

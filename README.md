@@ -94,7 +94,7 @@ pygame.quit()
 
 ```
 
-# Known Bugs (as of v0.9.16)
+# Known Bugs (as of v0.9.17)
 
 - Select Youtube videos will occasionally freeze or stutter
 - Select videos will not play when loaded as bytes

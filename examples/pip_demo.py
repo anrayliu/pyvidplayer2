@@ -12,7 +12,6 @@ from win32api import GetSystemMetrics
 from win32con import SWP_NOSIZE, HWND_TOPMOST
 from win32com.client import Dispatch
 from pyvidplayer2 import VideoPlayer, Video
-from cv2 import INTER_AREA
 
 
 SIZE = (426, 240)
@@ -23,7 +22,7 @@ pygame.display.set_caption("pip demo")
 
 # creates the video player
 
-vid = VideoPlayer(Video(FILE, interp=INTER_AREA), (0, 0, *SIZE), interactable=True)
+vid = VideoPlayer(Video(FILE, interp="area"), (0, 0, *SIZE), interactable=True)
 
 # moves the window to the bottom right corner and pins it above other windows
 

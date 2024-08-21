@@ -5,13 +5,12 @@ install pywin32 via pip before using
 '''
 
 import pygame
-from cv2 import INTER_AREA
 from pyvidplayer2 import Webcam
 import win32api, win32gui, win32con
 from win32com.client import Dispatch
 
 
-webcam = Webcam(interp=INTER_AREA)
+webcam = Webcam(interp="area")
 webcam.change_resolution(360)
 
 win = pygame.display.set_mode(webcam.current_size, pygame.NOFRAME)

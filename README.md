@@ -26,6 +26,8 @@ All the features from the original library have been ported over, with the excep
 - Play videos from memory (beta)
 
 # Installation
+
+## Windows
 ```
 pip install pyvidplayer2
 ```
@@ -91,6 +93,13 @@ vid.close()
 pygame.quit()
 
 ```
+
+# Known Bugs (as of v0.9.16)
+
+- Select Youtube videos will occasionally freeze or stutter
+- Select videos will not play when loaded as bytes
+- Videos cannot seek when loaded as bytes
+
 
 # Documentation 
 

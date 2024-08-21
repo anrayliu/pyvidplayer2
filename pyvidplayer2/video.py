@@ -23,13 +23,6 @@ except ImportError:
 else:
     YTDLP = 1
 
-try:
-    import pysubs2
-except ImportError:
-    PYSUBS2 = 0
-else:
-    PYSUBS2 = 1
-
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track):
@@ -103,9 +96,6 @@ class Video:
         self.muted = False
 
         self.subs = subs
-        if self.subs is not None and not PYSUBS2:
-            raise ModuleNotFoundError("Subtitles not available because pysubs2 is not installed. Pysubs2 can be installed via pip.")
-
         self.post_func = post_process
         self.interp = interp
         self.use_pygame_audio = use_pygame_audio

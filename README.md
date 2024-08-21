@@ -36,8 +36,20 @@ https://phoenixnap.com/kb/ffmpeg-windows.
 
 ## Linux
 Before running `pip install pyvidplayer2`, you must first install the required development packages.
-- Ubuntu/Debian example: `sudo apt-get install build-essential python3-dev portaudio19-dev`
+- Ubuntu/Debian example: `sudo apt install build-essential python3-dev portaudio19-dev libjack-jackd2-dev`
   - The Python and PortAudio development packages prevent missing Python.h and missing portaudio.h errors, respectively.
+  - Installing `libjack-jackd2-dev` manually prevents `portaudio19-dev` from downgrading to libjack0 and removing wine etc (<https://bugs.launchpad.net/ubuntu/+source/portaudio19/+bug/132002>).
+  - In some circumstances, such as if you are using the kxstudio repo with Linux Mint, incompatible packages may be removed (See <https://github.com/anrayliu/pyvidplayer2/issues/36> for the latest updates on this issue):
+```
+The following additional packages will be installed:
+  libjack-dev libjack0 libportaudiocpp0
+Suggested packages:
+  jackd1 portaudio19-doc
+The following packages will be REMOVED:
+  libasound2-plugins:i386 libjack-jackd2-0 libjack-jackd2-0:i386 wine-stable wine-stable-i386:i386 winehq-stable
+The following NEW packages will be installed:
+  libjack-dev libjack0 libportaudiocpp0 portaudio19-dev
+```
 
 # Quickstart
 
@@ -63,7 +75,7 @@ while vid.active:
             vid.stop()
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
-    
+
     if key == "r":
         vid.restart()           #rewind video to beginning
     elif key == "p":
@@ -80,7 +92,7 @@ while vid.active:
         vid.set_volume(0.0)     #min volume
 
     # only draw new frames, and only update the screen if something is drawn
-    
+
     if vid.draw(win, (0, 0), force_draw=False):
         pygame.display.update()
 
@@ -249,7 +261,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50)
 
-Object used for handling subtitles. Only supported for Pygame. 
+Object used for handling subtitles. Only supported for Pygame.
 
 ## Parameters
  - ```path: str``` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others.

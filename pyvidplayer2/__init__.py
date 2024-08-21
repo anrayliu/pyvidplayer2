@@ -1,3 +1,4 @@
+from pyvidplayer2._version import __version__
 from subprocess import run
 
 from .post_processing import PostProcessing
@@ -6,21 +7,21 @@ from .error import Pyvidplayer2Error
 try:
     import tkinter
 except ImportError:
-    pass 
+    pass
 else:
     from .video_tkinter import VideoTkinter
 
 try:
     import PyQt6
 except ImportError:
-    pass 
+    pass
 else:
     from .video_pyqt import VideoPyQT
 
 try:
     import pygame
 except ImportError:
-    pass 
+    pass
 else:
     pygame.init()
 
@@ -38,12 +39,9 @@ else:
 try:
     import pyglet
 except ImportError:
-    pass 
+    pass
 else:
     from .video_pyglet import VideoPyglet
-
-
-VERSION = "0.9.17"
 
 
 def get_version_info():
@@ -57,6 +55,6 @@ def get_version_info():
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 
-    return {"pyvidplayer2": VERSION,
+    return {"pyvidplayer2": __version__,
             "ffmpeg": ffmpeg_ver,
             "pygame": pygame_ver}

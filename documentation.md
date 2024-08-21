@@ -142,7 +142,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50)
 
-Object used for handling subtitles. Only supported for Pygame. 
+Object used for handling subtitles. Only supported for Pygame.
 
 ## Parameters
  - ```path: str``` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others.
@@ -221,6 +221,6 @@ print(pyvidplayer2.get_version_info())
 ```
 
 Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
-with ```pyvidplayer2.VERSION```.
+with ```pyvidplayer2.__version__```.
 
 When there are no suitable exceptions, ```pyvidplayer2.Pyvidplayer2Error``` may be raised.

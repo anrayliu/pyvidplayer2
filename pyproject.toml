@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyvidplayer2"
+dynamic = ["version"]
+description = "Reliable, easy, and fast video playback in Python"
+readme = {file = "README.md", content-type = "text/markdown"}
+authors = [
+    {name = "Anray Liu", email = "anrayliu@gmail.com"}
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+    "opencv-python",
+    "pygame",
+    "pysubs2",
+    "PyAudio"
+]
+keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyglet"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+
+  "Intended Audience :: Developers",
+  "Topic :: Multimedia :: Video",
+  "Topic :: Multimedia :: Video :: Display",
+  "Topic :: Software Development :: Libraries :: pygame",
+  "Topic :: Software Development :: Libraries :: tkinter",
+  "Topic :: Software Development :: Libraries :: pyglet",
+  "Topic :: Software Development :: Libraries :: pyqt6",
+
+  "License :: OSI Approved :: MIT License",
+
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyvidplayer2._version.__version__"}
+
+[project.urls]
+Homepage = "https://github.com/anrayliu/pyvidplayer2"
+Documentation = "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md"
+Repository = "https://github.com/anrayliu/pyvidplayer2.git"
+Issues = "https://github.com/anrayliu/pyvidplayer2/issues"

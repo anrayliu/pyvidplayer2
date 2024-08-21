@@ -14,7 +14,7 @@ class VideoPygame(Video):
 
     Parameters
         path: str | bytes - Path to video file. Supports almost all file types such as mkv, mp4, mov, avi, 3gp, etc. Can also provide the video in bytes (see as_bytes below). If streaming from Youtube (see youtube below), provide the URL here.
-        chunk_size: int | float - How much audio is extracted at a time, in seconds. Increasing this value will slow the initial loading of video, but is necessary to prevent stuttering. Recommended to keep over 60 if streaming from Youtube (see youtube below).
+        chunk_size: float - How much audio is extracted at a time, in seconds. Increasing this value will slow the initial loading of video, but is necessary to prevent stuttering. Recommended to keep over 60 if streaming from Youtube (see youtube below).
         max_threads: int - Maximum number of chunks that can be extracted at any given time. Do not change if streaming from Youtube (see youtube below).
         max_chunks: int - Maximum number of chunks allowed to be extracted and reserved. Do not change if streaming from Youtube (see youtube below).
         subs: pyvidplayer2.Subtitles - Pass a Subtitles object here for the video to display subtitles.
@@ -41,7 +41,7 @@ class VideoPygame(Video):
         original_size: (int, int) - Tuple containing the width and height of each original frame. Unaffected by resizing.
         current_size: (int, int) - Tuple containing the width and height of each frame being rendered. Affected by resizing.
         aspect_ratio: float - Width divided by height of original size.
-        chunk_size: int | float - Same as given argument. May change if youtube is True (see youtube above).
+        chunk_size: float - Same as given argument. May change if youtube is True (see youtube above).
         max_chunks: int - Same as given argument. May change if youtube is True (see youtube above).
         max_threads: int - Same as given argument. May change if youtube is True (see youtube above).
         frame_data: numpy.ndarray - Current video frame as a NumPy ndarray. Will be in BGR format.
@@ -91,8 +91,8 @@ class VideoPygame(Video):
         preview(show_fps: bool = False, max_fps: int = 60) -> None - Opens a window and plays the video. This method will hang until the video finishes. max_fps enforces how many times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number of new frames being rendered every second.
     '''
     
-    def __init__(self, path: Union[str, bytes], chunk_size: Union[int, float] = 10, max_threads: int = 1, max_chunks: int = 1, subs: Subtitles = None, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: Union[int, float] = 1, youtube: bool = False, max_res: int = 1080, 
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, subs: Subtitles = None, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
+                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 1080, 
                  as_bytes: bool = False, audio_track: int = 0) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
                        as_bytes, audio_track)

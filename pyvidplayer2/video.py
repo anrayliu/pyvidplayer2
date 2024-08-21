@@ -423,10 +423,10 @@ class Video:
         self.muted = False
         self._audio.unmute()
 
-    def set_speed(self, speed: Union[int, float]) -> None:
+    def set_speed(self, speed: float) -> None:
         raise DeprecationWarning("set_speed is depreciated. Use the speed parameter instead.")
 
-    def get_speed(self) -> Union[int, float]:
+    def get_speed(self) -> float:
         return self.speed
 
     def play(self) -> None:
@@ -494,7 +494,7 @@ class Video:
     def get_pos(self) -> float:
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
-    def seek(self, time: Union[int, float], relative: bool = True) -> None:
+    def seek(self, time: float, relative: bool = True) -> None:
         # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time

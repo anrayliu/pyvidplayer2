@@ -4,7 +4,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
 
 ## Parameters
  - ```path: str | bytes``` - Path to video file. Supports almost all file types such as mkv, mp4, mov, avi, 3gp, etc. Can also provide the video in bytes (see ```as_bytes``` below). If streaming from Youtube (see ```youtube``` below), provide the URL here.
- - ```chunk_size: int | float``` - How much audio is extracted at a time, in seconds. Increasing this value will slow the initial loading of video, but is necessary to prevent stuttering. Recommended to keep over 60 if streaming from Youtube (see ```youtube``` below).
+ - ```chunk_size: float``` - How much audio is extracted at a time, in seconds. Increasing this value will slow the initial loading of video, but is necessary to prevent stuttering. Recommended to keep over 60 if streaming from Youtube (see ```youtube``` below).
  - ```max_threads: int``` - Maximum number of chunks that can be extracted at any given time. Do not change if streaming from Youtube (see ```youtube``` below).
  - ```max_chunks: int``` - Maximum number of chunks allowed to be extracted and reserved. Do not change if streaming from Youtube (see ```youtube``` below).
  - ```subs: pyvidplayer2.Subtitles``` - Pass a ```Subtitles``` object here for the video to display subtitles.
@@ -31,7 +31,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - ```original_size: (int, int)``` - Tuple containing the width and height of each original frame. Unaffected by resizing.
  - ```current_size: (int, int)``` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
  - ```aspect_ratio: float``` - Width divided by height of original size.
- - ```chunk_size: int | float``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
+ - ```chunk_size: float``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
  - ```max_chunks: int``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
  - ```max_threads: int``` - Same as given argument. May change if ```youtube``` is ```True``` (see ```youtube``` above).
  - ```frame_data: numpy.ndarray``` - Current video frame as a NumPy ```ndarray```.
@@ -150,7 +150,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```highlight: str | (int, int, int, int)``` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
  - ```font: pygame.font.Font | pygame.font.SysFont``` - Pygame ```Font``` or ```SysFont``` object used to render surfaces. This includes the size of the text.
  - ```encoding: str``` - Encoding used to open subtitle files.
- - ```offset: int | float``` - The higher this number is, the closer the subtitle is to the top of the screen.
+ - ```offset: float``` - The higher this number is, the closer the subtitle is to the top of the screen.
 
 ## Attributes
  - ```path: str``` - Same as given argument.
@@ -162,7 +162,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```colour: str | (int, int, int)``` - Same as given argument.
  - ```highlight: str | (int, int, int, int)``` - Same as given argument.
  - ```font: pygame.font.Font | pygame.font.SysFont``` - Same as given argument.
- - ```offset: int | float``` - Same as given argument.
+ - ```offset: float``` - Same as given argument.
 
 ## Methods 
  - ```set_font(font: pygame.font.Font | pygame.font.SysFont) -> None``` - Same as ```font``` parameter (see ```font``` above).

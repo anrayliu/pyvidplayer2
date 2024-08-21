@@ -1,6 +1,5 @@
 '''
 This is an example showing how to add subtitles to a video
-pip install pysubs2 before using
 '''
 
 

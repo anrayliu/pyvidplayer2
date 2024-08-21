@@ -1,6 +1,5 @@
 '''
 This example shows how every video can play subtitles
-pip install pysubs2 before using
 '''
 
 import pygame

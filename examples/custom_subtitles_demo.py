@@ -1,6 +1,5 @@
 '''
 This is an example of custom subtitle fonts
-pip install pysubs2 before using
 '''
 
 

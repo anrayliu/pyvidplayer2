@@ -340,6 +340,6 @@ print(pyvidplayer2.get_version_info())
 ```
 
 Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
-with ```pyvidplayer2.__version__```.
+with ```pyvidplayer2._version.__version__```.
 
 When there are no suitable exceptions, ```pyvidplayer2.Pyvidplayer2Error``` may be raised.

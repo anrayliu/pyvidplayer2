@@ -40,7 +40,7 @@ Before running `pip install pyvidplayer2`, you must first install the required d
   - The Python and PortAudio development packages prevent missing Python.h and missing portaudio.h errors, respectively.
   - Installing `libjack-jackd2-dev` manually prevents `portaudio19-dev` from downgrading to libjack0 and removing wine etc (<https://bugs.launchpad.net/ubuntu/+source/portaudio19/+bug/132002>).
   - In some circumstances, such as if you are using the kxstudio repo with Linux Mint, incompatible packages may be removed (See <https://github.com/anrayliu/pyvidplayer2/issues/36> for the latest updates on this issue):
-`
+```
 The following additional packages will be installed:
   libjack-dev libjack0 libportaudiocpp0
 Suggested packages:
@@ -49,7 +49,7 @@ The following packages will be REMOVED:
   libasound2-plugins:i386 libjack-jackd2-0 libjack-jackd2-0:i386 wine-stable wine-stable-i386:i386 winehq-stable
 The following NEW packages will be installed:
   libjack-dev libjack0 libportaudiocpp0 portaudio19-dev
-`
+```
 
 # Quickstart
 
@@ -110,18 +110,18 @@ pygame.quit()
 ```
 numpy
 opencv_python
-pysubs2
-PyAudio
 ```
 
-## Optional
+## Optional Packages 
 
 ```
-pygame  # comes installed as a default graphics library
-yt_dlp  # for streaming Youtube videos
-imageio # for playing videos from memory
-pyglet  # graphics library
-PyQt6   # graphics library
+pygame      (graphics and audio library, comes installed)
+PyAudio     (audio library, comes installed)
+pysubs2     (for subtitles, comes installed)
+yt_dlp      (for streaming Youtube videos)
+imageio     (for videos in bytes)
+pyglet      (graphics library)
+PyQt6       (graphics library)
 ```
 
 # Known Bugs (as of v0.9.19)

@@ -6,8 +6,15 @@ from typing import Union, Callable, Tuple
 from threading import Thread
 from .cv_reader import CVReader
 from .error import Pyvidplayer2Error
-from .pyaudio_handler import PyaudioHandler
 from . import FFMPEG_LOGLVL
+
+try:
+    import pyaudio
+except ModuleNotFoundError:
+    PYAUDIO = 0
+else:
+    PYAUDIO = 1
+    from .pyaudio_handler import PyaudioHandler
 
 try:
     import pygame
@@ -133,7 +140,10 @@ class Video:
             else:
                 raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed. Pygame can be installed via pip.")
         else:
-            self._audio = PyaudioHandler()
+            if PYAUDIO:
+                self._audio = PyaudioHandler()
+            else:
+                raise ModuleNotFoundError("Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
             
         self.speed = max(0.5, min(10, speed))
         self.reverse = reverse

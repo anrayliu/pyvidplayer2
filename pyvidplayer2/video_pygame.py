@@ -3,7 +3,6 @@ import numpy as np
 from typing import Callable, Union, Tuple
 from .video import Video
 from .post_processing import PostProcessing
-from .subtitles import Subtitles
 
 
 class VideoPygame(Video):
@@ -91,7 +90,7 @@ class VideoPygame(Video):
         preview(show_fps: bool = False, max_fps: int = 60) -> None - Opens a window and plays the video. This method will hang until the video finishes. max_fps enforces how many times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number of new frames being rendered every second.
     '''
     
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, subs: Subtitles = None, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, subs: "pyvidplayer2.Subtitles" = None, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 1080, 
                  as_bytes: bool = False, audio_track: int = 0) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,

@@ -160,8 +160,8 @@ class VideoPlayer:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)
 
-    def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None) -> bool:
-        dt = self._clock.tick()
+    def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None, fps=0) -> bool:
+        dt = self._clock.tick(fps)
 
         if not self.video.active:
             if self.queue_:
@@ -192,7 +192,7 @@ class VideoPlayer:
 
             if self._show_ui:
                 self._progress_bar.w = self._progress_back.w * (self.video.get_pos() / self.video.duration)
-                self._smooth_bar += (self._progress_bar.w - self._smooth_bar) / (dt * 0.25)
+                self._smooth_bar += (self._progress_bar.w - self._smooth_bar) * (dt / 100)
                 self._show_seek = self._progress_back.collidepoint(mouse)
 
                 if self._show_seek:

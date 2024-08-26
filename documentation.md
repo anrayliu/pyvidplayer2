@@ -1,6 +1,6 @@
 # Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0)
 
-Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see ```use_pygame_audio``` below). YTDLP is required to stream videos from Youtube. Pysubs2 and Pygame is required to render subtitles. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is ```VideoPygame```.
+Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see ```use_pygame_audio``` below). Pygame or Pygame CE are the only graphics libraries to support subtitles. YTDLP is required to stream videos from Youtube. IMAGEIO and PyAV are required to play videos from memory. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is ```VideoPygame```.
 
 ## Parameters
  - ```path: str | bytes``` - Path to video file. Supports almost all file types such as mkv, mp4, mov, avi, 3gp, etc. Can also provide the video in bytes (see ```as_bytes``` below). If streaming from Youtube (see ```youtube``` below), provide the URL here.
@@ -16,13 +16,13 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - ```speed: float | int``` - Float from 0.5 to 10.0 that multiplies the playback speed. Note that if for example, speed=2, the video will play twice as fast. However, every single video frame will still be processed. Therefore, the frame rate of your program must be at least twice that of the video's frame rate to prevent dropped frames. So for example, for a 24 fps video, the video will have to be updated (see ```draw``` below) at least, but ideally more than 48 times a second to achieve true x2 speed.
  - ```youtube: bool``` - Specifies whether to stream a Youtube video. Path must be a valid Youtube video URL. The python package yt_dlp is required for this feature. It can be installed through pip. Setting this to ```True``` will force ```chunk_size``` to be at least 60, ```max_threads``` to be 1, and ```max_chunks``` to be 1. Cannot play active livestreams.
  - ```max_res: int``` - Only used when streaming Youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest Youtube supports. Note that actual video quality is not guaranteed to match ```max_res```.
- - ```as_bytes: bool``` - Specifies whether ```path``` is a video in byte form.
+ - ```as_bytes: bool``` - Specifies whether ```path``` is a video in byte form. The python packages imageio and av are required for this feature. It can be installed through pip.
  - ```audio_track: int``` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
 
 ## Attributes
  - ```path: str | bytes``` - Same as given argument.
- - ```name: str``` - Name of file without the directory and extension. Will be ```None``` if video is given in byte form (see ```as_bytes``` above).
- - ```ext: str``` - Type of video (mp4, mkv, mov, etc). Will be ```"webm"``` if streaming from Youtube (see ```youtube``` above). Will be ```None``` if video is given in byte form (see ```as_bytes``` above).
+ - ```name: str``` - Name of file without the directory and extension. Will be an empty string if video is given in byte form (see ```as_bytes``` above).
+ - ```ext: str``` - Type of video (mp4, mkv, mov, etc). Will be ```"webm"``` if streaming from Youtube (see ```youtube``` above). Will be an empty string if video is given in byte form (see ```as_bytes``` above).
  - ```frame: int``` - Current frame index. Starts from 0.
  - ```frame_rate: float``` - Float that indicates how many frames are in one second.
  - ```frame_count: int``` - How many total frames there are.
@@ -81,7 +81,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - ```preview(show_fps: bool = False, max_fps: int = 60) -> None``` - Opens a window and plays the video. This method will hang until the video finishes. ```max_fps``` enforces how many times a second the video is updated. If ```show_fps``` is ```True```, a counter will be displayed showing the actual number of new frames being rendered every second.
 
 ## Supported Graphics Libraries
- - Pygame (```Video```) <- default and best supported
+ - Pygame or Pygame CE (```Video```) <- default and best supported
  - Tkinter (```VideoTkinter```)
  - Pyglet (```VideoPyglet```)
  - PyQT6 (```VideoPyQT```)
@@ -133,14 +133,14 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - ```get_queue(): list[pyvidplayer2.VideoPygame]``` - Returns list of queued video objects.
  - ```resize(size: (int, int)) -> None``` - Resizes the video player. The contained video will automatically readjust to fit the player.
  - ```move(pos: (int, int), relative: bool = False) -> None``` - Moves the VideoPlayer. If ```relative``` is ```True```, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
- - ```update(events: list[pygame.event.Event], show_ui: bool = None) -> bool``` - Allows the VideoPlayer to make calculations. It must be given the returns of ```pygame.event.get()```. The GUI automatically shows up when your mouse hovers over the video player, so setting ```show_ui``` to ```False``` can be used to override that. This method also returns whether the UI was shown.
+ - ```update(events: list[pygame.event.Event], show_ui: bool = None, fps: int = 0) -> bool``` - Allows the VideoPlayer to make calculations. It must be given the returns of ```pygame.event.get()```. The GUI automatically shows up when your mouse hovers over the video player, so setting ```show_ui``` to ```False``` can be used to override that. The ```fps``` parameter can enforce be used to enforce a frame rate to your app. This method also returns whether the UI was shown.
  - ```draw(surface: pygame.Surface) -> None``` - Draws the VideoPlayer onto the given Pygame surface.
  - ```close() -> None``` - Releases resources. Always recommended to call when done.
  - ```skip() -> None``` - Moves onto the next video in the queue.
  - ```get_video() -> pyvidplayer2.VideoPygame``` - Returns currently playing video.
 
 
-# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50)
+# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50, delay=0)
 
 Object used for handling subtitles. Only supported for Pygame.
 
@@ -151,6 +151,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```font: pygame.font.Font | pygame.font.SysFont``` - Pygame ```Font``` or ```SysFont``` object used to render surfaces. This includes the size of the text.
  - ```encoding: str``` - Encoding used to open subtitle files.
  - ```offset: float``` - The higher this number is, the closer the subtitle is to the top of the screen.
+ - ```delay: float``` - Delays all subtitles by this many seconds.
 
 ## Attributes
  - ```path: str``` - Same as given argument.
@@ -163,6 +164,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - ```highlight: str | (int, int, int, int)``` - Same as given argument.
  - ```font: pygame.font.Font | pygame.font.SysFont``` - Same as given argument.
  - ```offset: float``` - Same as given argument.
+ - ```delay: float``` - Same as given argument.
 
 ## Methods 
  - ```set_font(font: pygame.font.Font | pygame.font.SysFont) -> None``` - Same as ```font``` parameter (see ```font``` above).

@@ -5,7 +5,9 @@ from typing import Union, Tuple
 
 class Subtitles:
     def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
-                 font: Union[pygame.font.SysFont, pygame.font.Font] = pygame.font.SysFont("arial", 30), encoding: str = "utf-8", offset: int = 50) -> None:
+                 font: Union[pygame.font.SysFont, pygame.font.Font] = pygame.font.SysFont("arial", 30), encoding: str = "utf-8", offset: int = 50,
+                 delay: float = 0) -> None:
+        
         self.path = path
         self.encoding = encoding
 
@@ -16,6 +18,7 @@ class Subtitles:
         self.text = ""
         self.surf = pygame.Surface((0, 0))
         self.offset = offset
+        self.delay = delay
 
         self.colour = colour
         self.highlight = highlight 
@@ -41,14 +44,14 @@ class Subtitles:
         try:
             s = next(self._subs)
         except StopIteration:
-            self.start = 0
-            self.end = 0
+            self.start = 0 + self.delay
+            self.end = 0 + self.delay
             self.text = ""
             self.surf = pygame.Surface((0, 0))
             return False 
         else:
-            self.start = s.start / 1000
-            self.end = s.end / 1000
+            self.start = s.start / 1000 + self.delay
+            self.end = s.end / 1000 + self.delay
             self.text = s.plaintext
             self.surf = self._to_surf(self.text)
             return True
@@ -56,8 +59,8 @@ class Subtitles:
     def _seek(self, time):
         self._subs = iter(pysubs2.load(self.path, encoding=self.encoding))
 
-        self.end = 0
-        self.start = 0
+        self.end = 0 + self.delay
+        self.start = 0 + self.delay
         self.text = ""
         self.surf = pygame.Surface((0, 0))
 

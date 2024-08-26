@@ -4,7 +4,6 @@ import os
 import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
-from .ffmpeg_reader import FFMPEGReader
 from .cv_reader import CVReader
 from .error import Pyvidplayer2Error
 from .pyaudio_handler import PyaudioHandler
@@ -23,6 +22,21 @@ except ImportError:
 else:
     YTDLP = 1
 
+try:
+    import imageio.v3 as iio
+except ImportError:
+    IIO = 0
+else:
+    IIO = 1
+    from .imageio_reader import IIOReader
+
+try:
+    import av
+except ImportError:
+    PYAV = 0
+else:
+    PYAV = 1
+
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track):
@@ -30,8 +44,8 @@ class Video:
         self._audio_path = path     # used for audio only when streaming
         self.path = path
 
-        self.name = None 
-        self.ext = None
+        self.name = "" 
+        self.ext = ""
 
         as_bytes = as_bytes or isinstance(path, bytes)
 
@@ -52,7 +66,11 @@ class Video:
                 max_threads = 1
 
         elif as_bytes:
-            self._vid = FFMPEGReader(self.path)
+            if not IIO:
+                raise ModuleNotFoundError("Unable to read video from memory because IMAGEIO is not installed. IMAGEIO can be installed via pip.")
+            if not PYAV:
+                raise ModuleNotFoundError("Unable to read video from memory because PyAV is not installed. PyAV can be installed via pip.")
+            self._vid = IIOReader(self.path)
             self._audio_path = "-"  # read from pipe
 
         else:

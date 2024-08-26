@@ -2,25 +2,44 @@ import cv2
 
 
 class CVReader:
-    def __init__(self, path):
-        self.vidcap = cv2.VideoCapture(path)
+    '''
+    This video reader uses opencv. All video readers must follow the following structure:
 
-        self.frame_count = int(self.vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.frame_rate = self.vidcap.get(cv2.CAP_PROP_FPS)
-        self.original_size = (int(self.vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self.vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+    Parameters:
+        None
+    
+    Attributes:
+        frame_count: int
+        frame_rate: float
+        original_size: (int, int)
+        frame: int
+
+    Methods:
+        isOpened() -> bool
+        seek(i: int) -> None
+        read() -> (bool, np.ndarray)
+        release() -> None
+    '''
+
+    def __init__(self, path):
+        self._vidcap = cv2.VideoCapture(path)
+
+        self.frame_count = int(self._vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.frame_rate = self._vidcap.get(cv2.CAP_PROP_FPS)
+        self.original_size = (int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
     
     @property
     def frame(self):
-        return int(self.vidcap.get(cv2.CAP_PROP_POS_FRAMES))
+        return int(self._vidcap.get(cv2.CAP_PROP_POS_FRAMES))
     
     def isOpened(self):
-        return self.vidcap.isOpened()
+        return self._vidcap.isOpened()
     
     def seek(self, index):
-        self.vidcap.set(cv2.CAP_PROP_POS_FRAMES, index)
+        self._vidcap.set(cv2.CAP_PROP_POS_FRAMES, index)
 
     def read(self):
-        return self.vidcap.read()
+        return self._vidcap.read()
 
     def release(self):
-        self.vidcap.release()
+        self._vidcap.release()

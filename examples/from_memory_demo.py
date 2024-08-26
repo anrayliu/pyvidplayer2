@@ -1,6 +1,6 @@
 '''
 This example shows how videos can be played from memory instead of disk
-Beta feature, might be buggy
+pip install imageio before using
 '''
 
 

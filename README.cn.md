@@ -16,12 +16,12 @@
 - 字幕支持（.srt，.ass等）
 - 并行播放多个视频
 - 内置图形用户界面（GUI）
-- 支持 Pygame、Pyglet、Tkinter 和 PyQT6
+- 支持 Pygame、PygameCE, Pyglet、Tkinter 和 PyQT6
 - 可以播放所有 FFMPEG 支持的视频格式
 - 后期处理效果
 - 摄像头视频捕获
-- 播放 Youtube 的视频 (试用)
-- 播放 RAM 中的视频 (试用)
+- 播放 Youtube 的视频
+- 播放 RAM 中的视频
 
 
 # 安装
@@ -95,4 +95,26 @@ while vid.active:
 
 vid.close()
 pygame.quit()
+```
 
+# 依赖项
+
+```
+numpy
+opencv_python
+pysubs2
+PyAudio
+```
+
+## 可选项
+
+```
+pygame  # 默认安装的图形库
+yt_dlp  # 用于流式传输 Youtube 视频
+imageio # 用于从内存中播放视频
+```
+
+# 已知问题（截至 v0.9.19）
+
+ - Youtube 视频有时会冻结或卡顿（罕见）
+ - 从字节读取时，视频搜索速度较慢

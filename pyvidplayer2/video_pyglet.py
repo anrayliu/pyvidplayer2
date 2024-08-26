@@ -110,12 +110,12 @@ class VideoPyglet(Video):
             return True
         return False
     
-    def preview(self) -> None:
+    def preview(self, max_fps: int = 60) -> None:
         def update(dt):
             self.draw((0, 0), force_draw=True)
             if not self.active:
                 win.close()
         win = pyglet.window.Window(width=self.current_size[0], height=self.current_size[1], config=pyglet.gl.Config(double_buffer=False), caption=f"pyglet - {self.name}")
-        pyglet.clock.schedule_interval(update, 1/60.0)
+        pyglet.clock.schedule_interval(update, 1/float(max_fps))
         pyglet.app.run()
         self.close()

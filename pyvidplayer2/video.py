@@ -7,6 +7,7 @@ from threading import Thread
 from .cv_reader import CVReader
 from .error import Pyvidplayer2Error
 from .pyaudio_handler import PyaudioHandler
+from . import FFMPEG_LOGLVL
 
 try:
     import pygame
@@ -48,6 +49,7 @@ class Video:
         self.ext = ""
 
         as_bytes = as_bytes or isinstance(path, bytes)
+        #youtube = youtube or self._test_youtube()
 
         if youtube:
             if YTDLP:
@@ -228,6 +230,9 @@ class Video:
         s = int(seconds % 60)
         d = round(seconds % 1, 1)
         return f"{h}:{m}:{s}.{int(d * 10)}"
+    
+    def _test_youtube(self):
+        return YTDLP and next((ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"), None) is not None
 
     def _test_no_audio(self):
         command = [
@@ -240,7 +245,7 @@ class Video:
             "-f",
             "wav",
             "-loglevel",
-            "quiet",
+            f"{FFMPEG_LOGLVL}",
             "-"
         ]
 
@@ -275,7 +280,7 @@ class Video:
                 "-f",
                 "wav",
                 "-loglevel",
-                "quiet",
+                f"{FFMPEG_LOGLVL}",
                 "-"
             ]
 
@@ -296,7 +301,7 @@ class Video:
                 "-f",
                 "wav",
                 "-loglevel",
-                "quiet",
+                f"{FFMPEG_LOGLVL}",
                 "-"
             ]
 
@@ -321,7 +326,7 @@ class Video:
             # apply speed change to already reversed audio chunk
 
             if not self.no_audio and self.speed != 1 and self.reverse:
-                process = subprocess.Popen(f"ffmpeg -i - -af atempo={self.speed} -f wav -loglevel quiet -", stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                process = subprocess.Popen(f"ffmpeg -i - -af atempo={self.speed} -f wav -loglevel {FFMPEG_LOGLVL} -", stdout=subprocess.PIPE, stdin=subprocess.PIPE)
                 audio = process.communicate(input=audio)[0]
 
         except FileNotFoundError:

@@ -2,6 +2,7 @@ import imageio.v3 as iio
 import cv2
 import subprocess
 import json 
+from . import FFMPEG_LOGLVL
 
 
 class IIOReader:
@@ -41,7 +42,7 @@ class IIOReader:
         # strangely for ffprobe, - is not required to indicate output
         
         try:
-            p = subprocess.Popen(f"ffprobe -i {"-" if self._as_bytes else self._path} -show_streams -count_frames -select_streams v -loglevel quiet -print_format json", stdin=subprocess.PIPE if self._as_bytes else None, stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffprobe -i {"-" if self._as_bytes else self._path} -show_streams -count_frames -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self._as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
         

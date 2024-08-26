@@ -6,7 +6,7 @@ from . import Video
 
 
 class VideoPlayer:
-    def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop:bool = False, preview_thumbnails: int = 0):
+    def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop: bool = False, preview_thumbnails: int = 0, font_size: int = 10):
         self.video = video
         self.frame_rect = pygame.Rect(rect)
         self.interactable = interactable
@@ -18,7 +18,7 @@ class VideoPlayer:
         self._progress_back = pygame.Rect(0, 0, 0, 0)
         self._progress_bar = pygame.Rect(0, 0, 0, 0)
         self._smooth_bar = 0 # used for making the progress bar look smooth when seeking
-        self._font = pygame.font.SysFont("arial", 0)
+        self._font = pygame.font.SysFont("arial", font_size)
 
         self._buffer_rect = pygame.Rect(0, 0, 0, 0)
         self._buffer_angle = 0
@@ -90,8 +90,6 @@ class VideoPlayer:
         self._progress_back = pygame.Rect(self.frame_rect.x + 10, self.frame_rect.bottom - 25, self.frame_rect.w - 20, 15)
         self._progress_bar = self._progress_back.copy()
 
-        self._font = pygame.font.SysFont("arial", 10)
-
         if self._buffer_frame is not None:
             self._buffer_frame = pygame.transform.smoothscale(self._buffer_frame, self.vid_rect.size)
 
@@ -160,7 +158,7 @@ class VideoPlayer:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)
 
-    def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None, fps=0) -> bool:
+    def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None, fps: int = 0) -> bool:
         dt = self._clock.tick(fps)
 
         if not self.video.active:

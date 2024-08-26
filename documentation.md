@@ -105,7 +105,7 @@ with Video("example.mp4") as vid:
 ```
 
 
-# VideoPlayer(video, rect, interactable=False, loop=False, preview_thumbnails=0)
+# VideoPlayer(video, rect, interactable=False, loop=False, preview_thumbnails=0, font_size=10)
 
 VideoPlayers are GUI containers for videos. They are useful for scaling a video to fit an area or looping videos. Only supported for Pygame.
 
@@ -115,6 +115,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - ```interactable: bool``` - Enables the GUI.
  - ```loop: bool``` - Specifies whether the contained video will restart after it finishes. If the queue is not empty, the entire queue will loop, not just the current video.
  - ```preview_thumbnails: int``` - Number of preview thumbnails loaded and saved in memory. When seeking, a preview window will show the closest loaded frame. The higher this number is, the more frames are loaded, increasing the preview accuracy but also increasing initial load time and memory usage. Because of this, this value is defaulted to 0, which turns seek previewing off.
+ - ```font_size: int``` - Sets font size for GUI elements.
 
 ## Attributes 
  - ```video: pyvidplayer2.VideoPygame``` - Same as given argument.

@@ -1,4 +1,10 @@
 from pyvidplayer2._version import __version__
+
+
+VERSION = __version__ # for older versions of pyvidplayer2
+FFMPEG_LOGLVL = "fatal"
+
+
 from subprocess import run
 
 from .post_processing import PostProcessing

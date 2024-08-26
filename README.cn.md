@@ -112,6 +112,8 @@ PyAudio
 pygame  # 默认安装的图形库
 yt_dlp  # 用于流式传输 Youtube 视频
 imageio # 用于从内存中播放视频
+pyglet  # 图形库
+PyQt6   # 图形库
 ```
 
 # 已知问题（截至 v0.9.19）

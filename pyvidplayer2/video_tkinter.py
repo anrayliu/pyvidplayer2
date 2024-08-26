@@ -108,11 +108,11 @@ class VideoTkinter(Video):
     def draw(self, surf: tk.Canvas, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, surf, pos, force_draw)
     
-    def preview(self):
+    def preview(self, max_fps: int = 60):
         def update():
             self.draw(canvas, (self.current_size[0] / 2, self.current_size[1] / 2), force_draw=False)
             if self.active:
-                root.after(16, update) # for around 60 fps
+                root.after(int(1 / float(max_fps) * 1000), update) # for around 60 fps
             else:
                 root.destroy()
         root = tk.Tk()

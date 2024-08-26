@@ -108,7 +108,7 @@ class VideoPyQT(Video):
     def draw(self, surf: QWidget, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, surf, pos, force_draw)
 
-    def preview(self) -> None:
+    def preview(self, max_fps: int = 60) -> None:
         class Window(QMainWindow):
             def __init__(self):
                 super().__init__()
@@ -116,7 +116,7 @@ class VideoPyQT(Video):
                 self.setCentralWidget(self.canvas)
                 self.timer = QTimer(self)
                 self.timer.timeout.connect(self.update)
-                self.timer.start(16)
+                self.timer.start(int(1 / float(max_fps) * 1000))
             def paintEvent(self_, _):
                 self.draw(self_, (0, 0))
         app = QApplication([])

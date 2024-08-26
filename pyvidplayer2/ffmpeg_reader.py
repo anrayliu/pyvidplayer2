@@ -9,6 +9,7 @@ import numpy as np
 from io import BytesIO
 from threading import Thread
 from functools import partial
+from . import FFMPEG_LOGLVL
 
 
 class FFMPEGReader:
@@ -23,7 +24,7 @@ class FFMPEGReader:
         self._probe()
 
         self._stream = BytesIO(self._bytes)
-        self._process = subprocess.Popen(f"ffmpeg -i - -loglevel quiet -f rawvideo -vf format=bgr24 -sn -an -", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self._process = subprocess.Popen(f"ffmpeg -i - -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
         self._thread = Thread(target=self._threaded_write)
         self._thread.start()
@@ -41,7 +42,7 @@ class FFMPEGReader:
         # strangely for ffprobe, - is not required to indicate output
         
         try:
-            p = subprocess.Popen(f"ffprobe -i - -show_streams -count_frames -select_streams v -loglevel quiet -print_format json", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffprobe -i - -show_streams -count_frames -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
         

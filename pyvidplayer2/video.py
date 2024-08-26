@@ -12,8 +12,9 @@ from . import FFMPEG_LOGLVL
 try:
     import pygame
 except ImportError:
-    pass
+    PYGAME = 0
 else:
+    PYGAME = 1
     from .mixer_handler import MixerHandler
 
 try:
@@ -30,6 +31,8 @@ except ImportError:
 else:
     IIO = 1
     from .imageio_reader import IIOReader
+
+# pyav is an optional package for imageio
 
 try:
     import av
@@ -125,9 +128,9 @@ class Video:
         self.audio_track = audio_track
 
         if use_pygame_audio:
-            try:
+            if PYGAME:
                 self._audio = MixerHandler()
-            except NameError:
+            else:
                 raise ModuleNotFoundError("Unable to use Pygame audio because Pygame is not installed. Pygame can be installed via pip.")
         else:
             self._audio = PyaudioHandler()

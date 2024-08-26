@@ -202,7 +202,8 @@ class VideoPlayer:
                     if click:
                         self.video.seek(t, relative=False)
                         self.video.play()
-                
+                        self._clock.tick()   # resets delta time
+
                 elif click:
                     self.video.toggle_pause()
 

@@ -198,7 +198,7 @@ class Video:
         
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
-        return sorted([float(dict_["pts_time"]) for dict_ in info["frames"]])
+        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
 
     def __next__(self) -> np.ndarray:
         self._generated_frame = True

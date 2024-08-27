@@ -50,7 +50,7 @@ class FFMPEGReader:
 
         self.original_size = int(info["width"]), int(info["height"])
         self.frame_count = int(info["nb_read_frames"])
-        self.frame_rate = float(info["r_frame_rate"].split("/")[0]) / float(info["r_frame_rate"].split("/")[1])
+        self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
 
     def read(self):
         b = self._process.stdout.read(self.original_size[0] * self.original_size[1] * 3)

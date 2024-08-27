@@ -92,9 +92,9 @@ class VideoPygame(Video):
     
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, subs: "pyvidplayer2.Subtitles" = None, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 1080, 
-                 as_bytes: bool = False, audio_track: int = 0) -> None:
+                 as_bytes: bool = False, audio_track: int = 0, vfr: bool = False) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track)
+                       as_bytes, audio_track, vfr)
 
     def __str__(self) -> str:
         return f"<VideoPygame(path={self.path})>"

@@ -1,6 +1,7 @@
 import cv2
 import subprocess
 import os
+import json 
 import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
@@ -50,7 +51,7 @@ else:
 
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track):
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr):
         
         self._audio_path = path     # used for audio only when streaming
         self.path = path
@@ -133,6 +134,7 @@ class Video:
         self.max_res = max_res
         self.as_bytes = as_bytes
         self.audio_track = audio_track
+        self.vfr = vfr
 
         if use_pygame_audio:
             if PYGAME:
@@ -151,6 +153,10 @@ class Video:
 
         self._missing_ffmpeg = False  # for throwing errors
         self._generated_frame = False # for when used as a generator
+
+        if self.vfr:
+            self.timestamps = self._get_all_pts()
+            self.min_fr, self.max_fr, self.avg_fr = self._get_vfrs()
 
         self._preloaded_frames = []
         if self.reverse:
@@ -172,7 +178,28 @@ class Video:
     def __iter__(self) -> "self":
         self.stop()
         return self
+    
+    def _get_vfrs(self):
+        pts = self._get_all_pts()
+
+        difs = [pts[i + 1] - pts[i] for i in range(len(pts) - 1)]
+
+        min_fr = 1 / max(difs)
+        max_fr = 1 / min(difs)
+        avg_fr = len(difs) / sum(difs)
+
+        return min_fr, max_fr, avg_fr
+
+    def _get_all_pts(self):
+        try:
+            p = subprocess.Popen(f"ffprobe -i {"-" if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
         
+        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+
+        return sorted([float(dict_["pts_time"]) for dict_ in info["frames"]])
+
     def __next__(self) -> np.ndarray:
         self._generated_frame = True
         data = None
@@ -369,6 +396,11 @@ class Video:
             else:
                 self.subs._write_subs(self.frame_surf)
 
+    def _has_frame(self, p):
+        if self.vfr:
+            return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
+        return p > self.frame * self.frame_delay
+
     def _update(self):
         if self._missing_ffmpeg:
             raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
@@ -382,7 +414,7 @@ class Video:
 
             p = self.get_pos()
 
-            while p > self.frame * self.frame_delay:
+            while self._has_frame(p):
 
                 if self.reverse:
                     has_frame = True
@@ -400,7 +432,7 @@ class Video:
                 self.frame += 1
 
                 # optimized for high playback speeds
-                if p > self.frame * self.frame_delay:
+                if self._has_frame(p):
                     continue
 
                 if has_frame:

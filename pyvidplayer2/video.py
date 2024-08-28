@@ -73,8 +73,6 @@ class Video:
             
             if chunk_size < 60:
                 chunk_size = 60
-            if max_chunks > 1:
-                max_chunks = 1
             if max_threads > 1:
                 max_threads = 1
 
@@ -601,7 +599,6 @@ class Video:
 
         for p in self._processes:
             p.terminate()
-            p.close()
         for t in self._threads:
             t.join()
             
@@ -633,7 +630,6 @@ class Video:
 
         for p in self._processes:
             p.terminate()
-            p.close()
         for t in self._threads:
             t.join()
 

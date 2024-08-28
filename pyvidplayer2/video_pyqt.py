@@ -9,7 +9,7 @@ from .post_processing import PostProcessing
 
 class VideoPyQT(Video):
     '''
-    VideoPyQT(path, chunk_size=10, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0)
+    VideoPyQT(path, chunk_size=10, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False)
 
         Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see use_pygame_audio below). YTDLP is required to stream videos from Youtube. Pysubs2 and Pygame is required to render subtitles. This object uses PyQT6 for graphics.
 
@@ -28,6 +28,7 @@ class VideoPyQT(Video):
         max_res: int - Only used when streaming Youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest Youtube supports. Note that actual video quality is not guaranteed to match max_res.
         as_bytes: bool - Specifies whether path is a video in byte form.
         audio_track: int - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
+        vfr: bool - Used to play variable frame rate videos properly. If False, a constant frame rate will be assumed. If True, presentation timestamps will be extracted for each frame (see timestamps below). This still works for constant frame rate videos, but extracting the timestamps will mean a longer initial load.
 
     Attributes
         path: str | bytes - Same as given argument.
@@ -35,7 +36,11 @@ class VideoPyQT(Video):
         ext: str - Type of video (mp4, mkv, mov, etc). Will be "webm" if streaming from Youtube (see youtube above). Will be None if video is given in byte form (see as_bytes above).
         frame: int - Current frame index. Starts from 0.
         frame_rate: float - Float that indicates how many frames are in one second.
-        frame_count: int - How many total frames there are.
+        min_fr: float - Only used if vfr = True. Gives the minimum frame rate throughout the video.
+        max_fr: float - Only used if vfr = True. Gives the maximum frame rate throughout the video.
+        avg_fr: float - Only used if vfr = True. Gives the average frame rate of all the extracted presentation timestamps.
+        timestamps: [float] - List of presentation timestamps for each frame.
+        frame_count: int - How many total frames there are. May not be 100% accurate. For a more accurate (but slower) frame count, set vfr = True and use len(video.timestamps).
         frame_delay: float - Time between frames in order to maintain frame rate (in fractions of a second).
         duration: float - Length of video in seconds.
         original_size: (int, int) - Tuple containing the width and height of each original frame. Unaffected by resizing.
@@ -61,6 +66,7 @@ class VideoPyQT(Video):
         max_res: int - Same as given argument.
         as_bytes: bool - Same as given argument. May change if bytes are automatically detected.
         audio_track: int - Same as given argument.
+        vfr: bool - Same as given argument.
 
     Methods:
         play() -> None - Sets active to True.
@@ -92,9 +98,9 @@ class VideoPyQT(Video):
 
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: float = 1, youtube: bool = False, 
-                 max_res: int = 1080, as_bytes: bool = False, audio_track: int = 0) -> None:
+                 max_res: int = 1080, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track)
+                       as_bytes, audio_track, vfr)
 
     def __str__(self) -> str:
         return f"<VideoPyQT(path={self.path})>"

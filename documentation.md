@@ -1,4 +1,4 @@
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see `use_pygame_audio` below). Pygame or Pygame CE are the only graphics libraries to support subtitles. YTDLP is required to stream videos from Youtube. IMAGEIO and PyAV are required to play videos from memory. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is `VideoPygame`.
 
@@ -18,6 +18,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `max_res: int` - Only used when streaming Youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest Youtube supports. Note that actual video quality is not guaranteed to match `max_res`.
  - `as_bytes: bool` - Specifies whether `path` is a video in byte form. The python packages imageio and av are required for this feature. It can be installed through pip.
  - `audio_track: int` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
+ - `vfr: bool` - Used to play variable frame rate videos properly. If `False`, a constant frame rate will be assumed. If `True`, presentation timestamps will be extracted for each frame (see `timestamps` below). This still works for constant frame rate videos, but extracting the timestamps will mean a longer initial load.
 
 ## Attributes
  - `path: str | bytes` - Same as given argument.
@@ -25,7 +26,11 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `ext: str` - Type of video (mp4, mkv, mov, etc). Will be `"webm"` if streaming from Youtube (see `youtube` above). Will be an empty string if video is given in byte form (see `as_bytes` above).
  - `frame: int` - Current frame index. Starts from 0.
  - `frame_rate: float` - Float that indicates how many frames are in one second.
- - `frame_count: int` - How many total frames there are.
+ - `max_fr: float` - Only used if `vfr = True`. Gives the maximum frame rate throughout the video.
+ - `min_fr: float` - Only used if `vfr = True`. Gives the minimum frame rate throughout the video.
+ - `avg_fr: float` - Only used if `vfr = True`. Gives the average frame rate of all the extracted presentation timestamps.
+ - `timestamps: [float]` - List of presentation timestamps for each frame.
+ - `frame_count: int` - How many total frames there are. May not be 100% accurate. For a more accurate (but slower) frame count,set `vfr = True` and use `len(video.timestamps)`.
  - `frame_delay: float` - Time between frames in order to maintain frame rate (in fractions of a second).
  - `duration: float` - Length of video in seconds.
  - `original_size: (int, int)` - Tuple containing the width and height of each original frame. Unaffected by resizing.
@@ -52,6 +57,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `max_res: int` - Same as given argument.
  - `as_bytes: bool` - Same as given argument. May change if bytes are automatically detected.
  - `audio_track: int` - Same as given argument.
+ - `vfr: bool` - Same as given argument. 
 
 ## Methods
  - `play() -> None` - Sets `active` to `True`.

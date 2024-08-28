@@ -134,7 +134,7 @@ class Video:
         self.max_res = max_res
         self.as_bytes = as_bytes
         self.audio_track = audio_track
-        self.vfr = vfr
+        self.vfr = vfr #or self._test_vfr()
 
         if use_pygame_audio:
             if PYGAME:
@@ -154,9 +154,11 @@ class Video:
         self._missing_ffmpeg = False  # for throwing errors
         self._generated_frame = False # for when used as a generator
 
+        self.timestamps = []
+        self.min_fr = self.max_fr = self.avg_fr = self.frame_rate
         if self.vfr:
             self.timestamps = self._get_all_pts()
-            self.min_fr, self.max_fr, self.avg_fr = self._get_vfrs()
+            self.min_fr, self.max_fr, self.avg_fr = self._get_vfrs(self.timestamps)
 
         self._preloaded_frames = []
         if self.reverse:
@@ -179,27 +181,6 @@ class Video:
         self.stop()
         return self
     
-    def _get_vfrs(self):
-        pts = self._get_all_pts()
-
-        difs = [pts[i + 1] - pts[i] for i in range(len(pts) - 1)]
-
-        min_fr = 1 / max(difs)
-        max_fr = 1 / min(difs)
-        avg_fr = len(difs) / sum(difs)
-
-        return min_fr, max_fr, avg_fr
-
-    def _get_all_pts(self):
-        try:
-            p = subprocess.Popen(f"ffprobe -i {"-" if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
-        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
-
-        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
-
     def __next__(self) -> np.ndarray:
         self._generated_frame = True
         data = None
@@ -220,6 +201,29 @@ class Video:
             return self.post_func(data)
         else:
             raise StopIteration
+    
+    def _get_vfrs(self, pts):
+        # calculates differences in frametime, except the first and last frames are ignored because
+        # they can be anomalous
+        difs = [pts[i + 1] - pts[i] for i in range(1, len(pts) - 2)]
+        if not difs:
+            return 0, 0, 0
+
+        min_fr = 1 / max(difs)
+        max_fr = 1 / min(difs)
+        avg_fr = len(difs) / sum(difs)
+
+        return min_fr, max_fr, avg_fr
+
+    def _get_all_pts(self):
+        try:
+            p = subprocess.Popen(f"ffprobe -i {"-" if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+        
+        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+
+        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]]) + [4.971633, 4.971633]
 
     def _set_stream_url(self, path, max_res):
         config = {"quiet": True,
@@ -271,8 +275,14 @@ class Video:
         d = round(seconds % 1, 1)
         return f"{h}:{m}:{s}.{int(d * 10)}"
     
+    # not used
     def _test_youtube(self):
         return YTDLP and next((ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"), None) is not None
+    
+    # not used
+    def _test_vfr(self):
+        min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
+        return (max_ - min_) > 0.1
 
     def _test_no_audio(self):
         command = [
@@ -396,6 +406,24 @@ class Video:
             else:
                 self.subs._write_subs(self.frame_surf)
 
+    def _get_closest_frame(self, pts, ts):
+        lo, hi = 0, len(pts) - 1
+        best_ind = lo
+        while lo <= hi:
+            mid = lo + (hi - lo) // 2
+            if pts[mid] < ts:
+                lo = mid + 1
+            elif pts[mid] > ts:
+                hi = mid - 1
+            else:
+                best_ind = mid
+                break
+            if abs(pts[mid] - ts) < abs(pts[best_ind] - ts):
+                best_ind = mid
+        if pts[best_ind] > ts and best_ind > 0:
+            best_ind -= 1
+        return best_ind
+    
     def _has_frame(self, p):
         if self.vfr:
             return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
@@ -562,24 +590,6 @@ class Video:
     def get_pos(self) -> float:
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
-    def _get_closest_frame(self, pts, ts):
-        lo, hi = 0, len(pts) - 1
-        best_ind = lo
-        while lo <= hi:
-            mid = lo + (hi - lo) // 2
-            if pts[mid] < ts:
-                lo = mid + 1
-            elif pts[mid] > ts:
-                hi = mid - 1
-            else:
-                best_ind = mid
-                break
-            if abs(pts[mid] - ts) < abs(pts[best_ind] - ts):
-                best_ind = mid
-        if pts[best_ind] > ts and best_ind > 0:
-            best_ind -= 1
-        return best_ind
-
     def seek(self, time: float, relative: bool = True) -> None:
         # seeking accurate to 1/100 of a second
 
@@ -635,6 +645,8 @@ class Video:
             self._render_frame(surf, pos)
             return True
         return False
+    
+    # inherited methods
 
     def _create_frame(self):
         pass

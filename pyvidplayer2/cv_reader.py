@@ -24,7 +24,7 @@ class CVReader:
         release() -> None
     '''
 
-    def __init__(self, path, precise=False):
+    def __init__(self, path, probe=False):
         self._vidcap = cv2.VideoCapture(path)
         self._path = path
 
@@ -32,11 +32,14 @@ class CVReader:
         self.frame_rate = self._vidcap.get(cv2.CAP_PROP_FPS)
         self.original_size = (int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-        if precise:
+        if probe:
             self._probe()
+
+    # provides more accurate information
 
     def _probe(self):
         # strangely for ffprobe, - is not required to indicate output
+        # NOTE: if probing and the path is bad, this will raise an error before the video class does, may cause confusion on what went wrong for users
         
         try:
             p = subprocess.Popen(f"ffprobe -i {self._path} -show_streams -count_frames -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdout=subprocess.PIPE)

@@ -24,7 +24,7 @@ All the features from the original library have been ported over, with the excep
 - Webcam feed
 - Stream videos from Youtube
 - Play videos from memory
-- Play variable frame rate videos
+- Play variable frame rate videos (VFR)
 
 # Installation
 

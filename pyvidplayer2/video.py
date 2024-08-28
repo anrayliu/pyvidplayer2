@@ -116,6 +116,7 @@ class Video:
         self._chunks_claimed = 0
         self._chunks_played = 0
         self._stop_loading = False
+        self._processes = []
         self.frame = 0
 
         self.frame_data = None
@@ -371,18 +372,22 @@ class Video:
 
         try:
             p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE if self.as_bytes else None)
+            self._processes.append(p)
             audio = p.communicate(input=self.path if self.as_bytes else None)[0]
 
             # apply speed change to already reversed audio chunk
 
             if not self.no_audio and self.speed != 1 and self.reverse:
                 process = subprocess.Popen(f"ffmpeg -i - -af atempo={self.speed} -f wav -loglevel {FFMPEG_LOGLVL} -", stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                self._processes.append(process)
                 audio = process.communicate(input=audio)[0]
+                self._processes.remove(process)
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
             return
         
+        self._processes.remove(p)
         self._chunks[i - self._chunks_played - 1] = audio
 
     def _update_threads(self):
@@ -548,8 +553,6 @@ class Video:
         self.stop()
         self._vid.release()
         self._audio.unload()
-        for t in self._threads:
-            t.join()
         if not self.use_pygame_audio:
             self._audio.close()
 
@@ -596,8 +599,12 @@ class Video:
         self._starting_time = (self.get_pos() + time) if relative else time
         self._starting_time = round(min(max(0, self._starting_time), self.duration), 2)
 
+        for p in self._processes:
+            p.terminate()
+            p.close()
         for t in self._threads:
             t.join()
+            
         self._chunks = []
         self._threads = []
         self._chunks_claimed = 0
@@ -624,8 +631,12 @@ class Video:
         else:
             self._starting_time = round(min(max(0, index * self.frame_delay), self.duration), 2)
 
+        for p in self._processes:
+            p.terminate()
+            p.close()
         for t in self._threads:
             t.join()
+
         self._chunks = []
         self._threads = []
         self._chunks_claimed = 0

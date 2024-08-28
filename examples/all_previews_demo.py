@@ -1,5 +1,6 @@
 '''
 This shows off each graphics api and their respective preview methods
+Must install pygame, tkinter, pyglet, and pyqt6 for this example
 '''
 
 

@@ -280,7 +280,7 @@ class Video:
             "-i",
             self._audio_path,
             "-t",
-            str(self._convert_seconds(self.frame_delay)),
+            str(self._convert_seconds(0.1)),
             "-vn",
             "-f",
             "wav",
@@ -562,6 +562,24 @@ class Video:
     def get_pos(self) -> float:
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
+    def _get_closest_frame(self, pts, ts):
+        lo, hi = 0, len(pts) - 1
+        best_ind = lo
+        while lo <= hi:
+            mid = lo + (hi - lo) // 2
+            if pts[mid] < ts:
+                lo = mid + 1
+            elif pts[mid] > ts:
+                hi = mid - 1
+            else:
+                best_ind = mid
+                break
+            if abs(pts[mid] - ts) < abs(pts[best_ind] - ts):
+                best_ind = mid
+        if pts[best_ind] > ts and best_ind > 0:
+            best_ind -= 1
+        return best_ind
+
     def seek(self, time: float, relative: bool = True) -> None:
         # seeking accurate to 1/100 of a second
 
@@ -576,7 +594,11 @@ class Video:
         self._chunks_played = 0
         self._audio.unload()
 
-        self._vid.seek(self._starting_time * self.frame_rate)
+        if self.vfr:
+            self._vid.seek(self._get_closest_frame(self.timestamps, self._starting_time))
+        else:
+            self._vid.seek(self._starting_time * self.frame_rate)
+
         self.frame = self._vid.frame
 
         if self.subs is not None:
@@ -587,7 +609,10 @@ class Video:
 
         index = (self.frame + index) if relative else index
 
-        self._starting_time = round(min(max(0, index * self.frame_delay), self.duration), 2)
+        if self.vfr:
+            self._starting_time = self.timestamps[index]
+        else:
+            self._starting_time = round(min(max(0, index * self.frame_delay), self.duration), 2)
 
         for t in self._threads:
             t.join()

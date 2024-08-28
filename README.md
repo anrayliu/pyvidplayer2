@@ -33,6 +33,7 @@ pip install pyvidplayer2
 ```
 Note: FFMPEG (just the essentials is fine) must be installed and accessible via the system PATH. Here's an online article on how to do this (windows):
 https://phoenixnap.com/kb/ffmpeg-windows.
+FFPROBE may also be needed for certain features - this should come bundled with with FFMPEG download.
 
 ## Linux
 Before running `pip install pyvidplayer2`, you must first install the required development packages.
@@ -128,6 +129,7 @@ PyQt6       (graphics library)
 
 - Youtube videos will sometimes freeze or stutter (rare)
 - Video seeking is slow when reading from bytes
+- Rotated videos when playing from bytes will appear in their original direction
 
 
 # Documentation 

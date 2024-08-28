@@ -168,3 +168,4 @@ resources/
 .VSCodeCounter/
 yt/
 devnote.txt
+ffmpeg_reader.py

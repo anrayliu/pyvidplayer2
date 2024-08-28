@@ -31,6 +31,7 @@ pip install pyvidplayer2
 
 注意：必须安装并通过系统 PATH 访问 FFMPEG（仅需要基本组件）。这里有一篇关于如何在 Windows 上执行此操作的在线文章：
 https://phoenixnap.com/kb/ffmpeg-windows。
+某些功能可能还需要 FFPROBE - 这应该与 FFMPEG 下载捆绑在一起。
 
 ## Linux
 
@@ -118,3 +119,4 @@ PyQt6（图形库）
 
  - Youtube 视频有时会冻结或卡顿（罕见）
  - 从字节读取时，视频搜索速度较慢
+ - 从字节播放时旋转的视频将按其原始方向显示

@@ -223,7 +223,7 @@ class Video:
         
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
-        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]]) + [4.971633, 4.971633]
+        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
 
     def _set_stream_url(self, path, max_res):
         config = {"quiet": True,

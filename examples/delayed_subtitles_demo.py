@@ -15,7 +15,7 @@ video = Video("resources\\trailer1.mp4", subs=Subtitles("resources\\subs1.srt", 
 player = VideoPlayer(video, (0, 0, *video.original_size), interactable=True)
 
 win = pygame.display.set_mode(video.original_size)
-pygame.display.set_caption("")
+pygame.display.set_caption("delayed subtitles demo")
 
 
 while True:

@@ -53,6 +53,25 @@ The following NEW packages will be installed:
   libjack-dev libjack0 libportaudiocpp0 portaudio19-dev
 ```
 
+# Dependencies
+
+```
+numpy
+opencv_python
+```
+
+## Optional Packages
+
+```
+pygame      (graphics and audio library, comes installed)
+PyAudio     (audio library, comes installed)
+pysubs2     (for subtitles, comes installed)
+yt_dlp      (for streaming Youtube videos)
+imageio     (for videos in bytes)
+pyglet      (graphics library)
+PyQt6       (graphics library)
+```
+
 # Quickstart
 
 Refer to the examples folder for more basic guides, and documentation.md contains more detailed information.
@@ -107,26 +126,7 @@ vid.close()
 pygame.quit()
 ```
 
-# Dependencies
-
-```
-numpy
-opencv_python
-```
-
-## Optional Packages 
-
-```
-pygame      (graphics and audio library, comes installed)
-PyAudio     (audio library, comes installed)
-pysubs2     (for subtitles, comes installed)
-yt_dlp      (for streaming Youtube videos)
-imageio     (for videos in bytes)
-pyglet      (graphics library)
-PyQt6       (graphics library)
-```
-
-# Known Bugs (as of v0.9.19)
+# Known Bugs (as of v0.9.21)
 
 - Youtube videos will sometimes freeze or stutter (rare)
 - Video seeking is slow when reading from bytes

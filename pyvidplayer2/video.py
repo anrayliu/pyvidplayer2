@@ -216,7 +216,7 @@ class Video:
 
     def _get_all_pts(self):
         try:
-            p = subprocess.Popen(f"ffprobe -i {"-" if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffprobe -i {'-' if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
         

@@ -3,7 +3,7 @@
 # pyvidplayer2（请报告所有的错误）
 语言: [English](https://github.com/anrayliu/pyvidplayer2/blob/main/README.md) | 中文
 
-介绍 pyvidplayer2，它是 pyvidplayer 的继任者。在几乎所有方面都更好，终于可以轻松可靠地在 Python 中播放视频。
+pyvidplayer2 是 pyvidplayer 的继任者，它在几乎所有方面都要更好，现在我们终于可以轻松可靠地用 Python 播放视频。
 
 所有原始库中的功能都已移植过来，唯一的例外是 `alt_resize()`。由于 pyvidplayer2 有一个完全重建的基础，`set_size()` 的不可靠性已被消除，因此现在不再需要备用函数。
 
@@ -14,7 +14,7 @@
 - 反向视频播放
 - 没有音视频同步问题
 - 字幕支持（.srt，.ass等）
-- 并行播放多个视频
+- 同时播放多个视频
 - 内置图形用户界面（GUI）
 - 支持 Pygame、PygameCE, Pyglet、Tkinter 和 PyQT6
 - 可以播放所有 FFMPEG 支持的视频格式
@@ -46,7 +46,7 @@ Python 和 PortAudio 的开发包分别解决了缺少 Python.h 和 portaudio.h 
 
 # 快速入门
 
-查看示例文件夹以获取更多基本指南，documentation.md 包含更详细的信息。
+查看示例文件夹以获取更多基本指南，documentation.md 中有包含更详细的信息。
 
 ```
 import pygame

@@ -32,28 +32,35 @@ class IIOReader:
         self.original_size = (0, 0)
 
         self._path = path
+        self._opened = False
         self._gen = None
         self._as_bytes = isinstance(path, bytes)
         
-        self.seek(0)
-        self._probe()
+        if self._probe():
+            self.seek(0)
+            self._opened = True
 
     def _probe(self):
         # strangely for ffprobe, - is not required to indicate output
         
         try:
-            p = subprocess.Popen(f"ffprobe -i {'-' if self._as_bytes else self._path} -show_streams -count_frames -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self._as_bytes else None, stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffprobe -i {'-' if self._as_bytes else self._path} -show_streams -count_packets -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self._as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
         
-        info = json.loads(p.communicate(input=self._path if self._as_bytes else None)[0])["streams"][0]
+        try:
+            info = json.loads(p.communicate(input=self._path if self._as_bytes else None)[0])["streams"][0]
+        except KeyError:
+            return False
 
         self.original_size = int(info["width"]), int(info["height"])
-        self.frame_count = int(info["nb_read_frames"])
+        self.frame_count = int(info["nb_read_packets"])
         self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
 
-    def isOpened(self):
         return True
+
+    def isOpened(self):
+        return self._opened
     
     def seek(self, index):
         del self._gen 
@@ -80,7 +87,9 @@ class IIOReader:
         else:
             self.frame += 1
 
-        return has, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR) if has else None
+        # unfortunately for this particular reader it is converting from RGB to BGR,
+        # then it will be converted back from BGR to RGB for rendering
+        return has, frame[...,::-1] if has else None
 
     def release(self):
         self._path = b''

@@ -6,6 +6,7 @@ import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
 from .cv_reader import CVReader
+from .ffmpeg_reader import FFMPEGReader
 from .error import Pyvidplayer2Error
 from . import FFMPEG_LOGLVL
 
@@ -71,6 +72,7 @@ class Video:
             else:
                 raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
             
+            # having less than 60 hurts performance
             if chunk_size < 60:
                 chunk_size = 60
             if max_threads > 1:
@@ -91,6 +93,8 @@ class Video:
         if not self._vid.isOpened():
             if youtube:
                 raise Pyvidplayer2Error("Open-cv could not open stream.")
+            elif as_bytes:
+                raise Pyvidplayer2Error("Could not identify video from given bytes.")
             else:
                 raise FileNotFoundError("Could not find file. Make sure the path is correct.")
 

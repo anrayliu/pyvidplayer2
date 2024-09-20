@@ -115,6 +115,7 @@ class VideoPyQT(Video):
         return Video.draw(self, surf, pos, force_draw)
 
     def preview(self, max_fps: int = 60) -> None:
+        self.play()
         class Window(QMainWindow):
             def __init__(self):
                 super().__init__()

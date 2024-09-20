@@ -106,7 +106,8 @@ class VideoTkinter(Video):
 
     def _create_frame(self, data):
         h, w = data.shape[:2]
-        return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + cv2.cvtColor(data, cv2.COLOR_BGR2RGB).tobytes(), format='PPM')
+        # [...,::-1] converts from BGR to RGB
+        return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data[...,::-1].tobytes(), format='PPM')
 
     def _render_frame(self, canvas, pos):
         canvas.create_image(*pos, image=self.frame_surf)
@@ -115,6 +116,7 @@ class VideoTkinter(Video):
         return Video.draw(self, surf, pos, force_draw)
     
     def preview(self, max_fps: int = 60):
+        self.play()
         def update():
             self.draw(canvas, (self.current_size[0] / 2, self.current_size[1] / 2), force_draw=False)
             if self.active:

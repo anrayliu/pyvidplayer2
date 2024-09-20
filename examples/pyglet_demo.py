@@ -10,11 +10,12 @@ from pyvidplayer2 import VideoPyglet
 video = VideoPyglet(r"resources\trailer1.mp4")
 
 def update(dt):
+    # set force_draw=True
     video.draw((0, 0), force_draw=True)
     if not video.active:
         win.close()
 
-win = pyglet.window.Window(width=video.current_size[0], height=video.current_size[1], config=pyglet.gl.Config(double_buffer=False), caption=f"pyglet support demo")
+win = pyglet.window.Window(width=video.current_size[0], height=video.current_size[1], config=pyglet.gl.Config(double_buffer=True), caption=f"pyglet support demo")
 
 pyglet.clock.schedule_interval(update, 1/60.0)
 

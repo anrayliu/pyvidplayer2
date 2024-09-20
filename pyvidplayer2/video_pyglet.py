@@ -105,7 +105,7 @@ class VideoPyglet(Video):
         return f"<VideoPyglet(path={self.path})>"
 
     def _create_frame(self, data):
-        return pyglet.image.ImageData(*self.current_size, "BGR", cv2.flip(data, 0).tobytes())
+        return pyglet.image.ImageData(*self.current_size, "BGR", np.flip(data, 0).tobytes())
     
     def _render_frame(self, pos):
         self.frame_surf.blit(*pos)
@@ -117,11 +117,12 @@ class VideoPyglet(Video):
         return False
     
     def preview(self, max_fps: int = 60) -> None:
+        self.play()
         def update(dt):
             self.draw((0, 0), force_draw=True)
             if not self.active:
                 win.close()
-        win = pyglet.window.Window(width=self.current_size[0], height=self.current_size[1], config=pyglet.gl.Config(double_buffer=False), caption=f"pyglet - {self.name}")
+        win = pyglet.window.Window(width=self.current_size[0], height=self.current_size[1], config=pyglet.gl.Config(double_buffer=True), caption=f"pyglet - {self.name}")
         pyglet.clock.schedule_interval(update, 1/float(max_fps))
         pyglet.app.run()
         self.close()

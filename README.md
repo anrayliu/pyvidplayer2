@@ -15,6 +15,7 @@ All the features from the original library have been ported over, with the excep
 - Adjust playback speed
 - Reverse playback
 - No audio/video sync issues
+- Unlocked frame rate
 - Subtitle support (.srt, .ass, etc)
 - Play multiple videos in parallel
 - Built in GUI
@@ -76,6 +77,13 @@ PyQt6       (graphics library)
 
 Refer to the examples folder for more basic guides, and documentation.md contains more detailed information.
 
+## Super Quick Demo
+```
+from pyvidplayer2 import Video
+Video("video.mp4").preview()
+```
+
+## Pygame Integration
 ```
 import pygame
 from pyvidplayer2 import Video
@@ -126,7 +134,7 @@ vid.close()
 pygame.quit()
 ```
 
-# Known Bugs (as of v0.9.21)
+# Known Bugs (as of v0.9.22)
 
 - Youtube videos will sometimes freeze or stutter (rare)
 - Video seeking is slow when reading from bytes

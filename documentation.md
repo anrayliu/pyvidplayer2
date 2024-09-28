@@ -90,6 +90,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - Pygame or Pygame CE (`Video`) <- default and best supported
  - Tkinter (`VideoTkinter`)
  - Pyglet (`VideoPyglet`)
+ - PySide6 (`VideoPySide`)
  - PyQT6 (`VideoPyQT`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`, `Webcam`, and `VideoPlayer` only work with Pygame installed. Preview methods for other graphics libraries also do not accept any arguments.

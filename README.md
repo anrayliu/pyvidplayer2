@@ -19,7 +19,7 @@ All the features from the original library have been ported over, with the excep
 - Subtitle support (.srt, .ass, etc)
 - Play multiple videos in parallel
 - Built in GUI
-- Support for Pygame, PygameCE, Pyglet, Tkinter, and PyQT6
+- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6 and PyQT6
 - Can play all FFMPEG supported video formats
 - Post process effects
 - Webcam feed
@@ -70,6 +70,7 @@ pysubs2     (for subtitles, comes installed)
 yt_dlp      (for streaming Youtube videos)
 imageio     (for videos in bytes)
 pyglet      (graphics library)
+PySide6     (graphics library)
 PyQt6       (graphics library)
 ```
 
@@ -237,6 +238,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - Pygame or Pygame CE (`Video`) <- default and best supported
  - Tkinter (`VideoTkinter`)
  - Pyglet (`VideoPyglet`)
+ - PySide6 (`VideoPySide`)
  - PyQT6 (`VideoPyQT`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`, `Webcam`, and `VideoPlayer` only work with Pygame installed. Preview methods for other graphics libraries also do not accept any arguments.

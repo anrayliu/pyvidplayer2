@@ -18,6 +18,13 @@ else:
     from .video_tkinter import VideoTkinter
 
 try:
+    import PySide6
+except ImportError:
+    pass
+else:
+    from .video_pyside import VideoPySide
+
+try:
     import PyQt6
 except ImportError:
     pass

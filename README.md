@@ -135,7 +135,7 @@ vid.close()
 pygame.quit()
 ```
 
-# Known Bugs (as of v0.9.22)
+# Known Bugs (as of v0.9.23)
 
 - Youtube videos will sometimes freeze or stutter (rare)
 - Video seeking is slow when reading from bytes

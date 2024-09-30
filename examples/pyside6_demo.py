@@ -1,5 +1,6 @@
 '''
-This is a quick example of integrating a video into a pyside6 project
+Copy and pasted from the pyqt6 demo, but changed names to pyside6
+Pyqt6 and pyside6 have very similar interfaces
 '''
 
 

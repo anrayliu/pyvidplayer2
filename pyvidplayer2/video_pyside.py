@@ -4,10 +4,10 @@ from PySide6.QtGui import QImage, QPixmap, QPainter
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtCore import QTimer
 from .post_processing import PostProcessing
-from .video_pyqt import VideoPyQT
+from .video import Video
 
 
-class VideoPySide(VideoPyQT):
+class VideoPySide(Video):
     '''
     VideoPySide(path, chunk_size=10, max_threads=1, max_chunks=1, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False)
 
@@ -99,11 +99,20 @@ class VideoPySide(VideoPyQT):
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: float = 1, youtube: bool = False, 
                  max_res: int = 1080, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False) -> None:
-        VideoPyQT.__init__(self, path, chunk_size, max_threads, max_chunks, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
                        as_bytes, audio_track, vfr)
 
     def __str__(self) -> str:
         return f"<VideoPySide(path={self.path})>"
+
+    def _create_frame(self, data):
+        return QImage(data, data.shape[1], data.shape[0], data.strides[0], QImage.Format.Format_BGR888)
+
+    def _render_frame(self, win, pos): # must be called in paintEvent
+        QPainter(win).drawPixmap(*pos, QPixmap.fromImage(self.frame_surf))
+
+    def draw(self, surf: QWidget, pos: Tuple[int, int], force_draw: bool = True) -> bool:
+        return Video.draw(self, surf, pos, force_draw)
 
     def preview(self, max_fps: int = 60) -> None:
         self.play()

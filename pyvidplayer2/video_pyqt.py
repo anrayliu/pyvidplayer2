@@ -1,14 +1,9 @@
 import numpy as np
 from .video import Video
 from typing import Callable, Union, Tuple
-try:
-    from PyQt6.QtGui import QImage, QPixmap, QPainter
-    from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
-    from PyQt6.QtCore import QTimer
-except ImportError:
-    from PySide6.QtGui import QImage, QPixmap, QPainter
-    from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
-    from PySide6.QtCore import QTimer
+from PyQt6.QtGui import QImage, QPixmap, QPainter
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt6.QtCore import QTimer
 from .post_processing import PostProcessing
 
 

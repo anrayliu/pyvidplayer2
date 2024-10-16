@@ -1,4 +1,4 @@
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False, pref_lang="en")
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see `use_pygame_audio` below). Pygame or Pygame CE are the only graphics libraries to support subtitles. YTDLP is required to stream videos from Youtube. IMAGEIO and PyAV are required to play videos from memory. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is `VideoPygame`.
 
@@ -20,6 +20,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `audio_track: int` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
  - `vfr: bool` - Used to play variable frame rate videos properly. If `False`, a constant frame rate will be assumed. If `True`, presentation timestamps will be extracted for each frame (see `timestamps` below). This still works for constant frame rate videos, but extracting the timestamps will mean a longer initial load.
  - `pref_lang: str` - Only used when streaming Youtube videos. Used to select a language track if video has multiple.
+ - `audio_index: int` - Used to specify which audio output device to use. Can be specific to each video, and is automatically calculated if argument is not provided. To get a list of devices and their indices, use libraries like sounddevice (see audio_devices_demo.py in examples folder).
 
 ## Attributes
  - `path: str | bytes` - Same as given argument.
@@ -60,7 +61,8 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `audio_track: int` - Same as given argument.
  - `vfr: bool` - Same as given argument. 
  - `pref_lang: str` - Same as given argument.
-
+ - `audio_index: int` - Same as given argument.
+ 
 ## Methods
  - `play() -> None` - Sets `active` to `True`.
  - `stop() -> None` - Resets video and sets `active` to `False`.
@@ -100,7 +102,7 @@ To use other libraries instead of Pygame, use their respective video object. Eac
 
 ## As a Generator
 
-Video objects can be iterated through as a generator, returning each subsequent frame. Frames will be given in reverse if video is reversed, and post processing and resizing will still take place. After iterating through frames, `play()` will resume the video from where the last frame left off.
+Video objects can be iterated through as a generator, returning each subsequent frame. Frames will be given in reverse if video is reversed, and post processing and resizing will still take place. After iterating through frames, `play()` will resume the video from where the last frame left off. Returned frames will be in BGR format.
 ```
 for frame in Video("example.mp4"):
     print(frame)

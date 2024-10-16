@@ -6,6 +6,7 @@ import time
 import numpy as np
 from threading import Thread
 from io import BytesIO
+from .error import Pyvidplayer2Error
 
 
 class PyaudioHandler:
@@ -27,6 +28,7 @@ class PyaudioHandler:
         stream (pyaudio.PyAudio.Stream): The open audio device's output
             stream obtained by self.p.open(...).
     """
+
     def __init__(self):
         self.stream = None
         self.wave = None
@@ -91,7 +93,7 @@ class PyaudioHandler:
                 #        " (has no output)".format(info['name']))
         return -1
 
-    def load(self, bytes_):
+    def load(self, bytes_, forced_device):
         self.unload()
         try:
             self.wave = wave.open(BytesIO(bytes_), "rb")
@@ -127,10 +129,6 @@ class PyaudioHandler:
                         #warnings.warn("- selected (first output device)")
                         device_index = i 
                         break
-
-            if device_index < 0:
-                #warnings.warn("Error: No suitable output device found.")
-                return
             
             try:
                 self.stream = self.p.open(
@@ -140,22 +138,16 @@ class PyaudioHandler:
                     channels=self.wave.getnchannels(),
                     rate=self.wave.getframerate(),
                     output=True,
-                    output_device_index=device_index,
+                    output_device_index=forced_device if forced_device is not None else device_index,
                     # stream_callback=self.callback,
                 )
 
             except Exception as e:
-                name = None
-                if 0 <= device_index < len(self.audio_devices):
-                    name = self.audio_devices[device_index].get("name")
-                '''
-                print("Failed to open stream with selected device {}:"
-                      " {}: {} (name={})"
-                      .format(device_index,
-                              type(e).__name__, e, name))
-                '''
-                return
-
+                if device_index == -1:
+                    raise Pyvidplayer2Error("No audio devices found.")
+                else:
+                    raise Pyvidplayer2Error(f"Failed to open audio stream with device \"{self.audio_devices[device_index]["name"]}.\"")
+                
         self.loaded = True
 
     def close(self):

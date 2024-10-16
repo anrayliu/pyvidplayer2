@@ -6,6 +6,7 @@ FFMPEG_LOGLVL = "quiet"
 
 
 from subprocess import run
+from os import environ
 
 from .error import Pyvidplayer2Error
 from .post_processing import PostProcessing
@@ -61,6 +62,9 @@ except ImportError:
     pass
 else:
     from .video_pyglet import VideoPyglet
+
+
+environ["FFMPEG_LOG_LEVEL"] = FFMPEG_LOGLVL
 
 
 def get_version_info():

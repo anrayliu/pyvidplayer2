@@ -58,7 +58,8 @@ else:
 
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang):
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, 
+                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index):
         
         self._audio_path = path     # used for audio only when streaming
         self.path = path
@@ -152,6 +153,7 @@ class Video:
         self.as_bytes = as_bytes
         self.audio_track = audio_track
         self.vfr = vfr #or self._test_vfr()
+        self.audio_index = audio_index
 
         if use_pygame_audio:
             if PYGAME:
@@ -502,7 +504,7 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                self._audio.load(self._chunks.pop(0))
+                self._audio.load(self._chunks.pop(0), self.audio_index)
                 self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()

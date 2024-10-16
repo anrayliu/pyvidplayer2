@@ -147,7 +147,7 @@ class Video:
         self.subs = subs
         self.post_func = post_process
         self.interp = interp
-        self.use_pygame_audio = use_pygame_audio
+        self.use_pygame_audio = use_pygame_audio or (PYGAME and not PYAUDIO)
         self.youtube = youtube
         self.max_res = max_res
         self.as_bytes = as_bytes
@@ -155,7 +155,7 @@ class Video:
         self.vfr = vfr #or self._test_vfr()
         self.audio_index = audio_index
 
-        if use_pygame_audio:
+        if self.use_pygame_audio:
             if PYGAME:
                 self._audio = MixerHandler()
             else:

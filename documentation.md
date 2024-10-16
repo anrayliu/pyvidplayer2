@@ -52,7 +52,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `subs: pyvidplayer2.Subtitles` - Same as given argument.
  - `post_func: function(numpy.ndarray) -> numpy.ndarray` - Same as given argument. Can be changed with `set_post_func`.
  - `interp: int` - Same as given argument. Can be changed with `set_interp`. Will be converted to an integer if given a string. For example, if `"linear"` is given during initialization, this will be converted to cv2.INTER_LINEAR.
- - `use_pygame_audio: bool` - Same as given argument.
+ - `use_pygame_audio: bool` - Same as given argument. May be automatically set to default sound backend.
  - `reverse: bool` - Same as given argument.
  - `no_audio: bool` - Same as given argument. May change if no audio is automatically detected.
  - `youtube: bool` - Same as given argument.

@@ -12,7 +12,7 @@ class MixerHandler:
     def get_busy(self):
         return pygame.mixer.music.get_busy()
 
-    def load(self, bytes):
+    def load(self, bytes, _):
         pygame.mixer.music.load(BytesIO(bytes))
 
     def unload(self):

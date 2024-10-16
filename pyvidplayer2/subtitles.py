@@ -4,6 +4,10 @@ from typing import Union, Tuple
 
 
 class Subtitles:
+    '''
+    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
+    '''
+
     def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
                  font: Union[pygame.font.SysFont, pygame.font.Font] = pygame.font.SysFont("arial", 30), encoding: str = "utf-8", offset: int = 50,
                  delay: float = 0) -> None:

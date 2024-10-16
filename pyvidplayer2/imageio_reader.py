@@ -1,5 +1,4 @@
 import imageio.v3 as iio
-import cv2
 import subprocess
 import json 
 from . import FFMPEG_LOGLVL

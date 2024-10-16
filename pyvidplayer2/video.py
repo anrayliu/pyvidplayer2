@@ -1,18 +1,24 @@
-import cv2
 import subprocess
 import os
 import json 
 import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
-from .cv_reader import CVReader
 from .ffmpeg_reader import FFMPEGReader
 from .error import Pyvidplayer2Error
 from . import FFMPEG_LOGLVL
 
 try:
+    import cv2 
+except ImportError:
+    CV = 0
+else:
+    CV = 1
+    from .cv_reader import CVReader
+
+try:
     import pyaudio
-except ModuleNotFoundError:
+except ImportError: # test this
     PYAUDIO = 0
 else:
     PYAUDIO = 1
@@ -52,7 +58,7 @@ else:
 
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr):
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang):
         
         self._audio_path = path     # used for audio only when streaming
         self.path = path
@@ -63,12 +69,17 @@ class Video:
         as_bytes = as_bytes or isinstance(path, bytes)
         #youtube = youtube or self._test_youtube()
 
+        self.pref_lang = pref_lang
+
         if youtube:
             if YTDLP:
                 # sets path and audio path for cv2 and ffmpeg
                 # also sets name and ext
                 self._set_stream_url(path, max_res)
-                self._vid = CVReader(self.path)
+                if CV:
+                    self._vid = CVReader(self.path)
+                else:
+                    raise ModuleNotFoundError("Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
             else:
                 raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
             
@@ -87,7 +98,10 @@ class Video:
             self._audio_path = "-"  # read from pipe
 
         else:
-            self._vid = CVReader(self.path)
+            if CV:
+                self._vid = CVReader(self.path)
+            else:
+                self._vid = FFMPEGReader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened():
@@ -199,7 +213,7 @@ class Video:
 
         if data is not None:
             if self.original_size != self.current_size:
-                data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
+                data = self._resize_frame(data, self.current_size, self.interp)
 
             return self.post_func(data)
         else:
@@ -232,7 +246,7 @@ class Video:
         config = {"quiet": True,
                   "noplaylist": True,
                   # unfortunately must grab the worst audio because ffmpeg seeking is too slow for high quality audio
-                  "format": f"bestvideo[height<={max_res}]+worstaudio/best[height<={max_res}]"}
+                  "format": f"bestvideo[height<={max_res}]+worstaudio[language={self.pref_lang}]/bestvideo[height<={max_res}]+worstaudio/best[height<={max_res}]"}
 
         with yt_dlp.YoutubeDL(config) as ydl:
             try:
@@ -251,7 +265,7 @@ class Video:
                 self.ext = "webm"
 
     def _preload_frames(self):
-        self._preloaded_frames = []
+        self._preloaded_frames.clear()
 
         self._vid.seek(0)
 
@@ -435,7 +449,7 @@ class Video:
         if self.vfr:
             return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
         return p > self.frame * self.frame_delay
-
+    
     def _update(self):
         if self._missing_ffmpeg:
             raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
@@ -472,7 +486,7 @@ class Video:
 
                 if has_frame:
                     if self.original_size != self.current_size:
-                        data = cv2.resize(data, dsize=self.current_size, interpolation=self.interp)
+                        data = self._resize_frame(data, self.current_size, self.interp)
                     data = self.post_func(data)
 
                     self.frame_data = data
@@ -496,13 +510,44 @@ class Video:
                 self.buffering = True
 
         return n
+
+    # interp accepts an integer for CV and a string for FFmpeg
     
+    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp: Union[str, int]):
+        if CV:
+            return cv2.resize(data, dsize=size, interpolation=interp)
+
+        # without opencv, use ffmpeg resizing 
+
+        process = subprocess.Popen(
+            [
+                "ffmpeg",
+                "-loglevel", str(FFMPEG_LOGLVL),
+                "-f", "rawvideo",
+                "-pix_fmt", "rgb24",
+                "-s", f"{data.shape[1]}x{data.shape[0]}",
+                "-i", "-",
+                "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
+                "-f", "rawvideo",
+                "-"
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+        )
+
+        return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
+    
+    def update():
+        return self._update()
+
     @property
     def volume(self):
         return self.get_volume()
 
     def set_interp(self, interp: Union[str, int]) -> None:
-        if interp in ("nearest", 0):
+        if not CV:
+            return
+        elif interp in ("nearest", 0):
             self.interp = cv2.INTER_NEAREST
         elif interp in ("linear", 1):
             self.interp = cv2.INTER_LINEAR
@@ -580,7 +625,7 @@ class Video:
 
     def set_audio_track(self, index: int) -> None:
         self.audio_track = index
-        self.seek(0)
+        self.seek(self.get_pos()) # reloads current audio chunks
 
     def pause(self) -> None:
         if self.active:
@@ -606,8 +651,8 @@ class Video:
         for t in self._threads:
             t.join()
             
-        self._chunks = []
-        self._threads = []
+        self._chunks.clear()
+        self._threads.clear()
         self._chunks_claimed = 0
         self._chunks_played = 0
         self._audio.unload()
@@ -637,8 +682,8 @@ class Video:
         for t in self._threads:
             t.join()
 
-        self._chunks = []
-        self._threads = []
+        self._chunks.clear()
+        self._threads.clear()
         self._chunks_claimed = 0
         self._chunks_played = 0
         self._audio.unload()

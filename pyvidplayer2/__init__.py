@@ -7,8 +7,8 @@ FFMPEG_LOGLVL = "quiet"
 
 from subprocess import run
 
-from .post_processing import PostProcessing
 from .error import Pyvidplayer2Error
+from .post_processing import PostProcessing
 
 try:
     import tkinter
@@ -40,7 +40,13 @@ else:
 
     from .video_pygame import VideoPygame as Video
     from .video_player import VideoPlayer
-    from .webcam import Webcam
+
+    try:
+        import cv2 
+    except ImportError:
+        pass 
+    else:
+        from .webcam import Webcam
 
     try:
         import pysubs2

@@ -8,6 +8,10 @@ from .error import Pyvidplayer2Error
 
 
 class Webcam:
+    '''
+    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
+    '''
+
     def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none, interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0) -> None:
         self._vid = cv2.VideoCapture(cam_id)
 
@@ -60,6 +64,12 @@ class Webcam:
                     return True
 
         return False
+
+    def update(self):
+        return self._update()
+
+    def set_post_func(self, func: Callable[[np.ndarray], np.ndarray]) -> None:
+        self.post_func = func
 
     def set_interp(self, interp: Union[str, int]) -> None:
         if interp in ("nearest", 0):

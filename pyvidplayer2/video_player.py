@@ -1,11 +1,13 @@
 import pygame
-import cv2 
 import math
 from typing import Tuple, Union, List
 from . import Video
 
 
 class VideoPlayer:
+    '''
+    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
+    '''
     def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop: bool = False, preview_thumbnails: int = 0, font_size: int = 10):
         self.video = video
         self.frame_rect = pygame.Rect(rect)
@@ -60,7 +62,7 @@ class VideoPlayer:
         for i in range(self.preview_thumbnails):
             self.video._vid.seek(int(i * self.video.frame_rate * self._interval))
             
-            self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
+            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "area").tobytes(), size, "BGR"))
 
         # add last readable frame
 
@@ -68,7 +70,7 @@ class VideoPlayer:
         while True:
             self.video._vid.seek(self.video.frame_count - i)
             try:
-                self._interval_frames.append(pygame.image.frombuffer(cv2.resize(self.video._vid.read()[1], dsize=size, interpolation=cv2.INTER_AREA).tobytes(), size, "BGR"))
+                self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "area").tobytes(), size, "BGR"))
             except:
                 i += 1
             else:

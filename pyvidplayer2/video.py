@@ -146,8 +146,8 @@ class Video:
 
         self.subs = subs
         self.post_func = post_process
-        self.interp = interp
-        self.use_pygame_audio = use_pygame_audio or (PYGAME and not PYAUDIO)
+        self.interp = None
+        self.use_pygame_audio = use_pygame_audio# or (PYGAME and not PYAUDIO)
         self.youtube = youtube
         self.max_res = max_res
         self.as_bytes = as_bytes
@@ -183,7 +183,7 @@ class Video:
         if self.reverse:
             self._preload_frames()
 
-        self.set_interp(self.interp)
+        self.set_interp(interp)
 
         self.play()
 
@@ -215,7 +215,7 @@ class Video:
 
         if data is not None:
             if self.original_size != self.current_size:
-                data = self._resize_frame(data, self.current_size, self.interp)
+                data = self._resize_frame(data, self.current_size)
 
             return self.post_func(data)
         else:
@@ -488,7 +488,7 @@ class Video:
 
                 if has_frame:
                     if self.original_size != self.current_size:
-                        data = self._resize_frame(data, self.current_size, self.interp)
+                        data = self._resize_frame(data, self.current_size)
                     data = self.post_func(data)
 
                     self.frame_data = data
@@ -513,11 +513,11 @@ class Video:
 
         return n
 
-    # interp accepts an integer for CV and a string for FFmpeg
+    # interp parameter only used for ffmpeg resampling
     
-    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp: Union[str, int]):
+    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp: str = "bilinear"):
         if CV:
-            return cv2.resize(data, dsize=size, interpolation=interp)
+            return cv2.resize(data, dsize=size, interpolation=self.interp)
 
         # without opencv, use ffmpeg resizing 
 
@@ -539,7 +539,7 @@ class Video:
 
         return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
     
-    def update():
+    def update(self):
         return self._update()
 
     @property

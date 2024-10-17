@@ -1,6 +1,8 @@
 '''
 This example compares the default interpolation technique with the best
 Can you tell a difference?
+
+Only works if OpenCV is installed
 '''
 
 import pygame

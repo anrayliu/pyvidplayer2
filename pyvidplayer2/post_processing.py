@@ -1,15 +1,17 @@
 import numpy as np
+try:
+    import cv2 
+except ImportError:
+    CV = 0
+else:
+    CV = 1
 
 
 class PostProcessing:
     def none(data: np.ndarray) -> np.ndarray:
         return data 
     
-    try:
-        import cv2
-    except ImportError:
-        pass 
-    else:
+    if CV:
         def blur(data: np.ndarray) -> np.ndarray:
             return cv2.blur(data, (5, 5))
         

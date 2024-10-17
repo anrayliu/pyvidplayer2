@@ -146,7 +146,7 @@ class PyaudioHandler:
                 if device_index == -1:
                     raise Pyvidplayer2Error("No audio devices found.")
                 else:
-                    raise Pyvidplayer2Error(f"Failed to open audio stream with device \"{self.audio_devices[device_index]["name"]}.\"")
+                    raise Pyvidplayer2Error("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[device_index]["name"]))
                 
         self.loaded = True
 

@@ -62,13 +62,13 @@ The following NEW packages will be installed:
 
 ```
 numpy
-FFmpeg and FFprobe (not a Python package)
+FFmpeg and FFprobe (not Python packages)
 ```
 
 ## Optional Packages
 
 ```
-opencv_python   (comes installed for all-around improvements)
+opencv_python   (all-around improvements, comes installed)
 pygame          (graphics and audio library, comes installed)
 PyAudio         (audio library, comes installed)
 pysubs2         (for subtitles, comes installed)
@@ -90,6 +90,7 @@ Video("video.mp4").preview()
 ```
 
 ## Pygame Integration
+Refer to the examples folder for integration with other graphics libraries.
 ```
 import pygame
 from pyvidplayer2 import Video

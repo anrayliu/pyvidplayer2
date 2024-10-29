@@ -8,6 +8,7 @@ import sounddevice
 
 
 # find the index of the device you want
+# if you're on windows, stick to MME devices
 
 # e.g
 # 0 Microsoft Sound Mapper - Input, MME (2 in, 0 out)

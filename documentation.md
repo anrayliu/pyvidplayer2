@@ -20,7 +20,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `audio_track: int` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
  - `vfr: bool` - Used to play variable frame rate videos properly. If `False`, a constant frame rate will be assumed. If `True`, presentation timestamps will be extracted for each frame (see `timestamps` below). This still works for constant frame rate videos, but extracting the timestamps will mean a longer initial load.
  - `pref_lang: str` - Only used when streaming Youtube videos. Used to select a language track if video has multiple.
- - `audio_index: int` - Used to specify which audio output device to use. Can be specific to each video, and is automatically calculated if argument is not provided. To get a list of devices and their indices, use libraries like sounddevice (see audio_devices_demo.py in examples folder).
+ - `audio_index: int` - Used to specify which audio output device to use. Can be specific to each video, and is automatically calculated if argument is not provided. To get a list of devices and their indices, use libraries like sounddevice (see audio_devices_demo.py in examples folder). Please use MME devices for Windows.
 
 ## Attributes
  - `path: str | bytes` - Same as given argument.
@@ -62,6 +62,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `vfr: bool` - Same as given argument. 
  - `pref_lang: str` - Same as given argument.
  - `audio_index: int` - Same as given argument.
+ - `subs_hidden: bool` - True if subs are currently disabled and False otherwise.
  
 ## Methods
  - `play() -> None` - Sets `active` to `True`.
@@ -90,6 +91,9 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `update() -> bool` - Allows video to perform required operations. `draw` already calls this method, so it's usually not used. Returns `True` if a new frame is ready to be displayed.
  - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto the given surface, at the given position. If `force_draw` is `True`, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces CPU usage but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - `preview(show_fps: bool = False, max_fps: int = 60) -> None` - Opens a window and plays the video. This method will hang until the video finishes. `max_fps` enforces how many times a second the video is updated. If `show_fps` is `True`, a counter will be displayed showing the actual number of new frames being rendered every second.
+ - `show_subs() -> None` - Enables subtitles.
+ - `hide_subs() -> None` - Disables subtitles.
+ - `set_subs(subs: Subtitles | [Subtitles]) -> None` - Set the subtitles to use. Works the same as providing subtitles through the initialization parameter.
 
 ## Supported Graphics Libraries
  - Pygame or Pygame CE (`Video`) <- default and best supported
@@ -153,18 +157,20 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `get_video() -> pyvidplayer2.VideoPygame` - Returns currently playing video.
 
 
-# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50, delay=0)
+# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50, delay=0, youtube=False, pref_lang="en")
 
 Object used for handling subtitles. Only supported for Pygame.
 
 ## Parameters
- - `path: str` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others.
+ - `path: str` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others. Can also be a youtube url if `youtube = True`.
  - `colour: str | (int, int, int)` - Colour of text as an RGB value or a string recognized by Pygame.
  - `highlight: str | (int, int, int, int)` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
  - `font: pygame.font.Font | pygame.font.SysFont` - Pygame `Font` or `SysFont` object used to render surfaces. This includes the size of the text.
  - `encoding: str` - Encoding used to open subtitle files.
  - `offset: float` - The higher this number is, the closer the subtitle is to the top of the screen.
  - `delay: float` - Delays all subtitles by this many seconds.
+ - `youtube: bool` - Set this to true and put a youtube video url into path to grab subtitles. 
+ - `pref_lang: str` - Which language file to grab if `youtube = True`. If no subtitle file exists for this language, automatic captions are used, which are also automatically translated into the preferred language.
 
 ## Attributes
  - `path: str` - Same as given argument.
@@ -178,6 +184,8 @@ Object used for handling subtitles. Only supported for Pygame.
  - `font: pygame.font.Font | pygame.font.SysFont` - Same as given argument.
  - `offset: float` - Same as given argument.
  - `delay: float` - Same as given argument.
+ - `youtube: bool` - Same as given argument.
+ - `pref_lang: str` - Same as given argument.
 
 ## Methods 
  - `set_font(font: pygame.font.Font | pygame.font.SysFont) -> None` - Same as `font` parameter (see `font` above).

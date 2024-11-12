@@ -1,6 +1,15 @@
 import pygame 
 import pysubs2
+import re
 from typing import Union, Tuple
+from .error import Pyvidplayer2Error
+
+try:
+    import yt_dlp
+except ModuleNotFoundError:
+    YTDLP = 0
+else:
+    YTDLP = 1
 
 
 class Subtitles:
@@ -9,13 +18,23 @@ class Subtitles:
     '''
 
     def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
-                 font: Union[pygame.font.SysFont, pygame.font.Font] = pygame.font.SysFont("arial", 30), encoding: str = "utf-8", offset: int = 50,
-                 delay: float = 0) -> None:
+                 font: Union[pygame.font.SysFont, pygame.font.Font] = None, encoding: str = "utf-8", offset: int = 50,
+                 delay: float = 0, youtube: bool = False, pref_lang: str = "en") -> None:
         
         self.path = path
         self.encoding = encoding
 
-        self._subs = iter(pysubs2.load(path, encoding=encoding))
+        self.youtube = youtube
+        self.pref_lang = pref_lang
+        self._youtube_buffer = ""
+        if youtube:
+            if YTDLP:
+                self._youtube_buffer = self._grab_subtitles(path, pref_lang)
+            else:
+                raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
+        
+        self._subs = self._load()
+        self._auto_cap = False
 
         self.start = 0
         self.end = 0
@@ -26,10 +45,16 @@ class Subtitles:
 
         self.colour = colour
         self.highlight = highlight 
-        self.font = font
+
+        self.font = pygame.font.SysFont("arial", 30) if font is None else font
 
     def __str__(self):
         return f"<Subtitles(path={self.path})>"
+
+    def _load(self):
+        if self.youtube:
+            return iter(pysubs2.SSAFile.from_string(self._youtube_buffer))
+        return iter(pysubs2.load(self.path, encoding=self.encoding))
 
     def _to_surf(self, text):
         h = self.font.get_height()
@@ -43,6 +68,28 @@ class Subtitles:
             surface.blit(surf, (surface.get_width() / 2 - surf.get_width() / 2, i * h))
 
         return surface
+
+    def _grab_subtitles(self, url, lang):
+        cfg = {
+            "skip_download": True,
+            "writeautomaticsub": True,
+            "subtitleslangs": [lang],
+            "subtitlesformat": "vtt",
+            "quiet": True,
+        }
+
+        with yt_dlp.YoutubeDL(cfg) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+            subs = info.get("subtitles", {})
+            if not lang in subs:                
+                subs = info.get("automatic_captions", {})
+
+                self._auto_cap = True
+
+            for i, s in enumerate(subs[lang]):
+                if s["ext"] == "vtt":
+                    return ydl.urlopen(subs[lang][i]["url"]).read().decode("utf-8")
     
     def _get_next(self):
         try:
@@ -56,12 +103,15 @@ class Subtitles:
         else:
             self.start = s.start / 1000 + self.delay
             self.end = s.end / 1000 + self.delay
-            self.text = s.plaintext
+            if not self._auto_cap:
+                self.text = re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "", s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext)
+            else:
+                self.text = s.plaintext
             self.surf = self._to_surf(self.text)
             return True
 
     def _seek(self, time):
-        self._subs = iter(pysubs2.load(self.path, encoding=self.encoding))
+        self._subs = self._load()
 
         self.end = 0 + self.delay
         self.start = 0 + self.delay

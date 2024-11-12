@@ -25,6 +25,8 @@ class CVReader:
     '''
 
     def __init__(self, path, probe=False):
+        print(path)
+        
         self._vidcap = cv2.VideoCapture(path)
         self._path = path
 
@@ -50,7 +52,10 @@ class CVReader:
 
         self.original_size = int(info["width"]), int(info["height"])
         # int(self._vidcap.get(cv2.CAP_PROP_FRAME_COUNT)) is not accurate
-        self.frame_count = int(info["nb_read_frames"])
+        try:
+            self.frame_count = int(info["nb_read_packets"])
+        except KeyError:
+            self.frame_count = int(info["nb_frames"])
         self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
 
     @property

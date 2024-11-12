@@ -56,6 +56,13 @@ except ImportError:
 else:
     PYAV = 1
 
+try:
+    from .subtitles import Subtitles
+except ImportError:
+    SUBS = 0
+else:
+    SUBS = 1
+
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, 
@@ -143,8 +150,10 @@ class Video:
         self.buffering = False
         self.paused = False
         self.muted = False
+        self.subs_hidden = False
 
-        self.subs = subs
+        self.subs = self._filter_subs(subs)
+
         self.post_func = post_process
         self.interp = None
         self.use_pygame_audio = use_pygame_audio# or (PYGAME and not PYAUDIO)
@@ -199,7 +208,7 @@ class Video:
     def __iter__(self) -> "self":
         self.stop()
         return self
-    
+
     def __next__(self) -> np.ndarray:
         self._generated_frame = True
         data = None
@@ -220,6 +229,12 @@ class Video:
             return self.post_func(data)
         else:
             raise StopIteration
+
+    def _filter_subs(self, subs):
+        if SUBS and isinstance(subs, Subtitles):
+            return [subs]
+        else:
+            return [] if subs is None else subs
     
     def _get_vfrs(self, pts):
         # calculates differences in frametime, except the first and last frames are ignored because
@@ -383,6 +398,7 @@ class Video:
                 filters += ["-af", "areverse"]
             elif self.speed != 1:
                 filters += ["-af", f"atempo={self.speed}"]
+                #filters += ["-af", f"rubberband=tempo={self.speed}"]
 
             command = command[:7] + filters + command[7:]
 
@@ -420,14 +436,16 @@ class Video:
             self._threads[-1].start()
 
     def _write_subs(self):
-        p = self.get_pos()
+        for sub in self.subs:
+            self._next_sub_line(sub, self.get_pos())
 
-        if p >= self.subs.start:
-            if p > self.subs.end:
-                if self.subs._get_next():
-                    self._write_subs()
+    def _next_sub_line(self, sub, p):
+        if p >= sub.start:
+            if p > sub.end:
+                if sub._get_next():
+                    self._next_sub_line(sub, p)
             else:
-                self.subs._write_subs(self.frame_surf)
+                sub._write_subs(self.frame_surf)
 
     def _get_closest_frame(self, pts, ts):
         lo, hi = 0, len(pts) - 1
@@ -494,7 +512,7 @@ class Video:
                     self.frame_data = data
                     self.frame_surf = self._create_frame(data)
 
-                    if self.subs is not None:
+                    if self.subs and not self.subs_hidden:
                         self._write_subs()
 
                     n = True
@@ -666,8 +684,8 @@ class Video:
 
         self.frame = self._vid.frame
 
-        if self.subs is not None:
-            self.subs._seek(self._starting_time)
+        for sub in self.subs:
+            sub._seek(self._starting_time)
 
     def seek_frame(self, index: int, relative: bool = False) -> None:
         # seeking accurate to 1/100 of a second 
@@ -693,8 +711,8 @@ class Video:
         self._vid.seek(index)
         self.frame = index
 
-        if self.subs is not None:
-            self.subs._seek(self._starting_time)
+        for sub in self.subs:
+            sub._seek(self._starting_time)
 
     # type hints declared by inherited subclasses
 

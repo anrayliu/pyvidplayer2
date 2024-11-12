@@ -53,7 +53,10 @@ class IIOReader:
             return False
 
         self.original_size = int(info["width"]), int(info["height"])
-        self.frame_count = int(info["nb_read_packets"])
+        try:
+            self.frame_count = int(info["nb_read_packets"])
+        except KeyError:
+            self.frame_count = int(info["nb_frames"])
         self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
 
         return True

@@ -57,3 +57,12 @@ class VideoPygame(Video):
                 pygame.display.update()
         pygame.display.quit()
         self.close()
+
+    def show_subs(self) -> None:
+        self.subs_hidden = False
+
+    def hide_subs(self) -> None:
+        self.subs_hidden = True
+
+    def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:
+        self.subs = self._filter_subs(subs)

@@ -174,7 +174,7 @@ class PyaudioHandler:
         self.active = True
 
         self.wave.rewind()
-        self.thread = Thread(target=self._threaded_play)
+        self.thread = Thread(target=self._threaded_play, daemon=True)
 
         self.thread.start()
 

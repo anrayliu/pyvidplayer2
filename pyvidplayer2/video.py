@@ -18,7 +18,7 @@ else:
 
 try:
     import pyaudio
-except ImportError: # test this
+except ImportError:
     PYAUDIO = 0
 else:
     PYAUDIO = 1

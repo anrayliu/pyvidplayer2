@@ -18,6 +18,16 @@ class FFMPEGReader:
         self.frame_rate = 0
         self.original_size = (0, 0)
 
+        '''
+        import cv2
+        vidcap = cv2.VideoCapture(path)
+        self.frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.frame_rate = vidcap.get(cv2.CAP_PROP_FPS)
+        self.original_size = (int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        vidcap.release()
+        self._process = subprocess.Popen(f"ffmpeg -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+        self._opened = True'''
+
         if self._probe():
             self._process = subprocess.Popen(f"ffmpeg -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
             self._opened = True

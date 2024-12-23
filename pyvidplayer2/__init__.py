@@ -64,6 +64,8 @@ else:
     from .video_pyglet import VideoPyglet
 
 
+# doesn't seem to always work 
+
 environ["FFMPEG_LOG_LEVEL"] = FFMPEG_LOGLVL
 
 

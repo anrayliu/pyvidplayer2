@@ -2,6 +2,7 @@ import cv2
 import subprocess
 import json
 from . import FFMPEG_LOGLVL
+from .error import Pyvidplayer2Error
 
 
 class CVReader:
@@ -25,8 +26,6 @@ class CVReader:
     '''
 
     def __init__(self, path, probe=False):
-        print(path)
-        
         self._vidcap = cv2.VideoCapture(path)
         self._path = path
 
@@ -34,7 +33,8 @@ class CVReader:
         self.frame_rate = self._vidcap.get(cv2.CAP_PROP_FPS)
         self.original_size = (int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
 
-        if probe:
+        # webm videos have negative frame counts for some reason
+        if probe or self.frame_count < 0:
             self._probe()
 
     # provides more accurate information
@@ -44,12 +44,16 @@ class CVReader:
         # NOTE: if probing and the path is bad, this will raise an error before the video class does, may cause confusion on what went wrong for users
         
         try:
-            p = subprocess.Popen(f"ffprobe -i {self._path} -show_streams -count_frames -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffprobe -i {self._path} -show_streams -count_packets -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
-        info = json.loads(p.communicate()[0])["streams"][0]
 
+        info = json.loads(p.communicate()[0])["streams"]
+        if len(info) == 0:
+            raise Pyvidplayer2Error("No video tracks found.")
+        else:
+            info = info[0]
+        
         self.original_size = int(info["width"]), int(info["height"])
         # int(self._vidcap.get(cv2.CAP_PROP_FRAME_COUNT)) is not accurate
         try:

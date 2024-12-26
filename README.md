@@ -5,13 +5,14 @@ Languages: English | [中文](https://github.com/anrayliu/pyvidplayer2/blob/main
 
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in
-pretty much every way, and finally allows an easy and reliable way to play videos in Python.
+pretty much every way, and finally allows an easy way to play videos in Python. 
+Please note that this library is currently under development, so if you encounter a bug or a video that cannot be played, please open an issue at https://github.com/anrayliu/pyvidplayer2/issues.
 
 All the features from the original library have been ported over, with the exception of `alt_resize()`. Since pyvidplayer2 has a completely revamped foundation, the unreliability of `set_size()` has been quashed, and a fallback function is now redundant.
 
 # Features (see examples folder)
 - Easy to implement (4 lines of code)
-- Very little dependencies (cv2 is optional!)
+- Only essential dependencies are numpy, FFmpeg + FFprobe (cv2 is just nice to have)
 - Fast and reliable
 - Low CPU usage
 - No audio/video sync issues
@@ -29,9 +30,10 @@ All the features from the original library have been ported over, with the excep
 - Webcam feed
 - Stream videos from Youtube
 - Grab subtitles from Youtube, including automatic generation and translation
-- Play videos from memory
+- Play videos as byte objects
 - Specify which audio devices to use
 - Frame-by-frame iteration
+- Choose audio different audio tracks
 
 # Installation
 
@@ -41,7 +43,7 @@ pip install pyvidplayer2
 ```
 Note: FFMPEG (just the essentials is fine) must be installed and accessible via the system PATH. Here's an online article on how to do this (windows):
 https://phoenixnap.com/kb/ffmpeg-windows.
-FFPROBE may also be needed for certain features - this should come bundled with with FFMPEG download.
+FFPROBE may also be needed for certain features - this should come bundled with the FFMPEG download.
 
 ## Linux
 Before running `pip install pyvidplayer2`, you must first install the required development packages.
@@ -60,6 +62,12 @@ The following NEW packages will be installed:
   libjack-dev libjack0 libportaudiocpp0 portaudio19-dev
 ```
 
+## MacOS
+FFMPEG and FFPROBE can easily be installed with homebrew.
+```
+brew install ffmpeg
+```
+
 # Dependencies
 
 ```
@@ -70,9 +78,9 @@ FFmpeg and FFprobe (not Python packages)
 ## Optional Packages
 
 ```
-opencv_python   (all-around improvements, comes installed)
+opencv_python   (efficiency improvements and more features, comes installed)
 pygame          (graphics and audio library, comes installed)
-PyAudio         (audio library, comes installed)
+PyAudio         (better audio library, comes installed)
 pysubs2         (for subtitles, comes installed)
 yt_dlp          (for streaming Youtube videos)
 imageio         (for videos in bytes)

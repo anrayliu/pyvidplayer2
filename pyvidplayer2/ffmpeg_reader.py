@@ -4,55 +4,16 @@ Object that mimics cv2.VideoCapture to read frames
 
 import numpy as np
 import subprocess
-import json
 from . import FFMPEG_LOGLVL
+from .video_reader import VideoReader
 
 
-class FFMPEGReader:
+class FFMPEGReader(VideoReader):
     def __init__(self, path):
+        VideoReader.__init__(self, path, True)
+
+        self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
         self._path = path
-        self._opened = False
-
-        self.frame = 0
-        self.frame_count = 0
-        self.frame_rate = 0
-        self.original_size = (0, 0)
-
-        '''
-        import cv2
-        vidcap = cv2.VideoCapture(path)
-        self.frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.frame_rate = vidcap.get(cv2.CAP_PROP_FPS)
-        self.original_size = (int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        vidcap.release()
-        self._process = subprocess.Popen(f"ffmpeg -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
-        self._opened = True'''
-
-        if self._probe():
-            self._process = subprocess.Popen(f"ffmpeg -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
-            self._opened = True
-
-    def _probe(self):
-        # strangely for ffprobe, - is not required to indicate output
-        
-        try:
-            p = subprocess.Popen(f"ffprobe -i {self._path} -show_streams -count_packets -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
-        try:
-            info = json.loads(p.communicate()[0])["streams"][0]
-        except KeyError:
-            return False
-
-        self.original_size = int(info["width"]), int(info["height"])
-        try:
-            self.frame_count = int(info["nb_read_packets"])
-        except KeyError:
-            self.frame_count = int(info["nb_frames"])
-        self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
-
-        return True
 
     def _convert_seconds(self, seconds):
         h = int(seconds // 3600)
@@ -81,5 +42,6 @@ class FFMPEGReader:
     def release(self):
         self._process.terminate()
 
+
     def isOpened(self):
-        return self._opened
+        return True

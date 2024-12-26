@@ -57,6 +57,7 @@ class PyaudioHandler:
             "default",  # no sound & freezes on Ubuntu Studio 24.04
             # "sysdefault",  # not an output device
         ]
+        self.device_index = self.choose_device()
 
     def get_busy(self):
         return self.active
@@ -67,6 +68,35 @@ class PyaudioHandler:
     #
     #     data = self.wave.readframes(frame_count)
     #     return (data, pyaudio.paContinue)
+
+    def choose_device(self):
+        device_index = -1
+        # List available devices
+        self.refresh_devices()
+
+        for try_name in self.preferred_device_names:
+            device_index = self.find_device_by_name(try_name)
+            if device_index != -1:
+                # warnings.warn("Detected {}".format(try_name))
+                break
+        # if device_index < 0:
+        # warnings.warn(
+        #    "No preferred device was present: {}"
+        #    .format(self.preferred_device_names))
+
+        if device_index < 0:
+            # If no device was present, load the first output device
+            #   (may stutter and fail under pipewire+jack):
+            for i, info in enumerate(self.audio_devices):
+                if info["maxOutputChannels"] > 0:
+                    # warnings.warn("- selected (first output device)")
+                    device_index = i
+                    break
+
+        if device_index < 0:
+            raise Pyvidplayer2Error("No audio devices found.")
+
+        return device_index
 
     def refresh_devices(self):
         self.audio_devices = []  # indices must match output_device_index
@@ -93,7 +123,7 @@ class PyaudioHandler:
                 #        " (has no output)".format(info['name']))
         return -1
 
-    def load(self, bytes_, forced_device):
+    def load(self, bytes_):
         self.unload()
         try:
             self.wave = wave.open(BytesIO(bytes_), "rb")
@@ -107,29 +137,6 @@ class PyaudioHandler:
             )
 
         if self.stream is None:
-            device_index = -1
-            # List available devices
-            self.refresh_devices()
-
-            for try_name in self.preferred_device_names:
-                device_index = self.find_device_by_name(try_name)
-                if device_index != -1:
-                    #warnings.warn("Detected {}".format(try_name))
-                    break
-            #if device_index < 0:
-                #warnings.warn(
-                #    "No preferred device was present: {}"
-                #    .format(self.preferred_device_names))
-
-            if device_index < 0:
-                # If no device was present, load the first output device
-                #   (may stutter and fail under pipewire+jack):
-                for i, info in enumerate(self.audio_devices):
-                    if info["maxOutputChannels"] > 0:
-                        #warnings.warn("- selected (first output device)")
-                        device_index = i 
-                        break
-            
             try:
                 self.stream = self.p.open(
                     format=self.p.get_format_from_width(
@@ -138,17 +145,17 @@ class PyaudioHandler:
                     channels=self.wave.getnchannels(),
                     rate=self.wave.getframerate(),
                     output=True,
-                    output_device_index=forced_device if forced_device is not None else device_index,
+                    output_device_index=self.device_index,
                     # stream_callback=self.callback,
                 )
 
-            except Exception as e:
-                if device_index == -1:
-                    raise Pyvidplayer2Error("No audio devices found.")
-                else:
-                    raise Pyvidplayer2Error("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[device_index]["name"]))
+            except:
+                raise Pyvidplayer2Error("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[self.device_index]["name"]))
                 
         self.loaded = True
+
+    def get_num_channels(self):
+        return self.audio_devices[self.device_index]["maxOutputChannels"]
 
     def close(self):
         if self.stream is not None:

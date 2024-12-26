@@ -48,7 +48,7 @@ class VideoPlayer:
             self._get_interval_frames()
 
     def __str__(self) -> str:
-        return f"<VideoPlayer(path={self.path})>"
+        return f"<VideoPlayer(path={self.video.path})>"
 
     def _close_queue(self):
         for video in self.queue_:
@@ -108,8 +108,7 @@ class VideoPlayer:
     
     def _best_fit(self, rect, r):
         s = rect.size
-        r = self.video.aspect_ratio
-        
+
         w = s[0]
         h = int(w / r)
         y = int(s[1] /2 - h / 2)

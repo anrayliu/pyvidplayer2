@@ -1,7 +1,11 @@
-import pygame 
+import subprocess
+
+import pygame
 import pysubs2
 import re
 from typing import Union, Tuple
+
+from . import FFMPEG_LOGLVL
 from .error import Pyvidplayer2Error
 
 try:
@@ -26,15 +30,15 @@ class Subtitles:
 
         self.youtube = youtube
         self.pref_lang = pref_lang
+        self._auto_cap = False
         self._youtube_buffer = ""
         if youtube:
             if YTDLP:
                 self._youtube_buffer = self._grab_subtitles(path, pref_lang)
             else:
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
-        
+
         self._subs = self._load()
-        self._auto_cap = False
 
         self.start = 0
         self.end = 0
@@ -51,9 +55,24 @@ class Subtitles:
     def __str__(self):
         return f"<Subtitles(path={self.path})>"
 
+    def _extract_internal_subs(self):
+        try:
+            p = subprocess.Popen(f"ffmpeg -i {self.path} -loglevel {FFMPEG_LOGLVL} -map 0:s:0 -f srt -", stdout=subprocess.PIPE)
+            print(f"ffmpeg -i {self.path} -map 0:s:0 -f srt -")
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+
+        return p.communicate()[0]
+
     def _load(self):
         if self.youtube:
             return iter(pysubs2.SSAFile.from_string(self._youtube_buffer))
+
+        if self.path.endswith(".mp4"):
+            subs = str(self._extract_internal_subs(), self.encoding)
+            self.path = "resources\\subs1.srt"
+
+
         return iter(pysubs2.load(self.path, encoding=self.encoding))
 
     def _to_surf(self, text):
@@ -90,7 +109,7 @@ class Subtitles:
             for i, s in enumerate(subs[lang]):
                 if s["ext"] == "vtt":
                     return ydl.urlopen(subs[lang][i]["url"]).read().decode("utf-8")
-    
+
     def _get_next(self):
         try:
             s = next(self._subs)
@@ -99,11 +118,11 @@ class Subtitles:
             self.end = 0 + self.delay
             self.text = ""
             self.surf = pygame.Surface((0, 0))
-            return False 
+            return False
         else:
             self.start = s.start / 1000 + self.delay
             self.end = s.end / 1000 + self.delay
-            if not self._auto_cap:
+            if self._auto_cap:
                 self.text = re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "", s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext)
             else:
                 self.text = s.plaintext

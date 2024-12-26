@@ -172,6 +172,8 @@ class Video:
         else:
             if PYAUDIO:
                 self._audio = PyaudioHandler()
+                if self.audio_index is not None:
+                    self._audio.device_index = self.audio_index
             else:
                 raise ModuleNotFoundError("Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
             
@@ -202,7 +204,7 @@ class Video:
     def __enter__(self) -> "self":
         return self
 
-    def __exit__(self, type, value, traceback) -> None:
+    def __exit__(self, type_, value, traceback) -> None:
         self.close()
 
     def __iter__(self) -> "self":
@@ -380,6 +382,8 @@ class Video:
                 self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
                 "-vn",
                 "-sn",
+                "-ac",
+                str(self._audio.get_num_channels()),
                 "-map",
                 f"0:a:{self.audio_track}",
                 "-f",
@@ -522,7 +526,7 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                self._audio.load(self._chunks.pop(0), self.audio_index)
+                self._audio.load(self._chunks.pop(0))
                 self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()

@@ -1,71 +1,23 @@
 import imageio.v3 as iio
-import subprocess
-import json 
-from . import FFMPEG_LOGLVL
+from .video_reader import VideoReader
 
 
-class IIOReader:
-    '''
-    This video reader uses imageio. All video readers must follow the following structure:
-
-    Parameters:
-        None
-    
-    Attributes:
-        frame_count: int
-        frame_rate: float
-        original_size: (int, int)
-        frame: int
-
-    Methods:
-        isOpened() -> bool
-        seek(i: int) -> None
-        read() -> (bool, np.ndarray)
-        release() -> None
-    '''
-
+class IIOReader(VideoReader):
     def __init__(self, path):
-        self.frame = 0
-        self.frame_count = 0
-        self.frame_rate = 0
-        self.original_size = (0, 0)
+        VideoReader.__init__(self, path, False)
 
         self._path = path
-        self._opened = False
         self._gen = None
         self._as_bytes = isinstance(path, bytes)
-        
-        if self._probe():
-            self.seek(0)
-            self._opened = True
 
-    def _probe(self):
-        # strangely for ffprobe, - is not required to indicate output
-        
-        try:
-            p = subprocess.Popen(f"ffprobe -i {'-' if self._as_bytes else self._path} -show_streams -count_packets -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self._as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
-        try:
-            info = json.loads(p.communicate(input=self._path if self._as_bytes else None)[0])["streams"][0]
-        except KeyError:
-            return False
-
-        self.original_size = int(info["width"]), int(info["height"])
-        try:
-            self.frame_count = int(info["nb_read_packets"])
-        except KeyError:
-            self.frame_count = int(info["nb_frames"])
-        self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
-
-        return True
+        VideoReader._probe(self, path, self._as_bytes)
+        self.seek(0)
 
     def isOpened(self):
-        return self._opened
-    
+        return True
+
     def seek(self, index):
-        del self._gen 
+        del self._gen
 
         # thread_type="FRAME" sets multithreading
 

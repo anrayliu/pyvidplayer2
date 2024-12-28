@@ -153,7 +153,7 @@ pygame.quit()
 
 # Known Bugs (as of v0.9.25)
 
-- Youtube videos will sometimes freeze or stutter (rare)
+- Youtube videos will sometimes freeze or stutter
 - Video seeking is slow when reading from bytes
 - Rotated videos when playing from bytes will appear in their original direction
 
@@ -184,7 +184,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `audio_track: int` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
  - `vfr: bool` - Used to play variable frame rate videos properly. If `False`, a constant frame rate will be assumed. If `True`, presentation timestamps will be extracted for each frame (see `timestamps` below). This still works for constant frame rate videos, but extracting the timestamps will mean a longer initial load.
  - `pref_lang: str` - Only used when streaming Youtube videos. Used to select a language track if video has multiple.
- - `audio_index: int` - Used to specify which audio output device to use. Can be specific to each video, and is automatically calculated if argument is not provided. To get a list of devices and their indices, use libraries like sounddevice (see audio_devices_demo.py in examples folder). Please use MME devices for Windows.
+ - `audio_index: int` - Used to specify which audio output device to use if using PyAudio. Can be specific to each video, and is automatically calculated if argument is not provided. To get a list of devices and their indices, use libraries like sounddevice (see audio_devices_demo.py in examples folder). Use the MME host APIs. If using Pygame instead of PyAudio, setting output device can be done in the mixer init settings, independent of pyvidplayer2.
 
 ## Attributes
  - `path: str | bytes` - Same as given argument.
@@ -232,7 +232,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `play() -> None` - Sets `active` to `True`.
  - `stop() -> None` - Resets video and sets `active` to `False`.
  - `resize(size: (int, int)) -> None`
- - `change_resolution(height: int) -> None` - Given a height, the video will scale it's dimensions while maintaining aspect ratio.
+ - `change_resolution(height: int) -> None` - Given a height, the video will scale it's dimensions while maintaining aspect ratio. Will scale width to an even number.
  - `close() -> None` - Releases resources. Always recommended to call when done.
  - `restart() -> None`
  - `get_speed() -> float | int`
@@ -250,14 +250,15 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `set_post_func(func: function(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
  - `get_pos(): float` - Returns the current position in seconds.
  - `seek(time: float | int, relative: bool = True) -> None` - Changes the current position in the video. If relative is `True`, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
- frames and audio within the video will not yet be updated after calling seek.
- - `seek_frame(index: int, relative: bool = False) -> None` - Same as `seek` but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on.
+ frames and audio within the video will not yet be updated after calling seek. If the given value is larger than the video duration, the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
+ - `seek_frame(index: int, relative: bool = False) -> None` - Same as `seek` but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total frames, the video will be seeked to the last frame.
  - `update() -> bool` - Allows video to perform required operations. `draw` already calls this method, so it's usually not used. Returns `True` if a new frame is ready to be displayed.
  - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto the given surface, at the given position. If `force_draw` is `True`, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces CPU usage but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
  - `preview(show_fps: bool = False, max_fps: int = 60) -> None` - Opens a window and plays the video. This method will hang until the video finishes. `max_fps` enforces how many times a second the video is updated. If `show_fps` is `True`, a counter will be displayed showing the actual number of new frames being rendered every second.
  - `show_subs() -> None` - Enables subtitles.
  - `hide_subs() -> None` - Disables subtitles.
  - `set_subs(subs: Subtitles | [Subtitles]) -> None` - Set the subtitles to use. Works the same as providing subtitles through the initialization parameter.
+ - `probe() -> None` - Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count or frame rate are read through the file headers, which is sometimes incorrect. For more accuracy, call this method to start a probe and update the video information.
 
 ## Supported Graphics Libraries
  - Pygame or Pygame CE (`Video`) <- default and best supported
@@ -350,6 +351,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - `delay: float` - Same as given argument.
  - `youtube: bool` - Same as given argument.
  - `pref_lang: str` - Same as given argument.
+ - `buffer: str` - Entire subtitle file loaded into memory if downloaded.
 
 ## Methods 
  - `set_font(font: pygame.font.Font | pygame.font.SysFont) -> None` - Same as `font` parameter (see `font` above).
@@ -382,7 +384,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
  - `play() -> None`
  - `stop() -> None`
  - `resize(size: (int, int)) -> None`
- - `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect ratio.
+ - `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect ratio. Will scale width to an even number.
  - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the `interp` parameter (see `interp` above). Does nothing if OpenCV is not installed.
   - `set_post_func(func: function(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
  - `close() -> None` - Releases resources. Always recommended to call when done.

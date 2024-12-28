@@ -13,9 +13,6 @@ class IIOReader(VideoReader):
         VideoReader._probe(self, path, self._as_bytes)
         self.seek(0)
 
-    def isOpened(self):
-        return True
-
     def seek(self, index):
         del self._gen
 
@@ -47,3 +44,5 @@ class IIOReader(VideoReader):
 
     def release(self):
         self._path = b''
+        self._gen = None
+        VideoReader.release(self)

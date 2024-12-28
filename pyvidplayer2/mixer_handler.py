@@ -5,6 +5,7 @@ from io import BytesIO
 class MixerHandler:
     def __init__(self):
         self.muted = False
+        self.loaded = False
         self.volume = 1
 
         pygame.mixer.music.unload()
@@ -14,6 +15,7 @@ class MixerHandler:
 
     def load(self, bytes_):
         pygame.mixer.music.load(BytesIO(bytes_))
+        self.loaded = True
 
     def get_num_channels(self):
         return pygame.mixer.get_num_channels()
@@ -21,6 +23,7 @@ class MixerHandler:
     def unload(self):
         self.stop()
         pygame.mixer.music.unload()
+        self.loaded = False
 
     def play(self):
         pygame.mixer.music.play()

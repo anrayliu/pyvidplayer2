@@ -1,3 +1,4 @@
+import math
 import subprocess
 import os
 import json 
@@ -125,7 +126,7 @@ class Video:
         self.frame_count = self._vid.frame_count
         self.frame_rate = self._vid.frame_rate
         self.frame_delay = 1 / self.frame_rate
-        self.duration = self.frame_count / self.frame_rate
+        self.duration = self._vid.duration
         self.original_size = self._vid.original_size
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
@@ -151,6 +152,7 @@ class Video:
         self.paused = False
         self.muted = False
         self.subs_hidden = False
+        self.closed = False
 
         self.subs = self._filter_subs(subs)
 
@@ -177,7 +179,7 @@ class Video:
             else:
                 raise ModuleNotFoundError("Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
             
-        self.speed = max(0.5, min(10, speed))
+        self.speed = float(max(0.25, min(10, speed)))
         self.reverse = reverse
         self.no_audio = no_audio or self._test_no_audio()
 
@@ -198,8 +200,8 @@ class Video:
 
         self.play()
 
-    def __len__(self) -> float:
-        return self.duration
+    def __len__(self) -> int:
+        return self.frame_count
     
     def __enter__(self) -> "self":
         return self
@@ -216,21 +218,22 @@ class Video:
         data = None
 
         if self.reverse:
-            if self.frame < self.frame_count:
-                self.frame += 1
+            try:
                 data = self._preloaded_frames[self.frame_count - self.frame - 1]
+            except IndexError:
+                pass
         else:
-            has_frame, data = self._vid.read()
-            if has_frame:
-                self.frame += 1
+            data = self._vid.read()[1]
 
         if data is not None:
+            self.frame += 1
             if self.original_size != self.current_size:
                 data = self._resize_frame(data, self.current_size)
+            data = self.post_func(data)
 
-            return self.post_func(data)
+            return data
         else:
-            raise StopIteration
+            raise StopIteration("No more frames to read.")
 
     def _filter_subs(self, subs):
         if SUBS and isinstance(subs, Subtitles):
@@ -296,6 +299,17 @@ class Video:
 
         self._vid.seek(self.frame)
 
+    def _get_real_frame_count(self):
+        self._vid.seek(0)
+        counter = 0
+        has_frame = True
+        while has_frame:
+            has_frame = self._vid.read()[0]
+            if has_frame:
+                counter += 1
+        self._vid.seek(self.frame)
+        return counter
+
     def _chunks_len(self):
         i = 0
         for c in self._chunks:
@@ -304,6 +318,7 @@ class Video:
         return i
 
     def _convert_seconds(self, seconds):
+        seconds = abs(seconds)
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)
@@ -315,9 +330,10 @@ class Video:
     def _test_youtube(self):
         return YTDLP and next((ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"), None) is not None
     
-    # not used
+    # not used, not always accurate
     def _test_vfr(self):
         min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
+        print(max_, min_)
         return (max_ - min_) > 0.1
 
     def _test_no_audio(self):
@@ -560,7 +576,16 @@ class Video:
         )
 
         return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
-    
+
+    def probe(self):
+        self._vid._probe(self.path, self.as_bytes)
+        self.frame_count = self._vid.frame_count
+        self.frame_rate = self._vid.frame_rate
+        self.frame_delay = 1 / self.frame_rate
+        self.duration = self._vid.duration
+        self.original_size = self._vid.original_size
+        self.aspect_ratio = self.original_size[0] / self.original_size[1]
+
     def update(self):
         return self._update()
 
@@ -596,7 +621,7 @@ class Video:
         self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
-        raise DeprecationWarning("set_speed is depreciated. Use the speed parameter instead.")
+        raise DeprecationWarning("set_speed is deprecated. Use the speed parameter instead.")
 
     def get_speed(self) -> float:
         return self.speed
@@ -618,9 +643,13 @@ class Video:
         self.current_size = size
 
     def change_resolution(self, height: int) -> None:
-        self.current_size = (int(height * self.aspect_ratio), height)
+        w = int(height * self.aspect_ratio)
+        if w % 2 == 1:
+            w += 1
+        self.current_size = (w, height)
 
     def close(self) -> None:
+        self.closed = True
         self.stop()
         self._vid.release()
         self._audio.unload()
@@ -668,7 +697,7 @@ class Video:
         # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
-        self._starting_time = round(min(max(0, self._starting_time), self.duration), 2)
+        self._starting_time = min(max(0, round(self._starting_time, 2)), math.floor(self.duration * 100) / 100.0)
 
         for p in self._processes:
             p.terminate()
@@ -684,7 +713,10 @@ class Video:
         if self.vfr:
             self._vid.seek(self._get_closest_frame(self.timestamps, self._starting_time))
         else:
-            self._vid.seek(self._starting_time * self.frame_rate)
+            frame = int(self._starting_time * self.frame_rate)
+            if frame >= self.frame_count:
+                frame = self.frame_count - 1
+            self._vid.seek(frame)
 
         self.frame = self._vid.frame
 
@@ -695,11 +727,12 @@ class Video:
         # seeking accurate to 1/100 of a second 
 
         index = (self.frame + index) if relative else index
+        index = min(max(index, 0), self.frame_count - 1)
 
         if self.vfr:
             self._starting_time = self.timestamps[index]
         else:
-            self._starting_time = round(min(max(0, index * self.frame_delay), self.duration), 2)
+            self._starting_time = min(max(0, round(self.frame_delay * index, 2)), math.floor(self.duration * 100) / 100.0)
 
         for p in self._processes:
             p.terminate()

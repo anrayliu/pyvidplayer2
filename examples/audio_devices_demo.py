@@ -6,9 +6,15 @@ pip install sounddevice before using
 from pyvidplayer2 import Video 
 import sounddevice
 
+# FOR PYGAME
+# Changing the output device is not related to pyvidplayer2
+# Refer to https://stackoverflow.com/questions/57099246/set-output-device-for-pygame-mixer to see how the output device
+# can be specified during mixer initialization
 
-# find the index of the device you want
-# if you're on windows, stick to MME devices
+# FOR PYAUDIO
+# see instructions below
+
+# find the index of the device you want (stick to MME)
 
 # e.g
 # 0 Microsoft Sound Mapper - Input, MME (2 in, 0 out)
@@ -21,3 +27,5 @@ print(sounddevice.query_devices())
 # replace None with the index of the chosen device (first number listed by sd)
 
 Video("resources\\trailer1.mp4", audio_index=None).preview()
+
+# e.g Video("resources\\trailer1.mp4", audio_index=0).preview()

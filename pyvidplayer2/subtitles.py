@@ -1,12 +1,9 @@
 import subprocess
-
 import pygame
 import pysubs2
 import re
 from typing import Union, Tuple
-
 from . import FFMPEG_LOGLVL
-from .error import Pyvidplayer2Error
 
 try:
     import yt_dlp
@@ -31,12 +28,14 @@ class Subtitles:
         self.youtube = youtube
         self.pref_lang = pref_lang
         self._auto_cap = False
-        self._youtube_buffer = ""
+        self.buffer = ""
         if youtube:
             if YTDLP:
-                self._youtube_buffer = self._grab_subtitles(path, pref_lang)
+                self.buffer = self._extract_youtube_subs(path, pref_lang)
             else:
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
+        elif self._is_video():
+            self.buffer = self._extract_internal_subs(path, 0, encoding, "ass")
 
         self._subs = self._load()
 
@@ -55,30 +54,18 @@ class Subtitles:
     def __str__(self):
         return f"<Subtitles(path={self.path})>"
 
-    def _extract_internal_subs(self):
-        try:
-            p = subprocess.Popen(f"ffmpeg -i {self.path} -loglevel {FFMPEG_LOGLVL} -map 0:s:0 -f srt -", stdout=subprocess.PIPE)
-            print(f"ffmpeg -i {self.path} -map 0:s:0 -f srt -")
-        except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-
-        return p.communicate()[0]
+    def _is_video(self):
+        return self.path.endswith(".mp4")
 
     def _load(self):
-        if self.youtube:
-            return iter(pysubs2.SSAFile.from_string(self._youtube_buffer))
-
-        if self.path.endswith(".mp4"):
-            subs = str(self._extract_internal_subs(), self.encoding)
-            self.path = "resources\\subs1.srt"
-
-
+        if self.youtube or self._is_video():
+            return iter(pysubs2.SSAFile.from_string(self.buffer))
         return iter(pysubs2.load(self.path, encoding=self.encoding))
 
     def _to_surf(self, text):
         h = self.font.get_height()
 
-        lines = text.strip().split("\n")
+        lines = text.splitlines()
         surfs = [self.font.render(line, True, self.colour) for line in lines]
 
         surface = pygame.Surface((max([s.get_width() for s in surfs]), len(surfs) * h), pygame.SRCALPHA)
@@ -88,13 +75,21 @@ class Subtitles:
 
         return surface
 
-    def _grab_subtitles(self, url, lang):
+    def _extract_internal_subs(self, path, index, encoding, f):
+        try:
+            p = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -map 0:s:{index} -f {f} -", stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+
+        return p.communicate()[0].decode(encoding)
+
+    def _extract_youtube_subs(self, url, lang):
         cfg = {
+            "quiet":True,
             "skip_download": True,
             "writeautomaticsub": True,
             "subtitleslangs": [lang],
-            "subtitlesformat": "vtt",
-            "quiet": True,
+            "subtitlesformat": "vtt"
         }
 
         with yt_dlp.YoutubeDL(cfg) as ydl:
@@ -122,11 +117,9 @@ class Subtitles:
         else:
             self.start = s.start / 1000 + self.delay
             self.end = s.end / 1000 + self.delay
-            if self._auto_cap:
-                self.text = re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "", s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext)
-            else:
-                self.text = s.plaintext
-            self.surf = self._to_surf(self.text)
+            self.text = (re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "", s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext).replace("[&nbsp;__&nbsp;]", "[__]") if self._auto_cap else s.plaintext).strip()
+            if self.text != "":
+                self.surf = self._to_surf(self.text)
             return True
 
     def _seek(self, time):

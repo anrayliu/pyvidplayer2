@@ -41,7 +41,4 @@ class FFMPEGReader(VideoReader):
         
     def release(self):
         self._process.terminate()
-
-
-    def isOpened(self):
-        return True
+        VideoReader.release(self)

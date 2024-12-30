@@ -59,6 +59,8 @@ class PyaudioHandler:
         ]
         self.device_index = self.choose_device()
 
+        self._buffer = None # used for testing purposes
+
     def get_busy(self):
         return self.active
 
@@ -186,29 +188,30 @@ class PyaudioHandler:
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK = 128
+        CHUNK_SIZE = 128 #increasing this will reduce get_pos precision
 
-        data = self.wave.readframes(CHUNK)
-
-        while data != b'' and not self.stop_thread:
-
+        while not self.stop_thread:
             if self.paused:
                 time.sleep(0.01)
             else:
+                data = self.wave.readframes(CHUNK_SIZE)
+                if data == b"":
+                    break
+
                 audio = np.frombuffer(data, dtype=np.int16)
 
                 if self.volume == 0.0 or self.muted:
                     audio = np.zeros_like(audio)
                 else:
                     db = 20 * math.log10(self.volume)
-                    audio = (audio * 10**(db/20)).astype(np.int16)  # noqa: E226, E501
+                    audio = (audio * 10 ** (db / 20)).astype(np.int16)  # noqa: E226, E501
+
+                self._buffer = audio
 
                 self.stream.write(audio.tobytes())
 
-                self.chunks_played += CHUNK 
+                self.chunks_played += CHUNK_SIZE
                 self.position = self.chunks_played / float(self.wave.getframerate())
-                
-                data = self.wave.readframes(CHUNK)
 
         self.active = False
 

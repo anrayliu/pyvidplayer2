@@ -32,7 +32,6 @@ class Webcam:
         self.fps = fps
         self.cam_id = cam_id
 
-        self._frame_delay = 1 / self.fps
         self._frames = 0
         self._last_tick = 0
 
@@ -46,7 +45,7 @@ class Webcam:
     def _update(self):
         if self.active:
 
-            if time.time() - self._last_tick > self._frame_delay:
+            if time.time() - self._last_tick > 1 / self.fps:
 
                 has_frame, data = self._vid.read()
                 

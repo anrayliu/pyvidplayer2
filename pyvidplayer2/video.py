@@ -228,7 +228,7 @@ class Video:
         if data is not None:
             self.frame += 1
             if self.original_size != self.current_size:
-                data = self._resize_frame(data, self.current_size)
+                data = self._resize_frame(data, self.current_size, self.interp, not CV)
             data = self.post_func(data)
 
             return data
@@ -284,7 +284,7 @@ class Video:
                 self.path = formats[0]["url"]
                 self._audio_path = formats[1]["url"]
                 self.name = info.get("title", "")
-                self.ext = "webm"
+                self.ext = ".webm"
 
     def _preload_frames(self):
         self._preloaded_frames.clear()
@@ -455,9 +455,10 @@ class Video:
             self._threads.append(Thread(target=self._threaded_load, args=(self._chunks_claimed,)))
             self._threads[-1].start()
 
-    def _write_subs(self):
+    def _write_subs(self, p):
+        print(p)
         for sub in self.subs:
-            self._next_sub_line(sub, self.get_pos())
+            self._next_sub_line(sub, p)
 
     def _next_sub_line(self, sub, p):
         if p >= sub.start:
@@ -488,7 +489,7 @@ class Video:
     def _has_frame(self, p):
         if self.vfr:
             return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
-        return p > self.frame * self.frame_delay
+        return self.frame / self.frame_rate <= p <= (self.frame + 1) / self.frame_rate
     
     def _update(self):
         if self._missing_ffmpeg:
@@ -518,7 +519,8 @@ class Video:
                     has_frame, data = self._vid.read()
                     self.buffering = False
 
-                self.frame += 1
+                if has_frame:
+                    self.frame += 1
 
                 # optimized for high playback speeds
                 if self._has_frame(p):
@@ -526,14 +528,14 @@ class Video:
 
                 if has_frame:
                     if self.original_size != self.current_size:
-                        data = self._resize_frame(data, self.current_size)
+                        data = self._resize_frame(data, self.current_size, self.interp, not CV)
                     data = self.post_func(data)
 
                     self.frame_data = data
                     self.frame_surf = self._create_frame(data)
 
                     if self.subs and not self.subs_hidden:
-                        self._write_subs()
+                        self._write_subs(p)
 
                     n = True
                 else:
@@ -553,9 +555,9 @@ class Video:
 
     # interp parameter only used for ffmpeg resampling
     
-    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp: str = "bilinear"):
-        if CV:
-            return cv2.resize(data, dsize=size, interpolation=self.interp)
+    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp, use_ffmpeg=False):
+        if not use_ffmpeg:
+            return cv2.resize(data, dsize=size, interpolation=interp)
 
         # without opencv, use ffmpeg resizing 
 
@@ -649,6 +651,7 @@ class Video:
         self.current_size = (w, height)
 
     def close(self) -> None:
+        self._preloaded_frames.clear()
         self.closed = True
         self.stop()
         self._vid.release()
@@ -732,7 +735,7 @@ class Video:
         if self.vfr:
             self._starting_time = self.timestamps[index]
         else:
-            self._starting_time = min(max(0, round(self.frame_delay * index, 2)), math.floor(self.duration * 100) / 100.0)
+            self._starting_time = min(max(0, round(index / self.frame_rate, 2)), math.floor(self.duration * 100) / 100.0)
 
         for p in self._processes:
             p.terminate()

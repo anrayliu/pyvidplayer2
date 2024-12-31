@@ -36,7 +36,7 @@ class MixerHandler:
         return self.volume
 
     def get_pos(self):
-        return max(0, pygame.mixer.music.get_pos()) / 1000
+        return max(0, pygame.mixer.music.get_pos()) / 1000.0
 
     def stop(self):
         pygame.mixer.music.stop()

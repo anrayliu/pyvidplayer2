@@ -60,9 +60,15 @@ class VideoPygame(Video):
 
     def show_subs(self) -> None:
         self.subs_hidden = False
+        if self.frame_data is not None:
+            self.frame_surf = self._create_frame(self.frame_data)
+            if self.subs:
+                self._write_subs(self.frame / self.frame_rate)
 
     def hide_subs(self) -> None:
         self.subs_hidden = True
+        if self.frame_data is not None:
+            self.frame_surf = self._create_frame(self.frame_data)
 
     def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:
         self.subs = self._filter_subs(subs)

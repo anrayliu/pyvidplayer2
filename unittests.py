@@ -1,7 +1,10 @@
+# full unit tests for pyvidplayer2 v0.9.25
+
 import math
 import random
 import unittest
-from copy import deepcopy
+from random import uniform
+
 import numpy as np
 import pygame
 import os
@@ -58,7 +61,35 @@ PATHS = get_videos()
 VIDEO_PATH = "resources\\trailer1.mp4"
 YOUTUBE_PATH = "https://www.youtube.com/watch?v=K8PoK3533es&t=3s"
 
-# test default state?
+SUBS = (
+    (0.875, 1.71, "Oh, my God!"),
+    (5.171, 5.88, "Hang on!"),
+    (6.297, 8.383, "- Ethan!\n- Go, go, go!"),
+    (8.383, 11.761, "Audiences and critics can't believe\nwhat they're seeing."),
+    (14.139, 15.015, "Listen to me."),
+    (15.015, 16.85, "The world's coming after you."),
+    (16.85, 18.101, "Stay out of my way."),
+    (18.935, 21.187, "“Tom Cruise has outdone himself.”"),
+    (22.105, 25.025, "With a 99% on Rotten Tomatoes."),
+    (25.025, 25.483, "Yes!"),
+    (25.483, 29.446, "“Mission: Impossible - Dead Reckoning is filled with ‘holy shit’ moments.”"),
+    (29.446, 30.488, "What is happening?"),
+    (30.488, 32.49, "“This is why we go to the movies.”"),
+    (33.908, 35.577, "Oh, I like her."),
+    (35.577, 37.287, "“It's pulse pounding.”"),
+    (37.746, 39.622, "“It will rock your world.”"),
+    (40.081, 41.875, "With “jaw dropping action.”"),
+    (43.209, 44.085, "Is this where we run?"),
+    (44.085, 44.919, "Go, go, go, go!"),
+    (45.253, 45.92, "Probably."),
+    (46.421, 49.132, "“It's one of the best action movies\never made.”"),
+    (49.466, 50.508, "What more can I say?"),
+    (50.925, 54.888, "“See it in the biggest, most seat-shaking theater you can find.”"),
+    (55.138, 57.891, "“It will take your breath away.”"),
+    (58.808, 59.893, "Ethan, did you make it?"),
+    (59.893, 60.852, "Are you okay?")
+)
+
 
 
 class TestVideo(unittest.TestCase):
@@ -135,6 +166,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.original_size, (1280, 720))
         self.assertEqual(v.current_size, (1280, 720))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
+        self.assertEqual(type(v._vid).__name__, "CVReader")
         v.close()
 
         v = Video("https://www.youtube.com/watch?v=K8PoK3533es", youtube=True)
@@ -148,6 +180,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.original_size, (1920, 1080))
         self.assertEqual(v.current_size, (1920, 1080))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
+        self.assertEqual(type(v._vid).__name__, "CVReader")
         v.close()
 
         with open("resources\\trailer1.mp4", "rb") as file:
@@ -162,6 +195,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.original_size, (1280, 720))
         self.assertEqual(v.current_size, (1280, 720))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
+        self.assertEqual(type(v._vid).__name__, "IIOReader")
         v.close()
 
     def test_setting_interp(self):
@@ -350,8 +384,8 @@ class TestVideo(unittest.TestCase):
         while_loop(lambda: v.frame < 10, v.update, 10)
         v.stop()
         self.assertFalse(v.active)
-        self.assertEqual(v.frame_data, None)
-        self.assertEqual(v.frame_surf, None)
+        self.assertIs(v.frame_data, None)
+        self.assertIs(v.frame_surf, None)
         self.assertFalse(v.paused)
         v.stop() # test for exception
         v.close()
@@ -362,7 +396,15 @@ class TestVideo(unittest.TestCase):
 
     def test_preloaded_frames(self):
         v = Video(VIDEO_PATH)
+        timed_loop(2, v.update)
+        frame = v.frame
         v._preload_frames()
+
+        # checks that preloading does not change the current frame
+        self.assertEqual(v._vid.frame, frame)
+
+        self.assertEqual(len(v._preloaded_frames), v.frame_count)
+        v.restart()
         for i, frame in enumerate(v):
             self.assertTrue(check_same_frames(v._preloaded_frames[i], frame))
         v.close()
@@ -615,9 +657,11 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH)
         original_frame = next(v)
 
+        NEW_SIZE = v.original_size[0] // 2, v.original_size[1] // 2
+
         # ensures both resamplers are active
-        cv_resampled = v._resize_frame(original_frame, (v.original_size[0] // 2, v.original_size[1] // 2), cv2.INTER_CUBIC, False)
-        ffmpeg_resampled = v._resize_frame(original_frame, (v.original_size[0] // 2, v.original_size[1] // 2), "bicubic", True)
+        cv_resampled = v._resize_frame(original_frame, NEW_SIZE, cv2.INTER_CUBIC, False)
+        ffmpeg_resampled = v._resize_frame(original_frame, NEW_SIZE, "bicubic", True)
         self.assertFalse(check_same_frames(cv_resampled, ffmpeg_resampled))
 
         SIZES = ((426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
@@ -638,43 +682,17 @@ class TestVideo(unittest.TestCase):
                 if size == v.original_size:
                     self.assertTrue(check_same_frames(original_frame, new_frame))
 
+        v.resize(NEW_SIZE)
+        while_loop(lambda: v.frame < 10, v.update, 5)
+        self.assertEqual(v.frame_surf.get_size(), NEW_SIZE)
+
         v.close()
 
     # tests that subtitles are properly read and displayed
     def test_subtitles(self):
+        # running video in x5 to speed up test
         v = Video("resources\\trailer1.mp4", subs=Subtitles("resources\\subs1.srt"), speed=5)
         v._preload_frames()
-
-        LOADED_FRAMES = deepcopy(v._preloaded_frames)
-
-        SUBS = [
-            (0.875, 1.71, "Oh, my God!"),
-            (5.171, 5.88, "Hang on!"),
-            (6.297, 8.383, "- Ethan!\n- Go, go, go!"),
-            (8.383, 11.761, "Audiences and critics can't believe\nwhat they're seeing."),
-            (14.139, 15.015, "Listen to me."),
-            (15.015, 16.85, "The world's coming after you."),
-            (16.85, 18.101, "Stay out of my way."),
-            (18.935, 21.187, "“Tom Cruise has outdone himself.”"),
-            (22.105, 25.025, "With a 99% on Rotten Tomatoes."),
-            (25.025, 25.483, "Yes!"),
-            (25.483, 29.446, "“Mission: Impossible - Dead Reckoning is filled with ‘holy shit’ moments.”"),
-            (29.446, 30.488, "What is happening?"),
-            (30.488, 32.49, "“This is why we go to the movies.”"),
-            (33.908, 35.577, "Oh, I like her."),
-            (35.577, 37.287, "“It's pulse pounding.”"),
-            (37.746, 39.622, "“It will rock your world.”"),
-            (40.081, 41.875, "With “jaw dropping action.”"),
-            (43.209, 44.085, "Is this where we run?"),
-            (44.085, 44.919, "Go, go, go, go!"),
-            (45.253, 45.92, "Probably."),
-            (46.421, 49.132, "“It's one of the best action movies\never made.”"),
-            (49.466, 50.508, "What more can I say?"),
-            (50.925, 54.888, "“See it in the biggest, most seat-shaking theater you can find.”"),
-            (55.138, 57.891, "“It will take your breath away.”"),
-            (58.808, 59.893, "Ethan, did you make it?"),
-            (59.893, 60.852, "Are you okay?")
-        ]
 
         def check_subs():
             v.update()
@@ -688,18 +706,51 @@ class TestVideo(unittest.TestCase):
             for start, end, text in SUBS:
                 if start <= timestamp <= end:
                     in_interval = True
-                    self.assertFalse(
-                        (pygame.surfarray.array3d(v.frame_surf) == pygame.surfarray.array3d(v._create_frame(
-                            LOADED_FRAMES[v.frame - 1]))).all())
+                    self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
+                        v._preloaded_frames[v.frame - 1]))), v.subs_hidden)
+
+                    # check the correct subtitle was generated
+                    if not v.subs_hidden:
+                        self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
+
             if not in_interval:
                 self.assertTrue(
-                    (pygame.surfarray.array3d(v.frame_surf) == pygame.surfarray.array3d(v._create_frame(
-                        LOADED_FRAMES[v.frame - 1]))).all())
+                    check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
+                        v._preloaded_frames[v.frame - 1]))))
 
-        # test regular playback with subtitles
-        while_loop(lambda: v.active, check_subs, 100)
+        self.assertFalse(v.subs_hidden)
+
+        def randomized_test():
+            rand = random.randint(1, 3)
+            if v.subs_hidden:
+                v.show_subs()
+                self.assertFalse(v.subs_hidden)
+            else:
+                v.hide_subs()
+                self.assertTrue(v.subs_hidden)
+            timed_loop(rand, check_subs)
+
+        # test playback while turning on and off subs
+        while_loop(lambda: v.active, randomized_test, 20)
+
+        # test that seeking works for subtitles
+        for i in range(5):
+            v.seek(random.uniform(0, v.duration), relative=False)
+            v.play()
+            timed_loop(2, v.update)
 
         v.close()
+
+    def test_embedded_subtitles(self):
+        s = Subtitles("resources\\wSubs.mp4")
+
+        self.assertEqual(s.track_index, 0)
+
+        for i in range(len(SUBS)):
+            s._get_next()
+            self.assertEqual(s.start, SUBS[i][0])
+            self.assertEqual(s.end, SUBS[i][1])
+            self.assertEqual(s.text, SUBS[i][2])
 
     def test_audio_track(self):
         for audio_handler in (True, False):
@@ -752,11 +803,95 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # tests that frame_surf and frame_data are working properly
+    def test_frame_information(self):
+        v = Video(VIDEO_PATH)
+
+        self.assertEqual(v.frame, 0)
+        self.assertIs(v.frame_surf, None)
+        self.assertIs(v.frame_data, None)
+
+        v.seek_frame(10)
+
+        # frame information does not immediately update after seeking
+        self.assertEqual(v.frame, 10)
+        self.assertIs(v.frame_surf, None)
+        self.assertIs(v.frame_data, None)
+
+        # update frame information
+        while_loop(lambda: not v.update(), lambda: None, 5)
+
+        # check that frame information has been updated
+        self.assertEqual(v.frame, 11)
+        self.assertIsNot(v.frame_surf, None)
+        self.assertIsNot(v.frame_data, None)
+
+        # finish video
+        v.seek(v.duration)
+        while_loop(lambda: v.active, v.update, 5)
+
+        # check that frame information has reset
+        self.assertEqual(v.frame, 0)
+        self.assertIs(v.frame_surf, None)
+        self.assertIs(v.frame_data, None)
+
+        v.close()
+
+    def test_audio(self):
+        v = Video(VIDEO_PATH)
+        self.assertEqual(type(v._audio).__name__, "PyaudioHandler")
+
+        # play a bit of audio and check that pyaudio is being utilized
+        while_loop(lambda: v.frame < 10, v.update, 5)
+        self.assertTrue(v._audio.thread is not None and v._audio.thread.is_alive())
+
+        v.close()
+
+        v = Video(VIDEO_PATH, use_pygame_audio=True)
+        self.assertEqual(type(v._audio).__name__, "MixerHandler")
+
+        # play a bit of audio and check that pygame is being utilized
+        while_loop(lambda: v.frame < 10, v.update, 5)
+        self.assertTrue(pygame.mixer.music.get_busy())
+
+        v.close()
+
+    def test_reverse(self):
+        v = Video(VIDEO_PATH, reverse=True)
+        for i, frame in enumerate(v):
+            self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
+        v.close()
+
+    # tests that youtube videos do not hang when close is called
+    def test_hanging(self):
+        v = Video("https://www.youtube.com/watch?v=K8PoK3533es", youtube=True, max_threads=10, max_chunks=10)
+        t = time.time()
+        v.close()
+        self.assertLess(time.time() - t, 0.3)
+
+    def test_chunks_length(self):
+        v = Video(VIDEO_PATH)
+        self.assertEqual(v._chunks_len([]), 0)  # No chunks
+        self.assertEqual(v._chunks_len([None, None, None]), 0)  # All None
+        self.assertEqual(v._chunks_len([1, None, 2, 3]), 3)  # Some None
+        self.assertEqual(v._chunks_len([None, 5, None]), 1)  # Single non-None
+        self.assertEqual(v._chunks_len([1, 2, 3]), 3)  # All non-None
+        v.close()
+
+    # tests that ffmpeg logs are hidden in case they were turned on and forgotten
+    def test_ffmpeg_loglevel(self):
+        self.assertEqual(FFMPEG_LOGLVL, "quiet")
+
+
+
 
 # incorporate next in update
-# internal subs
+# vfr
+# test no ffmpeg
+# test default state?
 
-
+# reverse + changed speeed
+# changed speed fps
 
 if __name__ == "__main__":
     unittest.main()

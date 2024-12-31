@@ -310,9 +310,9 @@ class Video:
         self._vid.seek(self.frame)
         return counter
 
-    def _chunks_len(self):
+    def _chunks_len(self, chunks):
         i = 0
-        for c in self._chunks:
+        for c in chunks:
             if c is not None:
                 i += 1
         return i
@@ -450,13 +450,12 @@ class Video:
                 self._threads.remove(t)
 
         self._stop_loading = self._starting_time + self._chunks_claimed * self.chunk_size >= self.duration
-        if not self._stop_loading and (len(self._threads) < self.max_threads) and ((self._chunks_len() + len(self._threads)) < self.max_chunks):
+        if not self._stop_loading and (len(self._threads) < self.max_threads) and ((self._chunks_len(self._chunks) + len(self._threads)) < self.max_chunks):
             self._chunks_claimed += 1
             self._threads.append(Thread(target=self._threaded_load, args=(self._chunks_claimed,)))
             self._threads[-1].start()
 
     def _write_subs(self, p):
-        print(p)
         for sub in self.subs:
             self._next_sub_line(sub, p)
 
@@ -489,7 +488,7 @@ class Video:
     def _has_frame(self, p):
         if self.vfr:
             return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
-        return self.frame / self.frame_rate <= p <= (self.frame + 1) / self.frame_rate
+        return p > (self.frame + 1) / self.frame_rate
     
     def _update(self):
         if self._missing_ffmpeg:
@@ -652,12 +651,12 @@ class Video:
 
     def close(self) -> None:
         self._preloaded_frames.clear()
-        self.closed = True
         self.stop()
         self._vid.release()
         self._audio.unload()
         if not self.use_pygame_audio:
             self._audio.close()
+        self.closed = True
 
     def restart(self) -> None:
         self.seek(0, relative=False)

@@ -699,7 +699,7 @@ class Video:
         # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
-        self._starting_time = self._round_down(min(max(0, self._starting_time), self.duration))
+        self._starting_time = min(max(0, self._starting_time), self.duration)
 
         for p in self._processes:
             p.terminate()
@@ -725,9 +725,6 @@ class Video:
         for sub in self.subs:
             sub._seek(self._starting_time)
 
-    def _round_down(self, num):
-        return math.floor(num * 100) / 100.0
-
     def seek_frame(self, index: int, relative: bool = False) -> None:
         # seeking accurate to 1/100 of a second 
 
@@ -737,7 +734,7 @@ class Video:
         if self.vfr:
             self._starting_time = self.timestamps[index]
         else:
-            self._starting_time = self._round_down(min(max(0, index / self.frame_rate), self.duration))
+            self._starting_time = min(max(0, index / self.frame_rate), self.duration)
 
         for p in self._processes:
             p.terminate()

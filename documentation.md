@@ -32,7 +32,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `min_fr: float` - Only used if `vfr = True`. Gives the minimum frame rate throughout the video.
  - `avg_fr: float` - Only used if `vfr = True`. Gives the average frame rate of all the extracted presentation timestamps.
  - `timestamps: [float]` - List of presentation timestamps for each frame.
- - `frame_count: int` - How many total frames there are. May not be 100% accurate. For a more accurate (but slower) frame count,set `vfr = True` and use `len(video.timestamps)`.
+ - `frame_count: int` - How many total frames there are. May not be exactly accurate. For a more accurate (but slower) frame count, use `_get_real_frame_count()`.
  - `frame_delay: float` - Time between frames in order to maintain frame rate (in fractions of a second).
  - `duration: float` - Length of video in seconds.
  - `original_size: (int, int)` - Tuple containing the width and height of each original frame. Unaffected by resizing.
@@ -85,8 +85,8 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the `interp` parameter (see `interp` above). Does nothing if OpenCV is not installed.
  - `set_post_func(func: function(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
  - `get_pos(): float` - Returns the current position in seconds.
- - `seek(time: float | int, relative: bool = True) -> None` - Changes the current position in the video. If relative is `True`, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
- frames and audio within the video will not yet be updated after calling seek. If the given value is larger than the video duration, the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
+ - `seek(time: float | int, relative: bool = True) -> None` - Changes the current position in the video. If relative is `True`, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, with no precision limit. Note that 
+ frames and audio within the video will not yet be updated after calling seek. `update()` or `draw` must be called for internal processing to start. If the given value is larger than the video duration, the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
  - `seek_frame(index: int, relative: bool = False) -> None` - Same as `seek` but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total frames, the video will be seeked to the last frame.
  - `update() -> bool` - Allows video to perform required operations. `draw` already calls this method, so it's usually not used. Returns `True` if a new frame is ready to be displayed.
  - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto the given surface, at the given position. If `force_draw` is `True`, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces CPU usage but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.

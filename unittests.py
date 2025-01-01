@@ -285,7 +285,7 @@ class TestVideo(unittest.TestCase):
 
             # testing non relative frame seek
             v.seek_frame(FRAME)
-            self.assertEqual(v.get_pos(), v._round_down(FRAME / v.frame_rate))
+            self.assertEqual(v.get_pos(), FRAME / v.frame_rate)
             self.assertEqual(v.frame, FRAME)
 
             new_frame = next(v)
@@ -294,7 +294,7 @@ class TestVideo(unittest.TestCase):
 
             # testing relative frame seek
             v.seek_frame(-FRAME, relative=True)
-            self.assertEqual(v.get_pos(), round(1 / v.frame_rate, 2))
+            self.assertEqual(v.get_pos(), 1 / v.frame_rate)
             self.assertEqual(v.frame, 1)
 
             # testing lower bound
@@ -309,7 +309,7 @@ class TestVideo(unittest.TestCase):
             original_frame = next(v)
             v.seek(v.duration)
 
-            self.assertEqual(v.get_pos(), math.floor(v.duration * 100) / 100.0)
+            self.assertEqual(v.get_pos(), v.duration)
             self.assertEqual(v.frame, v.frame_count - 1)
 
             v.seek_frame(v.frame_count)
@@ -318,14 +318,14 @@ class TestVideo(unittest.TestCase):
             new_frame = next(v)
             v.seek_frame(v.frame_count)
 
-            self.assertEqual(v.get_pos(), round((v.frame_count - 1) / v.frame_rate, 2))
+            self.assertEqual(v.get_pos(), (v.frame_count - 1) / v.frame_rate)
             self.assertEqual(v.frame, v.frame_count - 1)
 
             self.assertTrue(check_same_frames(original_frame, new_frame))
 
             # tests that when seeking to x, exactly x will be obtained when checking-
             for i in range(5):
-                rand_time = math.floor(random.uniform(0, v.duration) * 100) / 100.0
+                rand_time = random.uniform(0, v.duration)
                 v.seek(rand_time, relative=False)
                 self.assertEqual(v.get_pos(), rand_time)
 

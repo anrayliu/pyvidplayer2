@@ -62,7 +62,7 @@ class VideoPlayer:
         for i in range(self.preview_thumbnails):
             self.video._vid.seek(int(i * self.video.frame_rate * self._interval))
             
-            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "area", True).tobytes(), size, "BGR"))
+            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
 
         # add last readable frame
 
@@ -70,7 +70,7 @@ class VideoPlayer:
         while True:
             self.video._vid.seek(self.video.frame_count - i)
             try:
-                self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "area", True).tobytes(), size, "BGR"))
+                self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
             except:
                 i += 1
             else:

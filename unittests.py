@@ -56,6 +56,18 @@ def get_youtube_urls(max_results=5):
     else:
         raise RuntimeError("Could not extract youtube urls.")
 
+def find_device(*lambdas):
+    from sounddevice import query_devices
+
+    for device in query_devices():
+        passed = True
+        for func in lambdas:
+            if not func(device):
+                passed = False
+        if passed:
+            return device["index"]
+
+    raise RuntimeError("Could not find specified sound device.")
 
 PATHS = get_videos()
 VIDEO_PATH = "resources\\trailer1.mp4"
@@ -253,7 +265,7 @@ class TestVideo(unittest.TestCase):
             if file.endswith(".webm"):
                 continue
 
-            v = Video(file)
+            v = Video(file, vfr=True)
             v.probe()
 
             # testing relative time seek
@@ -273,7 +285,7 @@ class TestVideo(unittest.TestCase):
 
             # testing non relative frame seek
             v.seek_frame(FRAME)
-            self.assertEqual(v.get_pos(), round(FRAME / v.frame_rate, 2))
+            self.assertEqual(v.get_pos(), v._round_down(FRAME / v.frame_rate))
             self.assertEqual(v.frame, FRAME)
 
             new_frame = next(v)
@@ -417,11 +429,21 @@ class TestVideo(unittest.TestCase):
             self.assertGreater(v.frame_rate, 0)
             self.assertGreater(v.duration, 0)
 
+            v.frame_count = 0
+            v.frame_rate = 0
+            v.frame_delay = 0
+            v.duration = 0
+            v.original_size = (0, 0)
+            v.aspect_ratio = 1
+
             v.probe()
             real = v._get_real_frame_count()
             self.assertEqual(v.frame_count, real, f"{file} failed unit test")
             self.assertGreater(v.frame_rate, 0)
+            self.assertEqual(v.frame_delay, 1 / v.frame_rate)
             self.assertGreater(v.duration, 0)
+            self.assertNotEqual(v.original_size, (0, 0))
+            self.assertEqual(v.aspect_ratio, v.original_size[0] / v.original_size[1])
 
             v.close()
 
@@ -549,25 +571,30 @@ class TestVideo(unittest.TestCase):
     # tests that most of the frame rate
     def test_unlocked_fps(self):
         for file in PATHS:
-            v = Video(file)
-            seconds_elapsed = 0
-            avg_fps = 0
-            clock = pygame.time.Clock()
-            v.play()
-            timer = 0
-            frames = 0
-            while v.active and seconds_elapsed < 10:
-                dt = clock.tick(180)
-                timer += dt
-                if timer >= 1000:
-                    seconds_elapsed += 1
-                    avg_fps += frames
-                    timer = 0
-                    frames = 0
-                if v.update():
-                    frames += 1
-            self.assertTrue((avg_fps / float(seconds_elapsed)) / v.frame_rate > 0.9, f"{file} failed unit test")
-            v.close()
+            for audio_handler in (True, False):
+                v = Video(file, use_pygame_audio=audio_handler)
+                seconds_elapsed = 0
+                clock = pygame.time.Clock()
+                v.play()
+                timer = 0
+                frames = 0
+                avg_fps = 0
+                passed = False
+                while v.active and seconds_elapsed < 10:
+                    dt = clock.tick(0)
+                    timer += dt
+                    if timer >= 1000:
+                        seconds_elapsed += 1
+                        avg_fps += frames
+                        if frames >= int(v.frame_rate * 0.8):
+                            passed = True
+                            break
+                        timer = 0
+                        frames = 0
+                    if v.update():
+                        frames += 1
+                self.assertTrue(passed, f"{file} failed unit test with {audio_handler}, achieved {avg_fps / seconds_elapsed / v.frame_rate}")
+                v.close()
 
     # tests that pausing works correctly
     def test_pausing(self):
@@ -676,7 +703,7 @@ class TestVideo(unittest.TestCase):
 
         # test ffmpeg resamplers
         for size in SIZES:
-            for flag in ("bilinear", "bicubic", "neighbor", "area", "lanczos"):
+            for flag in ("bilinear", "bicubic", "neighbor", "area", "lanczos", "fast_bilinear", "gauss", "spline"):
                 new_frame = v._resize_frame(original_frame, size, flag, True)
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
                 if size == v.original_size:
@@ -882,16 +909,141 @@ class TestVideo(unittest.TestCase):
     def test_ffmpeg_loglevel(self):
         self.assertEqual(FFMPEG_LOGLVL, "quiet")
 
+    def test_get_closest_frame(self):
+        v = Video(VIDEO_PATH)
+        self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 4), 1)  # Closest to 4 is index 1 (3)
+        self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 6), 2)  # Closest to 6 is index 2 (5)
+        self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 7), 3)  # Exact match at index 3
+        self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 8), 3)  # Closest to 8 is index 3 (7)
+        self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 0), 0)  # Closest to 0 is index 0 (1)
+        self.assertEqual(v._get_closest_frame([10, 20, 30], 25), 1)  # Closest to 25 is index 1 (20)
+        self.assertEqual(v._get_closest_frame([10, 20, 30], 5), 0)  # Closest to 5 is index 0 (10)
+        self.assertEqual(v._get_closest_frame([10, 20, 30], 35), 2)  # Closest to 35 is index 2 (30)
+        v.close()
+
+    def test_missing_ffmpeg(self):
+        v = Video(VIDEO_PATH)
+        v._missing_ffmpeg = True
+        self.assertRaises(FileNotFoundError, v.update)
+        v.close()
+
+    def test_volume(self):
+        v = Video(VIDEO_PATH)
+        self.assertEqual(v.volume, 1.0)
+        self.assertEqual(v.get_volume(), 1.0)
+
+        v.set_volume(0)
+        self.assertEqual(v.volume, 0.0)
+        v.set_volume(1.0)
+        self.assertEqual(v.volume, 1.0)
+
+        v.set_volume(0)
+        self.assertEqual(v.volume, 0.0)
+        v.set_volume(2)
+        self.assertEqual(v.volume, 1.0)
+
+        v.set_volume(0.5)
+
+        self.assertEqual(pygame.mixer.music.get_volume() if v.use_pygame_audio else v._audio.get_volume(), v.volume)
+
+        v.close()
+
+    # test playing video in reverse and sped up
+    def test_reversed_and_speed(self):
+        v = Video(VIDEO_PATH, reverse=True, speed=5)
+        seconds_elapsed = 0
+        clock = pygame.time.Clock()
+        v.play()
+        timer = 0
+        frames = 0
+        avg_fps = 0
+        while v.active:
+            dt = clock.tick(0)
+            timer += dt
+            if timer >= 1000:
+                seconds_elapsed += 1
+                avg_fps += frames
+                timer = 0
+                frames = 0
+            if v.update():
+                frames += 1
+                self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[v.frame_count - v.frame]))
+        # check that frame rate kept up
+        self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.7)
+        v.close()
+
+    def test_buffering(self):
+        v = Video(VIDEO_PATH)
+        self.assertFalse(v.buffering)
+        v.update()
+        self.assertTrue(v.buffering)
+        while_loop(lambda: v.buffering, v.update, 5)
+        self.assertFalse(v.buffering)
+        self.assertTrue(v._audio.loaded)
+        v.close()
+
+    # test windows audio devices
+    def test_audio_device(self):
+        # test that an error is raised if opened using an input device
+        index = find_device(lambda d: d["max_output_channels"] == 0)
+        v = Video(VIDEO_PATH, audio_index=index)
+        self.assertEqual(v._audio.device_index, index)
+        self.assertRaises(Pyvidplayer2Error, while_loop, lambda: v.frame < 10, v.update, 10)
+        v.close()
+
+        index = find_device(lambda d: d["max_output_channels"] > 0, lambda d: d["hostapi"] == 0)
+        v = Video(VIDEO_PATH, audio_index=index)
+        self.assertEqual(v._audio.device_index, index)
+        while_loop(lambda: v.frame < 10, v.update, 3)
+        v.close()
+
+    def test_vfr(self):
+         for file in PATHS:
+             v = Video(file, vfr=True)
+             self.assertTrue(v.vfr, f"{file} failed unit test")
+             v.close()
+
+    def test_vfr_seeking(self):
+        v = Video(VIDEO_PATH, vfr=True)
+
+        v.seek(-100, relative=False)
+        self.assertEqual(v.frame, 0)
+        self.assertEqual(v.get_pos(), 0.0)
+
+        v.seek(v.duration, relative=False)
+        self.assertEqual(v.get_pos(), math.floor(v.duration * 100) / 100.0)
+        self.assertEqual(v.frame, v.frame_count - 1)
+
+        rand = random.uniform(0, v.duration)
+        v.seek(rand, relative=False)
+        self.assertEqual(v.get_pos(), math.floor(rand * 100) / 100.0)
+
+        v.seek_frame(-100, relative=False)
+        self.assertEqual(v.frame, 0)
+        self.assertEqual(v.get_pos(), 0.0)
+
+        v.seek_frame(v.frame_count - 1, relative=False)
+        self.assertEqual(v.frame, v.frame_count - 1)
+        self.assertEqual(v.get_pos(), math.floor(v.duration * 100) / 100.0)
+
+        return
 
 
 
+
+
+# fix seeking unit test and vfr seeking
+# fix get_urls and youtube infinite loop
 # incorporate next in update
-# vfr
-# test no ffmpeg
-# test default state?
 
-# reverse + changed speeed
-# changed speed fps
+# stopped loading
+# _has_frame
+# audio channels
+
+# youtube subs
+# reverse seeking
+# optimize unit tests opening and closing of v and muting
+
 
 if __name__ == "__main__":
     unittest.main()

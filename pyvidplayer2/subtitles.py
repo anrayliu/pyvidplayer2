@@ -20,7 +20,7 @@ class Subtitles:
 
     def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
                  font: Union[pygame.font.SysFont, pygame.font.Font] = None, encoding: str = "utf-8", offset: int = 50,
-                 delay: float = 0, youtube: bool = False, pref_lang: str = "en") -> None:
+                 delay: float = 0, youtube: bool = False, pref_lang: str = "en", track_index: int = 0) -> None:
         
         self.path = path
         self.encoding = encoding
@@ -35,7 +35,7 @@ class Subtitles:
             else:
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
         elif self._is_video():
-            self.buffer = self._extract_internal_subs(path, 0, encoding, "ass")
+            self.buffer = self._extract_internal_subs(path, track_index, encoding, "srt")
 
         self._subs = self._load()
 
@@ -45,6 +45,7 @@ class Subtitles:
         self.surf = pygame.Surface((0, 0))
         self.offset = offset
         self.delay = delay
+        self.track_index = 0
 
         self.colour = colour
         self.highlight = highlight 
@@ -81,7 +82,7 @@ class Subtitles:
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 
-        return p.communicate()[0].decode(encoding)
+        return "\n".join(p.communicate()[0].decode(encoding).splitlines())
 
     def _extract_youtube_subs(self, url, lang):
         cfg = {

@@ -26,9 +26,13 @@ class VideoReader:
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 
-        info = json.loads(p.communicate(input=path if as_bytes else None)[0])["streams"]
+        info = json.loads(p.communicate(input=path if as_bytes else None)[0])
+
         if len(info) == 0:
-            raise Pyvidplayer2Error("No video tracks found")
+            raise Pyvidplayer2Error("Could not determine video.")
+        info = info["streams"]
+        if len(info) == 0:
+            raise Pyvidplayer2Error("No video tracks found.")
         info = info[0]
 
         self.original_size = int(info["width"]), int(info["height"])

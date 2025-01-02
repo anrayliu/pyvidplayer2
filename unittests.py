@@ -52,7 +52,7 @@ def get_youtube_urls(max_results=5):
         info = ydl.extract_info("https://www.youtube.com/feed/trending", download=False)
 
     if "entries" in info:
-        return [entry["url"] for entry in info["entries"][:max_results]]
+        return [entry["url"] for entry in info["entries"] if "view_count" in entry][:max_results]
     else:
         raise RuntimeError("Could not extract youtube urls.")
 
@@ -265,7 +265,7 @@ class TestVideo(unittest.TestCase):
             if file.endswith(".webm"):
                 continue
 
-            v = Video(file, vfr=True)
+            v = Video(file)
             v.probe()
 
             # testing relative time seek
@@ -768,8 +768,11 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    def test_open_subtitles(self):
+        pass
+
     def test_embedded_subtitles(self):
-        s = Subtitles("resources\\wSubs.mp4")
+        s = Subtitles("resources\\wSubs.mp4", track_index=0)
 
         self.assertEqual(s.track_index, 0)
 
@@ -884,10 +887,11 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     def test_reverse(self):
-        v = Video(VIDEO_PATH, reverse=True)
-        for i, frame in enumerate(v):
-            self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
-        v.close()
+        for vfr in (True, False):
+            v = Video(VIDEO_PATH, reverse=True, vfr=vfr)
+            for i, frame in enumerate(v):
+                self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
+            v.close()
 
     # tests that youtube videos do not hang when close is called
     def test_hanging(self):
@@ -950,7 +954,7 @@ class TestVideo(unittest.TestCase):
 
     # test playing video in reverse and sped up
     def test_reversed_and_speed(self):
-        v = Video(VIDEO_PATH, reverse=True, speed=5)
+        v = Video(VIDEO_PATH, reverse=True, speed=3)
         seconds_elapsed = 0
         clock = pygame.time.Clock()
         v.play()
@@ -1010,30 +1014,62 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.frame, 0)
         self.assertEqual(v.get_pos(), 0.0)
 
-        v.seek(v.duration, relative=False)
-        self.assertEqual(v.get_pos(), math.floor(v.duration * 100) / 100.0)
-        self.assertEqual(v.frame, v.frame_count - 1)
-
-        rand = random.uniform(0, v.duration)
-        v.seek(rand, relative=False)
-        self.assertEqual(v.get_pos(), math.floor(rand * 100) / 100.0)
-
-        v.seek_frame(-100, relative=False)
+        v.seek_frame(-50)
         self.assertEqual(v.frame, 0)
-        self.assertEqual(v.get_pos(), 0.0)
+        self.assertEqual(v.get_pos(), v.timestamps[0])
 
-        v.seek_frame(v.frame_count - 1, relative=False)
+        v.seek(v.duration, relative=False)
+        self.assertEqual(v.get_pos(), v.duration)
         self.assertEqual(v.frame, v.frame_count - 1)
-        self.assertEqual(v.get_pos(), math.floor(v.duration * 100) / 100.0)
 
-        return
+        # should never raise a stopIteration exception
+        next(v)
+
+        v.seek_frame(v.frame_count, relative=False)
+        self.assertEqual(v.get_pos(), v.timestamps[-1])
+        self.assertEqual(v.frame, v.frame_count - 1)
+
+        for i in range(5):
+            rand = random.uniform(0, v.duration)
+            v.seek(rand, relative=False)
+            self.assertEqual(v.get_pos(), rand)
+
+            rand = random.randrange(0, v.frame_count)
+            v.seek_frame(rand)
+            self.assertEqual(v.frame, rand)
+            self.assertEqual(v.get_pos(), v.timestamps[rand])
+
+        v.close()
+
+    def test_reverse_seek(self):
+        v = Video(VIDEO_PATH, reverse=True)
+        v.seek_frame(0)
+        self.assertTrue(check_same_frames(next(v), v._preloaded_frames[-1]))
+        v.seek_frame(v.frame_count - 1)
+        self.assertTrue(check_same_frames(next(v), v._preloaded_frames[0]))
+        v.close()
+
+    def test_bad_youtube_links(self):
+        for url in ("https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA", "https://www.youtube.com/", "https://www.youtube.com/shorts"):
+            with self.assertRaises(Pyvidplayer2Error):
+                Video(url, youtube=True).close()
+
+    def test_context_manager(self):
+        with Video(VIDEO_PATH) as v:
+            self.assertFalse(v.closed)
+        self.assertTrue(v.closed)
+
+    def test_bad_bytes(self):
+        with self.assertRaises(Pyvidplayer2Error) as context:
+            Video(b'', as_bytes=True).close()
+        self.assertEqual(str(context.exception), "Could not determine video.")
+
+    def test_no_video_tracks(self):
+        with self.assertRaises(Pyvidplayer2Error) as context:
+            Video("resources\\nov.mp4").close()
+        self.assertEqual(str(context.exception), "No video tracks found.")
 
 
-
-
-
-# fix seeking unit test and vfr seeking
-# fix get_urls and youtube infinite loop
 # incorporate next in update
 
 # stopped loading
@@ -1041,7 +1077,6 @@ class TestVideo(unittest.TestCase):
 # audio channels
 
 # youtube subs
-# reverse seeking
 # optimize unit tests opening and closing of v and muting
 
 

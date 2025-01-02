@@ -4,6 +4,7 @@ import pysubs2
 import re
 from typing import Union, Tuple
 from . import FFMPEG_LOGLVL
+from .error import Pyvidplayer2Error
 
 try:
     import yt_dlp
@@ -20,7 +21,7 @@ class Subtitles:
 
     def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
                  font: Union[pygame.font.SysFont, pygame.font.Font] = None, encoding: str = "utf-8", offset: int = 50,
-                 delay: float = 0, youtube: bool = False, pref_lang: str = "en", track_index: int = 0) -> None:
+                 delay: float = 0, youtube: bool = False, pref_lang: str = "en", track_index: int = None) -> None:
         
         self.path = path
         self.encoding = encoding
@@ -34,8 +35,10 @@ class Subtitles:
                 self.buffer = self._extract_youtube_subs(path, pref_lang)
             else:
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
-        elif self._is_video():
+        elif track_index is not None:
             self.buffer = self._extract_internal_subs(path, track_index, encoding, "srt")
+            if self.buffer == "":
+                raise Pyvidplayer2Error("No subtitles found inside video.")
 
         self._subs = self._load()
 
@@ -45,7 +48,7 @@ class Subtitles:
         self.surf = pygame.Surface((0, 0))
         self.offset = offset
         self.delay = delay
-        self.track_index = 0
+        self.track_index = track_index
 
         self.colour = colour
         self.highlight = highlight 
@@ -55,11 +58,8 @@ class Subtitles:
     def __str__(self):
         return f"<Subtitles(path={self.path})>"
 
-    def _is_video(self):
-        return self.path.endswith(".mp4")
-
     def _load(self):
-        if self.youtube or self._is_video():
+        if self.buffer != "":
             return iter(pysubs2.SSAFile.from_string(self.buffer))
         return iter(pysubs2.load(self.path, encoding=self.encoding))
 

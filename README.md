@@ -196,7 +196,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `min_fr: float` - Only used if `vfr = True`. Gives the minimum frame rate throughout the video.
  - `avg_fr: float` - Only used if `vfr = True`. Gives the average frame rate of all the extracted presentation timestamps.
  - `timestamps: [float]` - List of presentation timestamps for each frame.
- - `frame_count: int` - How many total frames there are. May not be 100% accurate. For a more accurate (but slower) frame count,set `vfr = True` and use `len(video.timestamps)`.
+ - `frame_count: int` - How many total frames there are. May not be exactly accurate. For a more accurate (but slower) frame count, use `_get_real_frame_count()`.
  - `frame_delay: float` - Time between frames in order to maintain frame rate (in fractions of a second).
  - `duration: float` - Length of video in seconds.
  - `original_size: (int, int)` - Tuple containing the width and height of each original frame. Unaffected by resizing.
@@ -214,7 +214,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `muted: bool`
  - `speed: float | int` - Same as given argument.
  - `subs: pyvidplayer2.Subtitles` - Same as given argument.
- - `post_func: function(numpy.ndarray) -> numpy.ndarray` - Same as given argument. Can be changed with `set_post_func`.
+ - `post_func: callable(numpy.ndarray) -> numpy.ndarray` - Same as given argument. Can be changed with `set_post_func`.
  - `interp: int` - Same as given argument. Can be changed with `set_interp`. Will be converted to an integer if given a string. For example, if `"linear"` is given during initialization, this will be converted to cv2.INTER_LINEAR.
  - `use_pygame_audio: bool` - Same as given argument. May be automatically set to default sound backend.
  - `reverse: bool` - Same as given argument.
@@ -247,10 +247,10 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `mute() -> None`
  - `unmute() -> None`
  - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the `interp` parameter (see `interp` above). Does nothing if OpenCV is not installed.
- - `set_post_func(func: function(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
+ - `set_post_func(func: callable(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
  - `get_pos(): float` - Returns the current position in seconds.
- - `seek(time: float | int, relative: bool = True) -> None` - Changes the current position in the video. If relative is `True`, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, and seeking will be accurate to one hundredth of a second. Note that 
- frames and audio within the video will not yet be updated after calling seek. If the given value is larger than the video duration, the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
+ - `seek(time: float | int, relative: bool = True) -> None` - Changes the current position in the video. If relative is `True`, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in seconds, with no precision limit. Note that 
+ frames and audio within the video will not yet be updated after calling seek. `update()` or `draw` must be called for internal processing to start. If the given value is larger than the video duration, the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
  - `seek_frame(index: int, relative: bool = False) -> None` - Same as `seek` but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total frames, the video will be seeked to the last frame.
  - `update() -> bool` - Allows video to perform required operations. `draw` already calls this method, so it's usually not used. Returns `True` if a new frame is ready to be displayed.
  - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto the given surface, at the given position. If `force_draw` is `True`, a surface will be drawn every time this is called. Otherwise, only new frames will be drawn. This reduces CPU usage but will cause flickering if anything is drawn under or above the video. This method also returns whether a frame was drawn.
@@ -322,12 +322,12 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `get_video() -> pyvidplayer2.VideoPygame` - Returns currently playing video.
 
 
-# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50, delay=0, youtube=False, pref_lang="en")
+# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50, delay=0, youtube=False, pref_lang="en", track_index=None)
 
 Object used for handling subtitles. Only supported for Pygame.
 
 ## Parameters
- - `path: str` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others. Can also be a youtube url if `youtube = True`.
+ - `path: str` - Path to subtitle file. This can be any file pysubs2 can read including .srt, .ass, .vtt, and others. Can also be a youtube url if `youtube = True`. Can also be a video that contains subtitle tracks.
  - `colour: str | (int, int, int)` - Colour of text as an RGB value or a string recognized by Pygame.
  - `highlight: str | (int, int, int, int)` - Background colour of text. Accepts RGBA, so it can be made completely transparent.
  - `font: pygame.font.Font | pygame.font.SysFont` - Pygame `Font` or `SysFont` object used to render surfaces. This includes the size of the text.
@@ -336,6 +336,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - `delay: float` - Delays all subtitles by this many seconds.
  - `youtube: bool` - Set this to true and put a youtube video url into path to grab subtitles. 
  - `pref_lang: str` - Which language file to grab if `youtube = True`. If no subtitle file exists for this language, automatic captions are used, which are also automatically translated into the preferred language.
+ - `track_index: int` - If path is given as a video with subtitle tracks, use this to specify which subtitle to load. 0 selects the first, 1 selects the second, etfc.
 
 ## Attributes
  - `path: str` - Same as given argument.
@@ -352,6 +353,7 @@ Object used for handling subtitles. Only supported for Pygame.
  - `youtube: bool` - Same as given argument.
  - `pref_lang: str` - Same as given argument.
  - `buffer: str` - Entire subtitle file loaded into memory if downloaded.
+ - `track_index: int` - Same as given argument.
 
 ## Methods 
  - `set_font(font: pygame.font.Font | pygame.font.SysFont) -> None` - Same as `font` parameter (see `font` above).
@@ -363,13 +365,13 @@ Object used for handling subtitles. Only supported for Pygame.
 Object used for displaying a webcam feed. Only supported for Pygame.
 
 ## Parameters
- - `post_process: function(numpy.ndarray) -> numpy.ndarray` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place. Post processing functions should accept a NumpPy image (see `frame_data` below) and return the processed image.
+ - `post_process: callable(numpy.ndarray) -> numpy.ndarray` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place. Post processing functions should accept a NumpPy image (see `frame_data` below) and return the processed image.
  - `interp: str | int` - Interpolation technique used by OpenCV when resizing frames. Does nothing if OpenCV is not installed. Accepts `"nearest"`, `"linear"`, `"cubic"`, `"lanczos4"` and `"area"`. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in `cv2.INTER_LINEAR`.
  - `fps: int` - Maximum number of frames captured from the webcam per second.
  - `cam_id: int` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, and so on.
 
 ## Attributes
- - `post_process: function(numpy.ndarray) -> numpy.ndarray` - Same as given argument.
+ - `post_process: callable(numpy.ndarray) -> numpy.ndarray` - Same as given argument.
  - `interp: int` - Same as given argument.
  - `fps: int` - Same as given argument.
  - `original_size: (int, int)` - Tuple containing the width and height of each frame captured. Unaffected by resizing.
@@ -386,7 +388,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
  - `resize(size: (int, int)) -> None`
  - `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect ratio. Will scale width to an even number.
  - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the `interp` parameter (see `interp` above). Does nothing if OpenCV is not installed.
-  - `set_post_func(func: function(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
+  - `set_post_func(func: callable(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
  - `close() -> None` - Releases resources. Always recommended to call when done.
  - `get_pos() -> float` - Returns how long the webcam has been active. Is not reset if webcam is stopped.
  - `update() -> bool` - Allows webcam to perform required operations. `draw` already calls this method, so it's usually not used. Returns `True` if a new frame is ready to be displayed.

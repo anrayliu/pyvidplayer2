@@ -18,7 +18,7 @@ class VideoPySide(Video):
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
                        as_bytes, audio_track, vfr, pref_lang, audio_index)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoPySide(path={self.path})>"
 
     def _create_frame(self, data):

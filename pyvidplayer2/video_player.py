@@ -47,8 +47,11 @@ class VideoPlayer:
             self._interval_frames = []
             self._get_interval_frames()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoPlayer(path={self.video.path})>"
+
+    def __len__(self):
+        return len(self.queue_)
 
     def _close_queue(self):
         for video in self.queue_:

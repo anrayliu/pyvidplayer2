@@ -16,7 +16,7 @@ class VideoTkinter(Video):
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
                        as_bytes, audio_track, vfr, pref_lang, audio_index)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<VideoTkinter(path={self.path})>"
 
     def _create_frame(self, data):
@@ -30,7 +30,7 @@ class VideoTkinter(Video):
     def draw(self, surf: tk.Canvas, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, surf, pos, force_draw)
     
-    def preview(self, max_fps: int = 60):
+    def preview(self, max_fps: int = 60) -> None:
         self.play()
         def update():
             self.draw(canvas, (self.current_size[0] / 2, self.current_size[1] / 2), force_draw=False)

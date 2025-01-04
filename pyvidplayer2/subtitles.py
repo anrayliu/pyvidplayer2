@@ -2,6 +2,7 @@ import subprocess
 import pygame
 import pysubs2
 import re
+import os
 from typing import Union, Tuple
 from . import FFMPEG_LOGLVL
 from .error import Pyvidplayer2Error
@@ -24,6 +25,7 @@ class Subtitles:
                  delay: float = 0, youtube: bool = False, pref_lang: str = "en", track_index: int = None) -> None:
         
         self.path = path
+        self.track_index = track_index
         self.encoding = encoding
 
         self.youtube = youtube
@@ -32,13 +34,20 @@ class Subtitles:
         self.buffer = ""
         if youtube:
             if YTDLP:
-                self.buffer = self._extract_youtube_subs(path, pref_lang)
+                self.buffer = self._extract_youtube_subs()
             else:
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
-        elif track_index is not None:
-            self.buffer = self._extract_internal_subs(path, track_index, encoding, "srt")
-            if self.buffer == "":
-                raise Pyvidplayer2Error("No subtitles found inside video.")
+        else:
+            if not os.path.exists(self.path):
+                raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
+
+            if track_index is not None:
+                if not os.path.exists(self.path):
+                    raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
+
+                self.buffer = self._extract_internal_subs()
+                if self.buffer == "":
+                    raise Pyvidplayer2Error("Could not find selected subtitle track in video.")
 
         self._subs = self._load()
 
@@ -48,20 +57,24 @@ class Subtitles:
         self.surf = pygame.Surface((0, 0))
         self.offset = offset
         self.delay = delay
-        self.track_index = track_index
 
         self.colour = colour
         self.highlight = highlight 
 
-        self.font = pygame.font.SysFont("arial", 30) if font is None else font
+        self.font = None
+        self.set_font(pygame.font.SysFont("arial", 30) if font is None else font)
+
 
     def __str__(self):
         return f"<Subtitles(path={self.path})>"
 
     def _load(self):
-        if self.buffer != "":
-            return iter(pysubs2.SSAFile.from_string(self.buffer))
-        return iter(pysubs2.load(self.path, encoding=self.encoding))
+        try:
+            if self.buffer != "":
+                return iter(pysubs2.SSAFile.from_string(self.buffer))
+            return iter(pysubs2.load(self.path, encoding=self.encoding))
+        except (pysubs2.exceptions.FormatAutodetectionError, UnicodeDecodeError):
+            raise Pyvidplayer2Error("Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
     def _to_surf(self, text):
         h = self.font.get_height()
@@ -76,35 +89,38 @@ class Subtitles:
 
         return surface
 
-    def _extract_internal_subs(self, path, index, encoding, f):
+    def _extract_internal_subs(self):
         try:
-            p = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -map 0:s:{index} -f {f} -", stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffmpeg -i {self.path} -loglevel {FFMPEG_LOGLVL} -map 0:s:{self.track_index} -f srt -", stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 
-        return "\n".join(p.communicate()[0].decode(encoding).splitlines())
+        return "\n".join(p.communicate()[0].decode(self.encoding).splitlines())
 
-    def _extract_youtube_subs(self, url, lang):
+    def _extract_youtube_subs(self):
         cfg = {
             "quiet":True,
             "skip_download": True,
             "writeautomaticsub": True,
-            "subtitleslangs": [lang],
+            "subtitleslangs": [self.pref_lang],
             "subtitlesformat": "vtt"
         }
 
         with yt_dlp.YoutubeDL(cfg) as ydl:
-            info = ydl.extract_info(url, download=False)
+            info = ydl.extract_info(self.path, download=False)
 
             subs = info.get("subtitles", {})
-            if not lang in subs:                
+            if not self.pref_lang in subs:
                 subs = info.get("automatic_captions", {})
 
                 self._auto_cap = True
 
-            for i, s in enumerate(subs[lang]):
-                if s["ext"] == "vtt":
-                    return ydl.urlopen(subs[lang][i]["url"]).read().decode("utf-8")
+            if self.pref_lang in subs:
+                for i, s in enumerate(subs[self.pref_lang]):
+                    if s["ext"] == "vtt":
+                        return ydl.urlopen(subs[self.pref_lang][i]["url"]).read().decode("utf-8")
+            else:
+                raise Pyvidplayer2Error("Could not find subtitles in the specified language.")
 
     def _get_next(self):
         try:
@@ -140,6 +156,8 @@ class Subtitles:
         
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
         self.font = font
+        if not isinstance(self.font, pygame.font.Font):
+            raise Pyvidplayer2Error("Font must be a pygame.font.Font or pygame.font.SysFont object.")
 
     def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
         return self.font

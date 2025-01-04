@@ -38,3 +38,9 @@ class PostProcessing:
         
         def cel_shading(data: np.ndarray) -> np.ndarray:
             return cv2.subtract(data, cv2.blur(cv2.merge((cv2.Canny(data, 150, 200),) * 3), (2, 2)))
+
+        def flipup(data: np.ndarray) -> np.ndarray:
+            return np.flipud(data)
+
+        def fliplr(data: np.ndarray) -> np.ndarray:
+            return np.fliplr(data)

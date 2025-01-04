@@ -173,7 +173,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `max_chunks: int` - Maximum number of chunks allowed to be extracted and reserved. Do not change if streaming from Youtube (see `youtube` below).
  - `subs: pyvidplayer2.Subtitles` - Pass a `Subtitles` object here for the video to display subtitles.
  - `post_process: function(numpy.ndarray) -> numpy.ndarray` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place. Post processing functions should accept a NumpPy image (see `frame_data` below) and return the processed image.
- - `interp: str | int` - Interpolation technique used when resizing frames with OpenCV. Does nothing if OpenCv is not installed. Accepts `"nearest"`, `"linear"`, `"cubic"`, `"lanczos4"` and `"area"`. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in `cv2.INTER_LINEAR`.
+ - `interp: str | int` - Interpolation technique used when resizing frames. Accepts `"nearest"`, `"linear"`, `"cubic"`, `"lanczos4"` and `"area"`. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in `cv2.INTER_LINEAR`. Resizing will use opencv when available but can fall back on ffmpeg if needed.
  - `use_pygame_audio: bool` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best option, so this is mostly obsolete. Using Pygame audio will not allow videos to be played in parallel. 
  - `reverse: bool` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into memory, so videos longer than a few minutes can temporarily brick your computer. Subtitles are currently unaffected by reverse playback.
  - `no_audio: bool` - Specifies whether the given video has no audio tracks. Setting this to `True` can also be used to disable all existing audio tracks.
@@ -271,7 +271,7 @@ To use other libraries instead of Pygame, use their respective video object. Eac
 
 ## As a Generator
 
-Video objects can be iterated through as a generator, returning each subsequent frame. Frames will be given in reverse if video is reversed, and post processing and resizing will still take place. After iterating through frames, `play()` will resume the video from where the last frame left off. Returned frames will be in BGR format.
+Video objects can be iterated through as a generator, returning each subsequent frame. Frames will be given in reverse if video is reversed, and post processing and resizing will still take place. Subtitles will not be rendered. After iterating through frames, `play()` will resume the video from where the last frame left off. Returned frames will be in BGR format.
 ```
 for frame in Video("example.mp4"):
     print(frame)
@@ -313,7 +313,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `toggle_zoom() -> None` - Switches between zoomed in and zoomed out.
  - `queue(input: pyvidplayer2.VideoPygame | str) -> None` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
  - `get_queue(): list[pyvidplayer2.VideoPygame]` - Returns list of queued video objects.
- - `resize(size: (int, int)) -> None` - Resizes the video player. The contained video will automatically readjust to fit the player.
+ - `resize(size: (int, int)) -> None` - Resizes the video player. The contained video will automatically re-adjust to fit the player.
  - `move(pos: (int, int), relative: bool = False) -> None` - Moves the VideoPlayer. If `relative` is `True`, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
  - `update(events: list[pygame.event.Event], show_ui: bool = None, fps: int = 0) -> bool` - Allows the VideoPlayer to make calculations. It must be given the returns of `pygame.event.get()`. The GUI automatically shows up when your mouse hovers over the video player, so setting `show_ui` to `False` can be used to override that. The `fps` parameter can enforce be used to enforce a frame rate to your app. This method also returns whether the UI was shown.
  - `draw(surface: pygame.Surface) -> None` - Draws the VideoPlayer onto the given Pygame surface.
@@ -322,7 +322,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `get_video() -> pyvidplayer2.VideoPygame` - Returns currently playing video.
 
 
-# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=pygame.font.SysFont("arial", 30), encoding="utf-8-sig", offset=50, delay=0, youtube=False, pref_lang="en", track_index=None)
+# Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=None, encoding="utf-8", offset=50, delay=0, youtube=False, pref_lang="en", track_index=None)
 
 Object used for handling subtitles. Only supported for Pygame.
 
@@ -335,7 +335,8 @@ Object used for handling subtitles. Only supported for Pygame.
  - `offset: float` - The higher this number is, the closer the subtitle is to the top of the screen.
  - `delay: float` - Delays all subtitles by this many seconds.
  - `youtube: bool` - Set this to true and put a youtube video url into path to grab subtitles. 
- - `pref_lang: str` - Which language file to grab if `youtube = True`. If no subtitle file exists for this language, automatic captions are used, which are also automatically translated into the preferred language.
+ - `pref_lang: str` - Which language file to grab if `youtube = True`. If no subtitle file exists for this language, automatic captions are used, which are also automatically translated into the preferred language. However, it's important to use the correct language code set by Google, otherwise the subtitles will not be found.
+For example, usually setting `en` will get English subtitles. However, the video might be in `en-US` instead, so this is an important differentiation. Confirm which one your video has in Youtube first.
  - `track_index: int` - If path is given as a video with subtitle tracks, use this to specify which subtitle to load. 0 selects the first, 1 selects the second, etfc.
 
 ## Attributes
@@ -366,7 +367,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
 
 ## Parameters
  - `post_process: callable(numpy.ndarray) -> numpy.ndarray` - Post processing function that is applied whenever a frame is rendered. This is PostProcessing.none by default, which means no alterations are taking place. Post processing functions should accept a NumpPy image (see `frame_data` below) and return the processed image.
- - `interp: str | int` - Interpolation technique used by OpenCV when resizing frames. Does nothing if OpenCV is not installed. Accepts `"nearest"`, `"linear"`, `"cubic"`, `"lanczos4"` and `"area"`. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in `cv2.INTER_LINEAR`.
+ - `interp: str | int` - Interpolation technique used by OpenCV when resizing frames. Accepts `"nearest"`, `"linear"`, `"cubic"`, `"lanczos4"` and `"area"`. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in `cv2.INTER_LINEAR`. Resizing will use opencv when available but can fall back on ffmpeg if needed.
  - `fps: int` - Maximum number of frames captured from the webcam per second.
  - `cam_id: int` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, and so on.
 
@@ -407,6 +408,8 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - `noise` - Adds a static-like filter. Very resource intensive.
  - `letterbox` - Adds black bars above and below the frame to look more cinematic.
  - `cel_shading` - Thickens borders for a comic book style filter.
+ - `fliplr` - Flips the video across y axis.
+ - `flipup` - Flips the video across x axis.
 
 # Misc
 

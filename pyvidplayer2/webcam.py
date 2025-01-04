@@ -12,13 +12,18 @@ class Webcam:
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     '''
 
-    def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none, interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0) -> None:
+    def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none, interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0, capture_size: Tuple[int, int] = (0, 0)) -> None:
         self._vid = cv2.VideoCapture(cam_id)
 
         if not self._vid.isOpened():
             raise Pyvidplayer2Error("Failed to find a webcam.")
 
-        self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        self.original_size = (0, 0)
+        if capture_size == (0, 0):
+            self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        else:
+            self.resize_capture(capture_size)
+
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
@@ -39,7 +44,7 @@ class Webcam:
 
         self.play()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"<Webcam(fps={self.fps})>"
 
     def _update(self):
@@ -64,13 +69,15 @@ class Webcam:
 
         return False
 
-    def update(self):
+    def update(self) -> bool:
         return self._update()
 
     def set_post_func(self, func: Callable[[np.ndarray], np.ndarray]) -> None:
         self.post_func = func
 
     def set_interp(self, interp: Union[str, int]) -> None:
+        # cv2 will always be installed for webcam
+
         if interp in ("nearest", 0):
             self.interp = cv2.INTER_NEAREST
         elif interp in ("linear", 1):
@@ -94,6 +101,11 @@ class Webcam:
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
+
+    def resize_capture(self, size: Tuple[int, int]) -> None:
+        self._vid.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
+        self._vid.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
+        self.original_size = size
 
     def change_resolution(self, height: int) -> None:
         self.current_size = (int(height * self.aspect_ratio), height)

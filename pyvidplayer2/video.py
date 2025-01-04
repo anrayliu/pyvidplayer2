@@ -1,4 +1,3 @@
-import math
 import subprocess
 import os
 import json 
@@ -10,7 +9,7 @@ from .error import Pyvidplayer2Error
 from . import FFMPEG_LOGLVL
 
 try:
-    import cv2 
+    import cv2
 except ImportError:
     CV = 0
 else:
@@ -107,6 +106,9 @@ class Video:
             self._audio_path = "-"  # read from pipe
 
         else:
+            if not os.path.exists(self.path):
+                raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
+
             if CV:
                 self._vid = CVReader(self.path)
             else:
@@ -131,7 +133,7 @@ class Video:
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
-        self.chunk_size = chunk_size
+        self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
         self.max_threads = max_threads
 
@@ -175,7 +177,7 @@ class Video:
             if PYAUDIO:
                 self._audio = PyaudioHandler()
                 if self.audio_index is not None:
-                    self._audio.device_index = self.audio_index
+                    self._audio._set_device_index(self.audio_index)
             else:
                 raise ModuleNotFoundError("Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
             
@@ -200,16 +202,16 @@ class Video:
 
         self.play()
 
-    def __len__(self) -> int:
+    def __len__(self):
         return self.frame_count
     
-    def __enter__(self) -> "self":
+    def __enter__(self):
         return self
 
-    def __exit__(self, type_, value, traceback) -> None:
+    def __exit__(self, type_, value, traceback):
         self.close()
 
-    def __iter__(self) -> "self":
+    def __iter__(self):
         self.stop()
         return self
 
@@ -278,7 +280,9 @@ class Video:
                     raise Pyvidplayer2Error("No streaming links found.")
             except Pyvidplayer2Error:
                 raise
-            except: # something went wrong with yt_dlp
+            except Exception as e: # something went wrong with yt_dlp
+                if "Requested format is not available" in str(e):
+                    raise Pyvidplayer2Error("Could not find requested resolution.")
                 raise Pyvidplayer2Error("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
             else:
                 self.path = formats[0]["url"]
@@ -333,7 +337,6 @@ class Video:
     # not used, not always accurate
     def _test_vfr(self):
         min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
-        print(max_, min_)
         return (max_ - min_) > 0.1
 
     def _test_no_audio(self):
@@ -558,7 +561,10 @@ class Video:
         if not use_ffmpeg:
             return cv2.resize(data, dsize=size, interpolation=interp)
 
-        # without opencv, use ffmpeg resizing 
+        # without opencv, use ffmpeg resizing
+
+        if type(interp) == int:
+            interp = ("neighbor", "bilinear", "bicubic", "area", "lanczos")[interp]
 
         process = subprocess.Popen(
             [
@@ -578,7 +584,7 @@ class Video:
 
         return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
 
-    def probe(self):
+    def probe(self) -> None:
         self._vid._probe(self.path, self.as_bytes)
         self.frame_count = self._vid.frame_count
         self.frame_rate = self._vid.frame_rate
@@ -587,7 +593,7 @@ class Video:
         self.original_size = self._vid.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
-    def update(self):
+    def update(self) -> bool:
         return self._update()
 
     @property
@@ -595,18 +601,16 @@ class Video:
         return self.get_volume()
 
     def set_interp(self, interp: Union[str, int]) -> None:
-        if not CV:
-            return
-        elif interp in ("nearest", 0):
-            self.interp = cv2.INTER_NEAREST
+        if interp in ("nearest", 0):
+            self.interp = 0 #cv2.INTER_NEAREST
         elif interp in ("linear", 1):
-            self.interp = cv2.INTER_LINEAR
+            self.interp = 1 #cv2.INTER_LINEAR
         elif interp in ("area", 3):
-            self.interp = cv2.INTER_AREA
+            self.interp = 3 #cv2.INTER_AREA
         elif interp in ("cubic", 2):
-            self.interp = cv2.INTER_CUBIC
+            self.interp = 2 #cv2.INTER_CUBIC
         elif interp in ("lanczos4", 4):
-            self.interp = cv2.INTER_LANCZOS4
+            self.interp = 4 #cv2.INTER_LANCZOS4
         else:
             raise ValueError("Interpolation technique not recognized.")
 

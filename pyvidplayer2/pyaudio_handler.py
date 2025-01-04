@@ -61,6 +61,14 @@ class PyaudioHandler:
 
         self._buffer = None # used for testing purposes
 
+    def _set_device_index(self, index):
+        try:
+            self.audio_devices[index]
+        except IndexError:
+            raise Pyvidplayer2Error(f"Audio device with index {index} does not exist.")
+        else:
+            self.device_index = index
+
     def get_busy(self):
         return self.active
 

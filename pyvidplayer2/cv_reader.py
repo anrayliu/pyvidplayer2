@@ -1,4 +1,5 @@
-import cv2 
+import cv2
+from . import Pyvidplayer2Error
 from .video_reader import VideoReader
 
 
@@ -7,6 +8,8 @@ class CVReader(VideoReader):
         VideoReader.__init__(self, path, probe)
 
         self._vidcap = cv2.VideoCapture(path)
+        if not self.isOpened():
+            return
 
         if not probe:
             self.frame_count = int(self._vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -24,6 +27,8 @@ class CVReader(VideoReader):
     def seek(self, index):
         self._vidcap.set(cv2.CAP_PROP_POS_FRAMES, index)
         self.frame = int(self._vidcap.get(cv2.CAP_PROP_POS_FRAMES))
+        if self.frame < 0:
+            raise Pyvidplayer2Error("Failed to seek.")
 
     def read(self):
         has, frame = self._vidcap.read()

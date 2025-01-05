@@ -121,7 +121,7 @@ class Video:
             elif as_bytes:
                 raise Pyvidplayer2Error("Could not identify video from given bytes.")
             else:
-                raise FileNotFoundError("Could not find file. Make sure the path is correct.")
+                raise Pyvidplayer2Error("Could not open file.")
 
         # file information
 

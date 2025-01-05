@@ -16,13 +16,15 @@ class VideoReader:
         if probe:
             self._probe(path)
 
+    # as it turns out, obtaining video data such as frame count and dimensions is actually very inconsistent between
+    # different videos and encoders
     def _probe(self, path, as_bytes=False):
         # strangely for ffprobe, - is not required to indicate output
-        # NOTE: if probing and the path is bad, this will raise an error before the video class does, may cause confusion on what went wrong for users
 
         try:
+            # this method counts the number of packets as a substitute for frames, which is much too slow
             #p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
-            p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -count_packets -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
+            p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -count_packets -select_streams v:0 -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 
@@ -36,7 +38,7 @@ class VideoReader:
         info = info[0]
 
         self.original_size = int(info["width"]), int(info["height"])
-        self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
+        self.frame_rate = float(info["r_frame_rate"].split("/")[0]) / float(info["r_frame_rate"].split("/")[1])
 
         '''try:
             p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_format -loglevel {FFMPEG_LOGLVL} -print_format json",
@@ -49,12 +51,16 @@ class VideoReader:
         self.duration = float(info["duration"])
         self.frame_count = int(self.duration * self.frame_rate)'''
 
+        # use header information if available, which should be more accurate than counting packets
         try:
             self.frame_count = int(info["nb_frames"])
         except KeyError:
             self.frame_count = int(info["nb_read_packets"])
 
-        self.duration = self.frame_count / self.frame_rate
+        try:
+            self.duration = float(info["duration"])
+        except KeyError:
+            self.duration = self.frame_count / self.frame_rate
 
     def isOpened(self):
         return True

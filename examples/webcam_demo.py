@@ -5,7 +5,8 @@ This is an example showing off webcam streaming
 import pygame
 from pyvidplayer2 import Webcam
 
-webcam = Webcam()
+# you can change these values to whatever your webcam supports
+webcam = Webcam(fps=30, capture_size=(480, 640))
 
 win = pygame.display.set_mode(webcam.current_size)
 pygame.display.set_caption("webcam_demo")

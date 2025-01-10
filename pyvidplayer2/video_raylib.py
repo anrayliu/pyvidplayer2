@@ -8,9 +8,10 @@ from PIL import Image
 
 
 class VideoRaylib(Video):
-    '''
+    """
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    '''
+    """
+
 
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
@@ -41,9 +42,7 @@ class VideoRaylib(Video):
     def draw(self, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, None, pos, force_draw)
 
-    def preview(self, max_fps: int = 60, disable_logs: bool = True) -> None:
-        if disable_logs:
-            pyray.set_trace_log_level(pyray.TraceLogLevel.LOG_NONE)
+    def preview(self, max_fps: int = 60) -> None:
         pyray.init_window(*self.original_size,f"raylib - {self.name}")
         pyray.set_target_fps(max_fps)
         self.play()
@@ -54,3 +53,8 @@ class VideoRaylib(Video):
         if self.frame_surf is not None:
             pyray.unload_texture(self.frame_surf)
         pyray.close_window()
+
+    def close(self) -> None:
+        if self.frame_surf is not None:
+            pyray.unload_texture(self.frame_surf)
+        Video.close(self)

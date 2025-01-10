@@ -24,9 +24,7 @@ while True:
     
     pygame.time.wait(16)
     
-    win.fill("white")
-    
     player.update(events)
     player.draw(win)
-    
+
     pygame.display.update()

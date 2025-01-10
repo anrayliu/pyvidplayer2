@@ -6,7 +6,7 @@ import time
 import numpy as np
 from threading import Thread
 from io import BytesIO
-from .error import Pyvidplayer2Error
+from .error import *
 
 
 class PyaudioHandler:
@@ -65,7 +65,7 @@ class PyaudioHandler:
         try:
             self.audio_devices[index]
         except IndexError:
-            raise Pyvidplayer2Error(f"Audio device with index {index} does not exist.")
+            raise AudioDeviceError(f"Audio device with index {index} does not exist.")
         else:
             self.device_index = index
 
@@ -104,7 +104,7 @@ class PyaudioHandler:
                     break
 
         if device_index < 0:
-            raise Pyvidplayer2Error("No audio devices found.")
+            raise AudioDeviceError("No audio devices found.")
 
         return device_index
 
@@ -160,7 +160,7 @@ class PyaudioHandler:
                 )
 
             except:
-                raise Pyvidplayer2Error("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[self.device_index]["name"]))
+                raise AudioDeviceError("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[self.device_index]["name"]))
                 
         self.loaded = True
 

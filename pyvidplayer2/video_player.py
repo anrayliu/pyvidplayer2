@@ -2,14 +2,23 @@ import pygame
 import math
 from typing import Tuple, Union, List
 from . import Video
+from .error import *
+from .video_pygame import VideoPygame
 
 
 class VideoPlayer:
-    '''
+    """
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    '''
+    """
+
     def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop: bool = False, preview_thumbnails: int = 0, font_size: int = 10):
         self.video = video
+        if isinstance(self.video, VideoPygame):
+            if self.video.closed:
+                raise VideoStreamError("Provided video is closed.")
+        else:
+            raise ValueError("Must be a VideoPygame object.")
+
         self.frame_rect = pygame.Rect(rect)
         self.interactable = interactable
         self.loop = loop
@@ -26,8 +35,6 @@ class VideoPlayer:
         self._buffer_angle = 0
 
         self._zoomed = False
-
-        self._buffer_frame = None # updated with new video frames
 
         self._transform(self.frame_rect)
 
@@ -47,11 +54,13 @@ class VideoPlayer:
             self._interval_frames = []
             self._get_interval_frames()
 
+        self.closed = False
+
     def __str__(self):
         return f"<VideoPlayer(path={self.video.path})>"
 
     def __len__(self):
-        return len(self.queue_)
+        return len(self.queue_) + 1
 
     def _close_queue(self):
         for video in self.queue_:
@@ -62,41 +71,45 @@ class VideoPlayer:
     
     def _get_interval_frames(self):
         size = (int(70 * self.video.aspect_ratio), 70)
+
+        self._interval_frames.clear()
+        frame = self.video._vid.frame
+
         for i in range(self.preview_thumbnails):
-            self.video._vid.seek(int(i * self.video.frame_rate * self._interval))
-            
-            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
+            if self.video._preloaded:
+                data = self.video._preloaded_frames[int(i * self.video.frame_rate * self._interval)]
+            else:
+                self.video._vid.seek(int(i * self.video.frame_rate * self._interval))
+                data = self.video._vid.read()[1]
+
+            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(data, size, "fast_bilinear", True).tobytes(), size, "BGR"))
 
         # add last readable frame
 
-        i = 1
-        while True:
-            self.video._vid.seek(self.video.frame_count - i)
-            try:
-                self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
-            except:
-                i += 1
-            else:
-                break 
+        if self.video._preloaded:
+            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._preloaded_frames[-1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
+        else:
+            i = 1
+            while True:
+                self.video._vid.seek(self.video.frame_count - i)
+                try:
+                    self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
+                except:
+                    i += 1
+                else:
+                    break
 
-        self.video._vid.seek(0)
+            self.video._vid.seek(frame)
     
     def _get_closest_frame(self, time):
-        i = math.floor(time // self._interval)
-        if (i + 1) * self._interval - time >= self._interval // 2:
-            return self._interval_frames[i]
-        else:
-            return self._interval_frames[i + 1]
-        
+        return self._interval_frames[round(time / self._interval)]
+
     def _transform(self, rect):
         self.frame_rect = rect
         self.zoom_out()
 
         self._progress_back = pygame.Rect(self.frame_rect.x + 10, self.frame_rect.bottom - 25, self.frame_rect.w - 20, 15)
         self._progress_bar = self._progress_back.copy()
-
-        if self._buffer_frame is not None:
-            self._buffer_frame = pygame.transform.smoothscale(self._buffer_frame, self.vid_rect.size)
 
         self._buffer_rect = pygame.Rect(0, 0, 200, 200)
         self._buffer_rect.center = self.frame_rect.center
@@ -123,15 +136,34 @@ class VideoPlayer:
             y = 0
             
         return pygame.Rect(rect.x + x, rect.y + y, w, h)
-    
+
+    # called after a video is finished playing
+    def _handle_on_end(self):
+        if self.queue_:
+            if self.loop:
+                self.queue(self.video)
+            else:
+                self.video.close()
+            input_ = self.queue_.pop(0)
+            if isinstance(input_, Video):
+                self.video = input_
+                self.video.play()
+            else:
+                self.video = Video(input_)
+            self._transform(self.frame_rect)
+        elif self.loop:
+            self.video.restart()
+
     def zoom_to_fill(self) -> None:
         s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
         self.vid_rect.inflate_ip(s, s)
+        self.vid_rect.center = self.frame_rect.center #adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
         self._zoomed = True
 
     def zoom_out(self) -> None:
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
+        self.vid_rect.center = self.frame_rect.center #adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
         self._zoomed = False
 
@@ -166,21 +198,9 @@ class VideoPlayer:
         dt = self._clock.tick(fps)
 
         if not self.video.active:
-            if self.queue_:
-                if self.loop:
-                    self.queue(self.video)
-                input_ = self.queue_.pop(0)
-                if isinstance(input_, Video):
-                    self.video = input_
-                    self.video.play()
-                else:
-                    self.video = Video(input_)
-                self._transform(self.frame_rect)
-            elif self.loop:
-                self.video.restart()
+            self._handle_on_end()
 
-        if self.video._update():
-            self._buffer_frame = self.video.frame_surf   
+        self.video.update()
 
         if self.interactable:
 
@@ -217,8 +237,12 @@ class VideoPlayer:
 
     def draw(self, win: pygame.Surface) -> None:
         pygame.draw.rect(win, "black", self.frame_rect)
-        if self._buffer_frame is not None:
-            win.blit(self._buffer_frame, self.vid_rect.topleft)
+        buffer = self.video.frame_surf
+        if buffer is not None:
+            if self._zoomed:
+                win.blit(buffer, self.frame_rect.topleft, (self.frame_rect.x - self.vid_rect.x, self.frame_rect.y - self.vid_rect.y, *self.frame_rect.size))
+            else:
+                win.blit(buffer, self.vid_rect.topleft)
 
         if self._show_ui:
             pygame.draw.line(win, (50, 50, 50), (self._progress_back.x, self._progress_back.centery), (self._progress_back.right, self._progress_back.centery), 5)
@@ -256,19 +280,41 @@ class VideoPlayer:
     def close(self) -> None:
         self.video.close()
         self._close_queue()
+        self.closed = True
         
     def skip(self) -> None:
-        self.video.stop() if self.loop else self.video.close()
+        if self.queue_:
+            self.video.stop() if self.loop else self.video.close()
+            self._handle_on_end()
 
     def get_next(self) -> Union[str, Video]:
         return self.queue_[0] if self.queue_ else None
     
     def clear_queue(self) -> None:
         self._close_queue()
-        self.queue_ = []
+        self.queue_.clear()
 
     def get_video(self) -> Video:
         return self.video
     
     def get_queue(self) -> List[Union[str, Video]]:
         return self.queue_
+
+    def preview(self, max_fps: int = 60):
+        win = pygame.display.set_mode(self.frame_rect.size, pygame.RESIZABLE)
+        pygame.display.set_caption(f"videoplayer - {self.video.name}")
+        self.video.play()
+        while self.video.active:
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.video.stop()
+                elif event.type == pygame.WINDOWRESIZED:
+                    self.resize(win.get_size())
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.toggle_zoom()
+            self.update(events, True, max_fps)
+            self.draw(win)
+            pygame.display.update()
+        pygame.display.quit()
+        self.close()

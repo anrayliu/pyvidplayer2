@@ -5,7 +5,7 @@ import re
 import os
 from typing import Union, Tuple
 from . import FFMPEG_LOGLVL
-from .error import Pyvidplayer2Error
+from .error import *
 
 try:
     import yt_dlp
@@ -16,9 +16,9 @@ else:
 
 
 class Subtitles:
-    '''
+    """
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    '''
+    """
 
     def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
                  font: Union[pygame.font.SysFont, pygame.font.Font] = None, encoding: str = "utf-8", offset: int = 50,
@@ -36,6 +36,7 @@ class Subtitles:
             if YTDLP:
                 self.buffer = self._extract_youtube_subs()
             else:
+
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
         else:
             if not os.path.exists(self.path):
@@ -47,7 +48,7 @@ class Subtitles:
 
                 self.buffer = self._extract_internal_subs()
                 if self.buffer == "":
-                    raise Pyvidplayer2Error("Could not find selected subtitle track in video.")
+                    raise SubtitleError("Could not find selected subtitle track in video.")
 
         self._subs = self._load()
 
@@ -74,7 +75,7 @@ class Subtitles:
                 return iter(pysubs2.SSAFile.from_string(self.buffer))
             return iter(pysubs2.load(self.path, encoding=self.encoding))
         except (pysubs2.exceptions.FormatAutodetectionError, UnicodeDecodeError):
-            raise Pyvidplayer2Error("Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
+            raise SubtitleError("Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
     def _to_surf(self, text):
         h = self.font.get_height()
@@ -93,7 +94,7 @@ class Subtitles:
         try:
             p = subprocess.Popen(f"ffmpeg -i {self.path} -loglevel {FFMPEG_LOGLVL} -map 0:s:{self.track_index} -f srt -", stdout=subprocess.PIPE)
         except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         return "\n".join(p.communicate()[0].decode(self.encoding).splitlines())
 
@@ -120,7 +121,7 @@ class Subtitles:
                     if s["ext"] == "vtt":
                         return ydl.urlopen(subs[self.pref_lang][i]["url"]).read().decode("utf-8")
             else:
-                raise Pyvidplayer2Error("Could not find subtitles in the specified language.")
+                raise SubtitleError("Could not find subtitles in the specified language.")
 
     def _get_next(self):
         try:
@@ -157,7 +158,7 @@ class Subtitles:
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
         self.font = font
         if not isinstance(self.font, pygame.font.Font):
-            raise Pyvidplayer2Error("Font must be a pygame.font.Font or pygame.font.SysFont object.")
+            raise ValueError("Font must be a pygame.font.Font or pygame.font.SysFont object.")
 
     def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
         return self.font

@@ -14,7 +14,8 @@ import sounddevice
 # FOR PYAUDIO
 # see instructions below
 
-# find the index of the device you want (stick to MME)
+# find the index of the device you want
+# not all hostapis work, but MME for Windows should be fine
 
 # e.g
 # 0 Microsoft Sound Mapper - Input, MME (2 in, 0 out)
@@ -25,7 +26,7 @@ print(sounddevice.query_devices())
 
 
 # replace None with the index of the chosen device (first number listed by sd)
-
-Video("resources\\trailer1.mp4", audio_index=None).preview()
-
 # e.g Video("resources\\trailer1.mp4", audio_index=0).preview()
+
+with Video("resources\\trailer1.mp4", audio_index=None) as v:
+    v.preview()

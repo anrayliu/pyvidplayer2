@@ -7,7 +7,9 @@ pip install imageio before using
 from pyvidplayer2 import Video
 
 
+# experimental feature, still a little buggy
+
 with open("resources\\ocean.mkv", "rb") as f:
     vid_in_bytes = f.read()        # loads file into memory
-
-    Video(vid_in_bytes, as_bytes=True).preview()
+    with Video(vid_in_bytes, as_bytes=True) as v:
+        v.preview()

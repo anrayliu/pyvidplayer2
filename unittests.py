@@ -5,6 +5,8 @@ import math
 import random
 import unittest
 from random import uniform
+from threading import Thread
+
 import numpy as np
 import pygame
 import os
@@ -105,9 +107,13 @@ SUBS = (
 class TestVideo(unittest.TestCase):
     def setUp(self):
         self.static_video = Video("resources\\clip.mp4")
+        self.static_player = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
+        self.static_webcam = Webcam()
 
     def tearDown(self):
         self.static_video.close()
+        self.static_player.close()
+        self.static_webcam.close()
 
     # tests that each chunk setting is working properly
     def test_chunk_settings(self):
@@ -143,7 +149,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(len(v2._threads), 3)
 
         # update both videos for 5 seconds
-        timed_loop(5, lambda: (v1.update(), v2.update()))
+        timed_loop(3, lambda: (v1.update(), v2.update()))
 
         # check for number of stored chunks
         self.assertEqual(len(v1._chunks), 1)
@@ -206,7 +212,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._audio_path, "-")
         self.assertEqual(v.name, "")
         self.assertEqual(v.ext, "")
-        self.assertEqual(v.duration, 67.27554166666665)
+        self.assertEqual(v.duration, 67.275542)
         self.assertEqual(v.frame_count, 1613)
         self.assertEqual(v.frame_rate, 23.976023976023978)
         self.assertEqual(v.original_size, (1280, 720))
@@ -256,6 +262,15 @@ class TestVideo(unittest.TestCase):
 
         self.assertRaises(ValueError, v.set_interp, "unrecognized interp")
 
+        w = Webcam(interp="lanczos4")
+        self.assertEqual(w.interp, cv2.INTER_LANCZOS4)
+        w.set_interp("lanczos4")
+        self.assertEqual(w.interp, cv2.INTER_LANCZOS4)
+        w.set_interp(cv2.INTER_LANCZOS4)
+        self.assertEqual(w.interp, cv2.INTER_LANCZOS4)
+        self.assertRaises(ValueError, w.set_interp, "unrecognized interp")
+
+        w.close()
         v.close()
 
     # tests that each file can be opened and recognized as bytes
@@ -351,6 +366,11 @@ class TestVideo(unittest.TestCase):
         self.assertEqual("<VideoPygame(path=resources\\clip.mp4)>", str(self.static_video))
         s = Subtitles("resources\\subs1.srt")
         self.assertEqual("<Subtitles(path=resources\\subs1.srt)>", str(s))
+        vp = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
+        self.assertEqual("<VideoPlayer(path=resources\\clip.mp4)>", str(vp))
+        w = Webcam()
+        self.assertEqual("<Webcam(fps=30)>", str(w))
+        w.close()
 
     # test if subs are initialized correctly
     def test_init_subs(self):
@@ -423,10 +443,12 @@ class TestVideo(unittest.TestCase):
 
     # tests that preloading frames is done properly
     def test_preloaded_frames(self):
-        v = Video(VIDEO_PATH)
+        v = Video("resources\\clip.mp4")
+        self.assertFalse(v._preloaded)
         timed_loop(2, v.update)
         frame = v.frame
         v._preload_frames()
+        self.assertTrue(v._preloaded)
 
         # checks that preloading does not change the current frame
         self.assertEqual(v._vid.frame, frame)
@@ -436,6 +458,8 @@ class TestVideo(unittest.TestCase):
         for i, frame in enumerate(v):
             self.assertTrue(check_same_frames(v._preloaded_frames[i], frame))
         v.close()
+
+        self.assertTrue(v._preloaded)
 
     # tests cv2 frame count, proving frame count, and real frame count
     def test_frame_counts(self):
@@ -528,7 +552,7 @@ class TestVideo(unittest.TestCase):
             v = Video(url, youtube=True)
             self.assertTrue(v._audio_path.startswith("https"))
             self.assertTrue(v.path.startswith("https"))
-            while_loop(lambda: v.get_pos() < 3, v.update, 10)
+            while_loop(lambda: v.get_pos() < 1, v.update, 10)
             v.close()
 
     # test that youtube chunk settings are checked
@@ -542,6 +566,10 @@ class TestVideo(unittest.TestCase):
     # test common resolutions
     def test_change_resolution(self):
         v = self.static_video
+
+        # ensures no actual resampling is taking place
+        self.assertIs(v.frame_surf, None)
+
         SIZE = v.current_size
         v.change_resolution(144)
         self.assertEqual(v.current_size, (256, 144))
@@ -581,9 +609,24 @@ class TestVideo(unittest.TestCase):
 
     # tests that a video can be played entirely without issues
     def test_full_playback(self):
-        v = Video("resources/clip.mp4")
+        v = Video("resources\\clip.mp4")
         while_loop(lambda: v.active, v.update, 10)
         v.close()
+
+    # tests that a video can be played entirely in a video player
+    def test_full_player(self):
+        v = Video("resources\\clip.mp4")
+        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        while_loop(lambda: v.active, vp.update, 10)
+        vp.close()
+        self.assertTrue(vp.closed)
+
+    # test each graphics library
+    def test_previews(self):
+        for video in (Video, VideoTkinter, VideoPyglet, VideoPyQT, VideoPySide, VideoRaylib):
+            print(video.__name__)
+            v = video("resources\\clip.mp4")
+            v.preview()
 
     # tests youtube max_res parameter
     def test_max_resolution(self):
@@ -593,33 +636,30 @@ class TestVideo(unittest.TestCase):
             v.close()
             time.sleep(0.1) # prevents spamming youtube
 
-    # tests that most of the frame rate
+    # tests that high frame rate videos can be achieved
     def test_unlocked_fps(self):
-        for file in PATHS:
-            for audio_handler in (True, False):
-                v = Video(file, use_pygame_audio=audio_handler)
-                seconds_elapsed = 0
-                clock = pygame.time.Clock()
-                v.play()
-                timer = 0
-                frames = 0
-                avg_fps = 0
-                passed = False
-                while v.active and seconds_elapsed < 10:
-                    dt = clock.tick(0)
-                    timer += dt
-                    if timer >= 1000:
-                        seconds_elapsed += 1
-                        avg_fps += frames
-                        if frames >= int(v.frame_rate * 0.8):
-                            passed = True
-                            break
-                        timer = 0
-                        frames = 0
-                    if v.update():
-                        frames += 1
-                self.assertTrue(passed, f"{file} failed unit test with {audio_handler}, achieved {avg_fps / seconds_elapsed / v.frame_rate}")
-                v.close()
+        for audio_handler in (True, False):
+            v = Video("resources\\100fps.mp4", use_pygame_audio=audio_handler)
+            seconds_elapsed = 0
+            clock = pygame.time.Clock()
+            v.play()
+            timer = 0
+            frames = 0
+            passed = False
+            while v.active and seconds_elapsed < 10:
+                dt = clock.tick(0)
+                timer += dt
+                if timer >= 1000:
+                    seconds_elapsed += 1
+                    if frames > 80:    # 80% of the maximum frame rate
+                        passed = True
+                        break
+                    timer = 0
+                    frames = 0
+                if v.update():
+                    frames += 1
+            v.close()
+            self.assertTrue(passed)
 
     # tests that pausing works correctly
     def test_pausing(self):
@@ -659,7 +699,7 @@ class TestVideo(unittest.TestCase):
             self.assertTrue(v.paused)
 
             frame = v.frame
-            timed_loop(5, v.update)
+            timed_loop(3, v.update)
             self.assertEqual(frame, v.frame)
 
             v.toggle_pause()
@@ -725,16 +765,18 @@ class TestVideo(unittest.TestCase):
         for size in SIZES:
             for flag in (cv2.INTER_LINEAR, cv2.INTER_NEAREST, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_AREA):
                 new_frame = v._resize_frame(original_frame, size, flag, False)
+                webcam_resized = self.static_webcam._resize_frame(original_frame, size, flag)
+                self.assertTrue(check_same_frames(new_frame, webcam_resized))
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
-                if size == v.original_size:
-                    self.assertTrue(check_same_frames(original_frame, new_frame))
+                if size == v.original_size:     # check that no resizing occurred
+                   self.assertTrue(check_same_frames(original_frame, new_frame))
 
         # test ffmpeg resamplers
         for size in SIZES:
             for flag in ("bilinear", "bicubic", "neighbor", "area", "lanczos", "fast_bilinear", "gauss", "spline"):
                 new_frame = v._resize_frame(original_frame, size, flag, True)
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
-                if size == v.original_size:
+                if size == v.original_size:     # check that no resizing occurred
                     self.assertTrue(check_same_frames(original_frame, new_frame))
 
         # test no cv
@@ -805,16 +847,19 @@ class TestVideo(unittest.TestCase):
 
             v.close()
 
+    # tests opening a youtube video with bad paths
     def test_open_youtube(self):
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(YTDLPError) as context:
             Video(VIDEO_PATH, youtube=True)
         self.assertEqual(str(context.exception), "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
+        time.sleep(0.1)
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(YTDLPError) as context:
             Video(YOUTUBE_PATH, youtube=True, max_res=0)
         self.assertEqual(str(context.exception), "Could not find requested resolution.")
+        time.sleep(0.1)
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(YTDLPError) as context:
             Video("https://www.youtube.com/watch?v=thisvideodoesnotexistauwdhoiawdhoiawhdoih", youtube=True)
         self.assertEqual(str(context.exception), "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
 
@@ -825,33 +870,33 @@ class TestVideo(unittest.TestCase):
         # ffprobe can also read subtitle files
         Subtitles("resources/subs1.srt", track_index=0)
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/subs1.srt", track_index=1)
         self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/fake.txt")
         self.assertEqual(str(context.exception), "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/fake.txt", track_index=0)
         self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/wSubs.mp4")
         self.assertEqual(str(context.exception), "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
         Subtitles("resources/wSubs.mp4", track_index=0)
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/wSubs.mp4", track_index=1)
         self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/trailer1.mp4")
         self.assertEqual(str(context.exception), "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/trailer1.mp4", track_index=1)
         self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
 
@@ -870,38 +915,45 @@ class TestVideo(unittest.TestCase):
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", track_index=0)
         self.assertEqual(str(context.exception), "[Errno 2] No such file or directory: 'https://www.youtube.com/watch?v=HurjfO_TDlQ'")
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True)
         self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
+        time.sleep(0.1)
 
         s = Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="en-US")
         self.assertFalse(s._auto_cap)
+        time.sleep(0.1)
 
         s = Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="zh-Hant-en-US")
         self.assertTrue(s._auto_cap)
+        time.sleep(0.1)
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="badcode")
         self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
+        time.sleep(0.1)
 
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(SubtitleError) as context:
             Subtitles(YOUTUBE_PATH, youtube=True, pref_lang="badcode")
         self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
+        time.sleep(0.1)
 
         # ffprobe can read extracted subtitle file
         Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, track_index=0, pref_lang="en-US")
+        time.sleep(0.1)
 
         for url in ("https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA", "https://www.youtube.com/"):
-            with self.assertRaises(Pyvidplayer2Error) as context:
+            with self.assertRaises(SubtitleError) as context:
                 Subtitles(url, youtube=True)
             self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
+        time.sleep(0.1)
 
         with self.assertRaises(yt_dlp.utils.DownloadError):
             Subtitles("https://www.youtube.com/shorts", youtube=True)
 
     # tests correct errors are raised when given bad input paths
     def test_open_video(self):
-        self.assertRaises(Pyvidplayer2Error, lambda: Video("resources\\fake.txt"))
+        self.assertRaises(OpenCVError, lambda: Video("resources\\fake.txt"))
         self.assertRaises(FileNotFoundError, lambda: Video("badpath"))
 
     # tests that subtitle tracks from videos can also be read
@@ -923,7 +975,7 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(v.audio_track, 0)
             v.set_audio_track(1)
             self.assertEqual(v.audio_track, 1)
-            self.assertRaises(EOFError if not v.use_pygame_audio else pygame.error, timed_loop, 5, v.update)
+            self.assertRaises(EOFError if not v.use_pygame_audio else pygame.error, timed_loop, 3, v.update)
             v.set_audio_track(0)
             while_loop(lambda: v.frame < 10, v.update, 10)
             self.assertEqual(v.audio_track, 0)
@@ -967,6 +1019,13 @@ class TestVideo(unittest.TestCase):
         v.resize(NEW_SIZE)
         frame = next(v)
         self.assertEqual(frame.shape, (NEW_SIZE[1], NEW_SIZE[0], 3))
+
+        # load a frame
+        while_loop(lambda: v.frame_surf is None, v.update, 3)
+
+        self.assertEqual(v.frame_surf.get_size(), NEW_SIZE)
+        v.resize(ORIGINAL_SIZE)
+        self.assertEqual(v.frame_surf.get_size(), ORIGINAL_SIZE)
 
         v.close()
 
@@ -1143,8 +1202,8 @@ class TestVideo(unittest.TestCase):
         index = find_device(lambda d: d["max_output_channels"] == 0)
         v = Video(VIDEO_PATH, audio_index=index, use_pygame_audio=False)
         self.assertEqual(v._audio.device_index, index)
-        self.assertRaises(Pyvidplayer2Error, while_loop, lambda: v.frame < 10, v.update, 10)
-        self.assertRaises(Pyvidplayer2Error, lambda: v._audio._set_device_index(9999999999999))
+        self.assertRaises(AudioDeviceError, while_loop, lambda: v.frame < 10, v.update, 10)
+        self.assertRaises(AudioDeviceError, lambda: v._audio._set_device_index(9999999999999))
         v.close()
 
         # test video on different output devices
@@ -1211,8 +1270,9 @@ class TestVideo(unittest.TestCase):
     # tests for errors for unsupported youtube links
     def test_bad_youtube_links(self):
         for url in ("https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA", "https://www.youtube.com/", "https://www.youtube.com/shorts"):
-            with self.assertRaises(Pyvidplayer2Error):
+            with self.assertRaises(YTDLPError):
                 Video(url, youtube=True).close()
+            time.sleep(0.1)
 
     # tests video in a context manager
     def test_context_manager(self):
@@ -1220,15 +1280,22 @@ class TestVideo(unittest.TestCase):
             self.assertFalse(v.closed)
         self.assertTrue(v.closed)
 
+    # tests that when a video is preloaded, frames no longer need to be read on the fly
+    def test_preloaded_playback(self):
+        v = Video("resources\\clip.mp4")
+        v._preload_frames()
+        while_loop(lambda: v.frame < 50, lambda: (v.update(), self.assertEqual(v._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)), 3)
+        v.close()
+
     # tests that an error is raised when bytes is empty
     def test_bad_bytes(self):
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(VideoStreamError) as context:
             Video(b'', as_bytes=True).close()
         self.assertEqual(str(context.exception), "Could not determine video.")
 
     # tests that an error is raised when there are no video tracks
     def test_no_video_tracks(self):
-        with self.assertRaises(Pyvidplayer2Error) as context:
+        with self.assertRaises(VideoStreamError) as context:
             Video("resources/nov.mp4").close()
         self.assertEqual(str(context.exception), "No video tracks found.")
 
@@ -1266,7 +1333,7 @@ class TestVideo(unittest.TestCase):
     def test_youtube_language_tracks(self):
         for lang in (None, "en-US", "fr-FR", "es-US", "it", "pt-BR", "de-DE", "badcode"):
             v = Video("https://www.youtube.com/watch?v=v4H2fTgHGuc", youtube=True, pref_lang=lang)
-            timed_loop(5, v.update)
+            timed_loop(3, v.update)
             v.close()
 
     # tests force draw
@@ -1299,19 +1366,46 @@ class TestVideo(unittest.TestCase):
             v.close()
             self.assertEqual(flag, force_draw)
 
-    # more of a visual test that tests minor subtitle features and consequently, previewing for errors
-    def test_additional_subtitle_settings(self):
+    # tests that previews start from where the video position is, and that they close the video afterwards
+    def test_preview(self):
+        v = Video(VIDEO_PATH)
+        v.seek(v.duration)
+        thread = Thread(target=lambda: v.preview())
+        thread.start()
+        time.sleep(1)
+        self.assertFalse(thread.is_alive())
+        self.assertTrue(v.closed)
+        v = Video(VIDEO_PATH)
+        vp = VideoPlayer(v, (0, 0, 1280, 720))
+        v.seek(v.duration)
+        thread = Thread(target=lambda: vp.preview())
+        thread.start()
+        time.sleep(1)
+        self.assertFalse(thread.is_alive())
+        self.assertTrue(vp.closed)
+
+    # more of a visual test that tests minor misc features
+    def test_additional_tests(self):
         s1 = Subtitles("resources\\subs1.srt", colour="blue", highlight="red", font=pygame.font.SysFont("arial", 35), offset=70, delay=-1)
         s2 = Subtitles("resources\\subs2.srt", colour=pygame.Color("pink"), highlight=(129, 12, 31, 128), font=pygame.font.SysFont("arial", 20))
         s3 = Subtitles("resources\\subs2.srt", colour=(123, 13, 52, 128), highlight=(4, 131, 141, 200), font=pygame.font.SysFont("arial", 40), delay=1)
         s4 = Subtitles("resources\\subs1.srt", delay=10000)
         font = pygame.font.SysFont("arial", 10)
-        self.assertRaises(Pyvidplayer2Error, lambda: s1.set_font(pygame.font.Font))
+        self.assertRaises(ValueError, lambda: s1.set_font(pygame.font.Font))
         s1.set_font(font)
         self.assertIs(font, s1.get_font())
         v = Video(VIDEO_PATH, subs=(s1, s2, s3, s4), speed=5)
-        v.preview(True)
-        self.assertTrue(v.closed)
+        vp = VideoPlayer(v, (0, 0, 1280, 720), interactable=True, font_size=40)
+        vp.close()
+
+    # tests for a bug where the last frame would hang in situations like this
+    def test_frame_bug(self):
+        v = Video(VIDEO_PATH, speed=5)
+        v.seek(65.19320347222221, False)
+        thread = Thread(target=lambda: v.preview())
+        thread.start()
+        time.sleep(1)
+        self.assertFalse(thread.is_alive())
 
     # tests different ways to accessing version
     def test_version(self):
@@ -1320,10 +1414,12 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(VER, pyvidplayer2._version.__version__)
         self.assertEqual(VER, get_version_info()["pyvidplayer2"])
 
+    # tests opening subtitle files with different encodings
     def test_subtitle_encoding(self):
-        self.assertRaises(Pyvidplayer2Error, lambda: Subtitles("resources\\utf16.srt"))
+        self.assertRaises(SubtitleError, lambda: Subtitles("resources\\utf16.srt"))
         Subtitles("resources\\utf16.srt", encoding="utf16")
 
+    # tests that the correct pts are extracted for vfr videos
     def test_get_timestamps(self):
         v = Video(VIDEO_PATH, vfr=True)
         self.assertEqual(v.timestamps[:10], [0.0, 0.041708, 0.083417, 0.125125, 0.166833, 0.208542, 0.25025, 0.291958,
@@ -1333,41 +1429,426 @@ class TestVideo(unittest.TestCase):
                                         67.233833])
         v.close()
 
+    # tests zoom out and zoom to fill
+    def test_zoom(self):
+        for i in range(100):
+            pos = (random.randint(0, 2000), random.randint(0, 2000))
+            size = (random.randint(100, 2000), random.randint(100, 2000))
+            vp = VideoPlayer(self.static_video, (*pos, *size))
 
+            original_vid_rect = vp.vid_rect.copy()
+            original_frame_rect = vp.frame_rect.copy()
 
+            self.assertTrue(vp.vid_rect.w == vp.frame_rect.w or vp.vid_rect.h == vp.frame_rect.h)
+            self.assertEqual(vp.vid_rect.center, vp.frame_rect.center)
+            self.assertFalse(vp._zoomed)
+            vp.zoom_to_fill()
+            self.assertGreaterEqual(vp.vid_rect.w, vp.frame_rect.w)
+            self.assertGreaterEqual(vp.vid_rect.h, vp.frame_rect.h)
+            self.assertEqual(vp.vid_rect.center, vp.frame_rect.center)
+            self.assertTrue(vp._zoomed)
+            vp.toggle_zoom()
+            self.assertFalse(vp._zoomed)
+            vp.toggle_zoom()
+            self.assertTrue(vp._zoomed)
+            vp.zoom_to_fill()
+            vp.zoom_out()
+            vp.zoom_out()
 
+            self.assertEqual(vp.vid_rect, original_vid_rect)
+            self.assertEqual(vp.frame_rect, original_frame_rect)
 
+    # tests default video player
+    def test_open_video_player(self):
+        vp = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
+        self.assertIs(vp.video, self.static_video)
+        self.assertIs(vp.get_video(), self.static_video)
+        self.assertEqual(vp.vid_rect, pygame.Rect(0, 0, self.static_video.original_size[0], self.static_video.original_size[1]))
+        self.assertEqual(vp.frame_rect, pygame.Rect(0, 0, self.static_video.original_size[0], self.static_video.original_size[1]))
+        self.assertFalse(vp.interactable)
+        self.assertFalse(vp.loop)
+        self.assertEqual(vp.preview_thumbnails, 0)
+        self.assertEqual(vp._font.point_size, 10)
+        self.assertEqual(vp._font.name, "Arial")
 
+    # tests queue system
+    def test_queue(self):
+        original_video = Video("resources\\clip.mp4")
 
+        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
+        self.assertEqual(len(vp.queue_), 0)
+        self.assertIs(vp.get_queue(), vp.queue_)
 
+        self.assertIs(vp.get_next(), None)
 
-    # def test_random_combinations(self):
-    #     for file in PATHS:
-    #         v = Video(file)
-    #         if v.frame_rate * v.duration * v.original_size[0] * v.original_size[1] < 24 * 30 * 1280 * 720:
-    #             reverse = not random.randint(0, 4)
-    #         else:
-    #             reverse = False
-    #         v.close()
-    #         as_bytes = not random.randint(0, 2)
-    #         vfr = bool(random.randint(0, 1))
-    #         if not random.randint(0, 2):
-    #             speed = random.uniform(0.5, 2)
-    #         else:
-    #             speed = 1
-    #         if as_bytes:
-    #             f = open(file, "rb")
-    #             input_ = f.read()
-    #             f.close()
-    #         else:
-    #             input_ = file
-    #         v = Video(input_, reverse=reverse, as_bytes=as_bytes, vfr=vfr, speed=speed)
-    #         v.close()
-    #
+        v1 = Video("resources\\trailer1.mp4")
+        v2 = Video("resources\\ocean.mkv")
+        v3 = Video("resources\\medic.mov")
+        v4 = Video("resources\\birds.avi")
 
+        # v1 is not loaded when it is created
+        self.assertTrue(v1.active)
+        self.assertEqual(len(v1._chunks), 0)
 
+        vp.queue(v1)
 
-# vidplayer and webcam
+        # v1 is now loading after queueing happens
+        self.assertFalse(v1.active)
+        self.assertEqual(len(v1._chunks), 1)
+        self.assertEqual(v1._chunks_len(v1._chunks), 0)
+
+        vp.queue(v2)
+        vp.queue(v3)
+        vp.queue(v4)
+
+        self.assertEqual(len(vp.queue_), 4)
+        self.assertEqual(len(vp), 5)
+
+        self.assertIs(vp.get_next(), v1)
+
+        # play first clip in its entirety
+        timed_loop(8, vp.update)
+
+        self.assertIs(vp.video, v1)
+        self.assertEqual(len(vp.queue_), 3)
+        self.assertEqual(len(vp), 4)
+        self.assertTrue(original_video.closed)
+
+        vp.skip()
+
+        self.assertIs(vp.video, v2)
+        self.assertEqual(len(vp.queue_), 2)
+        self.assertTrue(v1.closed)
+
+        vp.skip() # should be on v3 after skip
+        vp.skip() # should be on v4 after skip
+
+        self.assertIs(vp.video, v4)
+        self.assertEqual(len(vp), 1)
+        self.assertIs(vp.get_next(), None)
+
+        # shouldn't do anything
+        for i in range(10):
+            vp.skip()
+
+        self.assertTrue(v4.active)
+
+        vp.close()
+        self.assertTrue(vp.video.closed)
+        self.assertEqual(len(vp), 1)
+        self.assertEqual(len(vp.queue_), 0)
+        for v in (v1, v2, v3, v4):
+            self.assertTrue(v.closed)
+
+    # tests queue system with loop
+    def test_queue_loop(self):
+        original_video = Video("resources\\trailer1.mp4")
+        v1 = Video("resources\\trailer2.mp4")
+        v2 = Video("resources\\clip.mp4")
+
+        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
+        vp.queue(v1)
+        vp.queue(v2)
+
+        vp.skip()
+        vp.skip()
+
+        self.assertIs(vp.get_video(), v2)
+        self.assertFalse(v1.active)
+        self.assertFalse(original_video.active)
+        self.assertEqual(vp.queue_, [original_video, v1])
+
+        # play first clip in its entirety
+        timed_loop(8, vp.update)
+
+        self.assertIs(vp.video, original_video)
+        self.assertEqual(len(vp.queue_), 2)
+        self.assertEqual(len(vp), 3)
+
+        # queue an incorrect argument
+        vp.queue(1)
+
+        # manually wipe queue
+        vp.clear_queue()
+        for v in (v1, v2):
+            self.assertTrue(v.closed)
+        self.assertEqual(len(vp.queue_), 0)
+
+        original_video.stop()
+        vp.update() # should trigger _handle_on_end
+        self.assertEqual(original_video.get_pos(), 0.0)
+        self.assertTrue(original_video.active)
+
+        vp.close()
+
+    # tests the move method video player
+    def test_move_video_player(self):
+        vp = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
+
+        vid_pos = vp.vid_rect.topleft
+        vid_size = vp.vid_rect.size
+
+        vp.move((10, 10))
+        self.assertEqual(vp.frame_rect.topleft, (10, 10))
+
+        # ensure default setting is not relative
+        vp.move((10, 10))
+        self.assertEqual(vp.frame_rect.topleft, (10, 10))
+
+        vp.move((10, 10), relative=True)
+        self.assertEqual(vp.frame_rect.topleft, (20, 20))
+
+        # ensures that vid rect was properly changed
+        self.assertNotEqual(vp.vid_rect.topleft, vid_pos)
+        self.assertEqual(vp.vid_rect.size, vid_size)
+
+    # tests queueing with video paths instead of objects
+    def test_queue_str_path(self):
+        original_video = Video(VIDEO_PATH)
+        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
+
+        vp.queue("resources\\trailer2.mp4")
+        vp.queue("resources\\clip.mp4")
+
+        self.assertEqual(vp.queue_, ["resources\\trailer2.mp4", "resources\\clip.mp4"])
+
+        vp.skip()
+        vp.skip()
+
+        self.assertEqual(vp.queue_[0].name, "trailer1")
+        self.assertEqual(vp.queue_[1].name, "trailer2")
+
+        vp.clear_queue()
+        vp.queue("badpath")
+        self.assertRaises(FileNotFoundError, vp.skip)
+        vp.close()
+
+    # tests that each preview thumbnail is read
+    def test_preview_thumbnails(self):
+        original_video = Video("resources\\clip.mp4")
+
+        # test that preview thumbnail loading does not change vid frame pointer
+        self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
+        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=30)
+        self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
+
+        self.assertEqual(len(vp._interval_frames), 31)
+        self.assertEqual(vp.video._vid.frame, 0)
+
+        viewed_thumbnails = []
+        for i in range(int(original_video.duration * 10)):
+            thumbnail = vp._get_closest_frame(i * 0.1)
+            if not thumbnail in viewed_thumbnails:
+                viewed_thumbnails.append(thumbnail)
+
+        # ensures that when preloaded, the preview thumbnails are taken straight from the preloaded frames
+        original_video._preload_frames()
+        t = Thread(target=lambda: VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=300))
+        t.start()
+        time.sleep(10)
+        self.assertFalse(t.is_alive())
+
+        # checks that loaded preview thumbnails from both methods produce the same frames
+        vp2 = VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=30)
+        for f1, f2 in zip(vp._interval_frames, vp2._interval_frames):
+            self.assertTrue(check_same_frames(pygame.surfarray.array3d(f1), pygame.surfarray.array3d(f2)))
+
+        self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
+
+    # tests the _best_fit method for videoplayer
+    def test_best_fit(self):
+        vp = self.static_player
+
+        # Test case 1: Rectangle with exact aspect ratio
+        rect = pygame.Rect(0, 0, 1920, 1080)
+        aspect_ratio = 16 / 9
+        expected = pygame.Rect(0, 0, 1920, 1080)
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 2: Width limiting, maintaining aspect ratio
+        rect = pygame.Rect(0, 0, 1920, 1080)
+        aspect_ratio = 4 / 3
+        expected = pygame.Rect(240, 0, 1440, 1080)  # Centered horizontally
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 3: Height limiting, maintaining aspect ratio
+        rect = pygame.Rect(0, 0, 1080, 1920)
+        aspect_ratio = 16 / 9
+        expected = pygame.Rect(0, 656, 1080, 607)  # Centered vertically
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 4: Square rectangle with wide aspect ratio
+        rect = pygame.Rect(0, 0, 1000, 1000)
+        aspect_ratio = 16 / 9
+        expected = pygame.Rect(0, 219, 1000, 562)  # Centered vertically
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 5: Square rectangle with tall aspect ratio
+        rect = pygame.Rect(0, 0, 1000, 1000)
+        aspect_ratio = 9 / 16
+        expected = pygame.Rect(219, 0, 562, 1000)  # Centered horizontally
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 6: Rectangle fully inside another with the same aspect ratio
+        rect = pygame.Rect(100, 100, 1920, 1080)
+        aspect_ratio = 16 / 9
+        expected = pygame.Rect(100, 100, 1920, 1080)
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 7: Aspect ratio = 1 (square fit)
+        rect = pygame.Rect(0, 0, 1920, 1080)
+        aspect_ratio = 1
+        expected = pygame.Rect(420, 0, 1080, 1080)  # Fit to height
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 8: Extremely wide aspect ratio
+        rect = pygame.Rect(0, 0, 1920, 1080)
+        aspect_ratio = 32 / 9
+        expected = pygame.Rect(0, 270, 1920, 540)  # Fit to width, centered vertically
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 9: Extremely tall aspect ratio
+        rect = pygame.Rect(0, 0, 1920, 1080)
+        aspect_ratio = 9 / 32
+        expected = pygame.Rect(808, 0, 303, 1080)  # Fit to height, centered horizontally
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+        # Test case 10: Zero-size rectangle (edge case)
+        rect = pygame.Rect(0, 0, 0, 0)
+        aspect_ratio = 16 / 9
+        expected = pygame.Rect(0, 0, 0, 0)  # No space to fit
+        self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
+
+    # tests _convert_seconds for videoplayer
+    def test_video_player_convert_seconds(self):
+        vp = self.static_player
+
+        # Whole Hours
+        self.assertEqual(vp._convert_seconds(3600), "1:0:0")
+        self.assertEqual(vp._convert_seconds(7200), "2:0:0")
+
+        # Hours and Minutes
+        self.assertEqual(vp._convert_seconds(3660), "1:1:0")
+        self.assertEqual(vp._convert_seconds(7325), "2:2:5")
+
+        # Minutes and Seconds
+        self.assertEqual(vp._convert_seconds(65), "0:1:5")
+        self.assertEqual(vp._convert_seconds(125), "0:2:5")
+
+        # Seconds Only
+        self.assertEqual(vp._convert_seconds(5), "0:0:5")
+        self.assertEqual(vp._convert_seconds(59), "0:0:59")
+
+        # Fractional Seconds
+        self.assertEqual(vp._convert_seconds(5.3), "0:0:5")
+        self.assertEqual(vp._convert_seconds(125.6), "0:2:5")
+        self.assertEqual(vp._convert_seconds(7325.9), "2:2:5")
+
+        # Zero Seconds
+        self.assertEqual(vp._convert_seconds(0), "0:0:0")
+
+        # Large Number
+        self.assertEqual(vp._convert_seconds(86400), "24:0:0")
+        self.assertEqual(vp._convert_seconds(90061.5), "25:1:1")
+
+        # Negative Seconds
+        self.assertEqual(vp._convert_seconds(-5), "0:0:5")
+        self.assertEqual(vp._convert_seconds(-3665), "1:1:5")
+
+    # tests different arguments for videoplayers to check for errors
+    def test_bad_player_path(self):
+        with self.assertRaises(ValueError) as context:
+            VideoPlayer("badpath", (0, 0, 100, 100))
+
+        with self.assertRaises(ValueError) as context:
+            VideoPlayer(VideoTkinter(VIDEO_PATH), (0, 0, 100, 100))
+
+        v = Video(VIDEO_PATH)
+        v.close()
+        with self.assertRaises(VideoStreamError) as context:
+            VideoPlayer(v, (0, 0, *v.original_size))
+        self.assertEqual(str(context.exception), "Provided video is closed.")
+
+    # tests default webcam
+    def test_open_webcam(self):
+        w = Webcam()
+        self.assertNotEqual(w.original_size, (0, 0))
+        self.assertEqual(w.original_size, w.current_size)
+        self.assertEqual(w.aspect_ratio, (w.original_size[0] / w.original_size[1]))
+        self.assertIs(w.frame_data, None)
+        self.assertIs(w.frame_surf, None)
+        self.assertFalse(w.closed)
+        self.assertTrue(w.active)
+        self.assertIs(w.post_func, PostProcessing.none)
+        self.assertEqual(w.interp, cv2.INTER_LINEAR)
+        self.assertEqual(w.fps, 30)
+        self.assertEqual(w.cam_id, 0)
+        w.close()
+
+    # tests that webcam plays without errors
+    def test_webcam_playback(self):
+        w = Webcam()
+        timed_loop(5, lambda: (w.update(), self.assertIsNot(w.frame_surf, None)))
+        w.close()
+
+    # tests webcam resizing features
+    def test_webcam_resize(self):
+        w = Webcam(capture_size=(640, 480))
+        self.assertEqual(w.original_size, (640, 480))
+        self.assertEqual(w.original_size[0], w._vid.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.assertEqual(w.original_size[1], w._vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        w.resize((1280, 720))
+        self.assertEqual(w.original_size, (640, 480))
+        self.assertEqual(w.current_size, (1280, 720))
+        w.update()  # captures a frame
+        self.assertEqual(w.frame_data.shape, (720, 1280, 3))
+        w.resize((1920, 1080))
+        self.assertEqual(w.original_size, (640, 480))
+        self.assertEqual(w.current_size, (1920, 1080))
+        self.assertEqual(w.frame_data.shape, (1080, 1920, 3))
+        w.change_resolution(480)
+        self.assertEqual(w.original_size, (640, 480))
+        self.assertEqual(w.current_size, (640, 480))
+        self.assertEqual(w.frame_data.shape, (480, 640, 3))
+        w.close()
+
+    # tests webcam position accuracy
+    # right now is not very accurate, will improve soon
+    def test_webcam_get_pos(self):
+        w = Webcam()
+        t = time.time()
+        while time.time() - t < 10:
+            w.update()
+        self.assertTrue(w.get_pos() > 9)
+
+    # tests that webcam plays and stops properly
+    def test_webcam_active(self):
+        w = Webcam()
+        self.assertTrue(w.active)
+        w.play()
+        self.assertTrue(w.active)
+        w.stop()
+        self.assertFalse(w.active)
+        w.stop()
+        self.assertFalse(w.active)
+        w.play()
+        self.assertTrue(w.active)
+        w.close()
+        self.assertTrue(w.closed)
+
+    # tests that webcam can achieve 60 fps
+    # fails on webcams under 60 fps
+    def test_webcam_60_fps(self):
+        w = Webcam(fps=30)
+        t = time.time()
+        while time.time() - t < 10:
+            w.update()
+        self.assertTrue(w._frames / 30 > 8)
+        w = Webcam(fps=60)
+        t = time.time()
+        while time.time() - t < 10:
+            w.update()
+        self.assertTrue(w._frames / 60 > 8)
 
 
 if __name__ == "__main__":

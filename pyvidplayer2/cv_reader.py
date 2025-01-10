@@ -1,5 +1,5 @@
 import cv2
-from . import Pyvidplayer2Error
+from .error import *
 from .video_reader import VideoReader
 
 
@@ -28,7 +28,7 @@ class CVReader(VideoReader):
         self._vidcap.set(cv2.CAP_PROP_POS_FRAMES, index)
         self.frame = int(self._vidcap.get(cv2.CAP_PROP_POS_FRAMES))
         if self.frame < 0:
-            raise Pyvidplayer2Error("Failed to seek.")
+            raise OpenCVError("Failed to seek.")
 
     def read(self):
         has, frame = self._vidcap.read()

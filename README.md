@@ -25,7 +25,7 @@ All the features from the original library have been ported over, with the excep
 - Play multiple videos in parallel
 - Add multiple subtitles to a video
 - Built in GUI and queue system
-- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6 and PyQT6
+- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, and Raylib
 - Post process effects
 - Webcam feed
 - Stream videos from Youtube
@@ -76,7 +76,6 @@ FFmpeg and FFprobe (not Python packages)
 ```
 
 ## Optional Packages
-
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
 pygame          (graphics and audio library, comes installed)
@@ -87,6 +86,8 @@ imageio         (for videos in bytes)
 pyglet          (graphics library)
 PySide6         (graphics library)
 PyQt6           (graphics library)
+tkinter         (graphics library, optionally installed with Python)
+raylib          (graphics library)
 ```
 
 # Quickstart

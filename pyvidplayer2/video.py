@@ -5,7 +5,7 @@ import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
 from .ffmpeg_reader import FFMPEGReader
-from .error import Pyvidplayer2Error
+from .error import *
 from . import FFMPEG_LOGLVL
 
 try:
@@ -115,13 +115,8 @@ class Video:
                 self._vid = FFMPEGReader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
-        if not self._vid.isOpened():
-            if youtube:
-                raise Pyvidplayer2Error("Open-cv could not open stream.")
-            elif as_bytes:
-                raise Pyvidplayer2Error("Could not identify video from given bytes.")
-            else:
-                raise Pyvidplayer2Error("Could not open file.")
+        if not self._vid.isOpened() and CV:
+            raise OpenCVError("Failed to open file.")
 
         # file information
 
@@ -187,6 +182,7 @@ class Video:
 
         self._missing_ffmpeg = False  # for throwing errors
         self._generated_frame = False # for when used as a generator
+        self._preloaded = False
 
         self.timestamps = []
         self.min_fr = self.max_fr = self.avg_fr = self.frame_rate
@@ -260,8 +256,8 @@ class Video:
         try:
             p = subprocess.Popen(f"ffprobe -i {'-' if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
+            raise FFmpegNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
         return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
@@ -277,13 +273,13 @@ class Video:
                 info = ydl.extract_info(path, download=False)
                 formats = info.get("requested_formats", None)
                 if formats is None:
-                    raise Pyvidplayer2Error("No streaming links found.")
-            except Pyvidplayer2Error:
+                    raise YTDLPError("No streaming links found.")
+            except YTDLPError:
                 raise
             except Exception as e: # something went wrong with yt_dlp
                 if "Requested format is not available" in str(e):
-                    raise Pyvidplayer2Error("Could not find requested resolution.")
-                raise Pyvidplayer2Error("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
+                    raise YTDLPError("Could not find requested resolution.")
+                raise YTDLPError("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
             else:
                 self.path = formats[0]["url"]
                 self._audio_path = formats[1]["url"]
@@ -291,6 +287,8 @@ class Video:
                 self.ext = ".webm"
 
     def _preload_frames(self):
+        self._preloaded = True
+
         self._preloaded_frames.clear()
 
         self._vid.seek(0)
@@ -495,7 +493,7 @@ class Video:
     
     def _update(self):
         if self._missing_ffmpeg:
-            raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         self._update_threads()
 
@@ -518,11 +516,19 @@ class Video:
                 else:
 
                     self.buffering = True
-                    has_frame, data = self._vid.read()
+
+                    if self._preloaded:
+                        has_frame = True
+                        try:
+                            data = self._preloaded_frames[self.frame]
+                        except IndexError:
+                            has_frame = False
+                    else:
+                        has_frame, data = self._vid.read()
+
                     self.buffering = False
 
-                if has_frame:
-                    self.frame += 1
+                self.frame += 1
 
                 # optimized for high playback speeds
                 if self._has_frame(p):
@@ -566,21 +572,24 @@ class Video:
         if type(interp) == int:
             interp = ("neighbor", "bilinear", "bicubic", "area", "lanczos")[interp]
 
-        process = subprocess.Popen(
-            [
-                "ffmpeg",
-                "-loglevel", str(FFMPEG_LOGLVL),
-                "-f", "rawvideo",
-                "-pix_fmt", "rgb24",
-                "-s", f"{data.shape[1]}x{data.shape[0]}",
-                "-i", "-",
-                "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
-                "-f", "rawvideo",
-                "-"
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
+        try:
+            process = subprocess.Popen(
+                [
+                    "ffmpeg",
+                    "-loglevel", str(FFMPEG_LOGLVL),
+                    "-f", "rawvideo",
+                    "-pix_fmt", "rgb24",
+                    "-s", f"{data.shape[1]}x{data.shape[0]}",
+                    "-i", "-",
+                    "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
+                    "-f", "rawvideo",
+                    "-"
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            )
+        except FileNotFoundError:
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure it's downloaded and accessible via PATH.")
 
         return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
 
@@ -646,12 +655,15 @@ class Video:
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
+        if self.frame_data is not None:
+            self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
+            self.frame_surf = self._create_frame(self.frame_data)
 
     def change_resolution(self, height: int) -> None:
         w = int(height * self.aspect_ratio)
         if w % 2 == 1:
             w += 1
-        self.current_size = (w, height)
+        self.resize((w, height))
 
     def close(self) -> None:
         self._preloaded_frames.clear()

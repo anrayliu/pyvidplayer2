@@ -1,6 +1,7 @@
 import subprocess
 import json
-from . import FFMPEG_LOGLVL, Pyvidplayer2Error
+from . import FFMPEG_LOGLVL
+from .error import *
 
 
 class VideoReader:
@@ -26,15 +27,15 @@ class VideoReader:
             #p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
             p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -count_packets -select_streams v:0 -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+            raise FFmpegNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 
         info = json.loads(p.communicate(input=path if as_bytes else None)[0])
 
         if len(info) == 0:
-            raise Pyvidplayer2Error("Could not determine video.")
+            raise VideoStreamError("Could not determine video.")
         info = info["streams"]
         if len(info) == 0:
-            raise Pyvidplayer2Error("No video tracks found.")
+            raise VideoStreamError("No video tracks found.")
         info = info[0]
 
         self.original_size = int(info["width"]), int(info["height"])

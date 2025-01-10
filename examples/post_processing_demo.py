@@ -11,8 +11,17 @@ PATH = r"resources\ocean.mkv"
 win = pygame.display.set_mode((960, 240))
 pygame.display.set_caption("post processing demo")
 
+# supply a post processing function here
+# you can use provided ones from the PostProcessing class, or you can make your own
+# all post processing functions must accept and return a numpy ndarray
+# post processing functions are applied to each frame before rendering
+# both the frame_data and frame_surf properties have post processing applied to them
+
+def custom_post_processing(data):
+    return data     # do nothing with the frame
+
 videos = [Video(PATH, post_process=PostProcessing.sharpen),
-          Video(PATH),
+          Video(PATH, post_process=custom_post_processing),
           Video(PATH, post_process=PostProcessing.blur)]
 
 font = pygame.font.SysFont("arial", 30)

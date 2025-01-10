@@ -8,7 +8,7 @@ FFMPEG_LOGLVL = "quiet"
 from subprocess import run
 from os import environ
 
-from .error import Pyvidplayer2Error
+from .error import *
 from .post_processing import PostProcessing
 
 try:
@@ -24,6 +24,13 @@ except ImportError:
     pass
 else:
     from .video_pyside import VideoPySide
+
+try:
+    import pyray
+except ImportError:
+    pass
+else:
+    from .video_raylib import VideoRaylib
 
 try:
     import PyQt6
@@ -64,9 +71,8 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-# doesn't seem to always work
-# for cv2
-
+# supposed to silence cv2 ffmpeg logs
+# but doesn't seem to always work
 environ["FFMPEG_LOG_LEVEL"] = FFMPEG_LOGLVL
 
 

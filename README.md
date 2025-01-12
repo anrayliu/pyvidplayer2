@@ -152,12 +152,10 @@ vid.close()
 pygame.quit()
 ```
 
-# Known Bugs (as of v0.9.25)
+# Known Bugs
 
-- Youtube videos will sometimes freeze or stutter
-- Video seeking is slow when reading from bytes
-- Rotated videos when playing from bytes will appear in their original direction
-
+For a list of known bugs, refer to https://github.com/anrayliu/pyvidplayer2/issues/53. 
+If you see an issue not listed, feel free to open an issues page!
 
 # Documentation 
 
@@ -228,6 +226,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `pref_lang: str` - Same as given argument.
  - `audio_index: int` - Same as given argument.
  - `subs_hidden: bool` - True if subs are currently disabled and False otherwise.
+ - `closed: bool` - True after `close()` is called.
  
 ## Methods
  - `play() -> None` - Sets `active` to `True`.
@@ -267,6 +266,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - Pyglet (`VideoPyglet`)
  - PySide6 (`VideoPySide`)
  - PyQT6 (`VideoPyQT`)
+ - RayLib (`VideoRayLib`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`, `Webcam`, and `VideoPlayer` only work with Pygame installed. Preview methods for other graphics libraries also do not accept any arguments.
 
@@ -307,6 +307,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `loop: bool` - Same as given argument.
  - `queue_: list[pyvidplayer2.VideoPygame | str]` - Videos to play after the current one finishes.
  - `preview_thumbnails: int` - Same as given argument.
+ - `closed: bool` - True after `close()` is called.
 
 ## Methods
  - `zoom_to_fill() -> None` - Zooms in the video so that `frame_rect` is entirely filled in while maintaining aspect ratio.
@@ -321,7 +322,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `close() -> None` - Releases resources. Always recommended to call when done.
  - `skip() -> None` - Moves onto the next video in the queue.
  - `get_video() -> pyvidplayer2.VideoPygame` - Returns currently playing video.
-
+ - `preview(max_fps: int = 60)` - Similar to `Video.preview()`. Gives a quick and easy demo of the class.
 
 # Subtitles(path, colour="white", highlight=(0, 0, 0, 128), font=None, encoding="utf-8", offset=50, delay=0, youtube=False, pref_lang="en", track_index=None)
 
@@ -362,7 +363,7 @@ For example, usually setting `en` will get English subtitles. However, the video
  - `get_font() -> pygame.font.Font | pygame.font.SysFont`
 
 
-# Webcam(post_process=PostProcessing.none, interp="linear", fps=30, cam_id=0)
+# Webcam(post_process=PostProcessing.none, interp="linear", fps=30, cam_id=0, capture_size=(0, 0))
 
 Object used for displaying a webcam feed. Only supported for Pygame.
 
@@ -371,23 +372,26 @@ Object used for displaying a webcam feed. Only supported for Pygame.
  - `interp: str | int` - Interpolation technique used by OpenCV when resizing frames. Accepts `"nearest"`, `"linear"`, `"cubic"`, `"lanczos4"` and `"area"`. Nearest is the fastest technique but produces the worst results. Lanczos4 produces the best results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best results when downscaling. This parameter can also accept OpenCV constants as in `cv2.INTER_LINEAR`. Resizing will use opencv when available but can fall back on ffmpeg if needed.
  - `fps: int` - Maximum number of frames captured from the webcam per second.
  - `cam_id: int` - Specifies which webcam to use if there are more than one. 0 means the first, 1 means the second, and so on.
-
+ - `capture_size: int` - Specifies the webcam resolution. If nothing is set, a default is used.
+ - 
 ## Attributes
  - `post_process: callable(numpy.ndarray) -> numpy.ndarray` - Same as given argument.
  - `interp: int` - Same as given argument.
  - `fps: int` - Same as given argument.
- - `original_size: (int, int)` - Tuple containing the width and height of each frame captured. Unaffected by resizing.
- - `current_size: (int, int)` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
+ - `original_size: (int, int)` - Size of raw frames captured by the webcam. Can be set with `resize_capture`.
+ - `current_size: (int, int)` - Size of frames after resampling. Can be set with `resize`.
  - `aspect_ratio: float` - Width divided by height of original size.
  - `active: bool` - Whether the webcam is currently playing.
  - `frame_data: numpy.ndarray` - Current video frame as a NumPy `ndarray`. Will be in BGR format.
  - `frame_surf: pygame.Surface` - Current video frame as a Pygame `Surface`.
  - `cam_id: int` - Same as given argument.
+ - `closed: bool` - True after `close()` is called.
 
 ## Methods
  - `play() -> None`
  - `stop() -> None`
- - `resize(size: (int, int)) -> None`
+ - `resize(size: (int, int)) -> None` - Simply sets dimensions that captured frames will be resized to.
+ - `resize_capture(size: (int, int)) -> bool` -  Changes the resolution at which frames are captured from the webcam. Returns `True` if a resolution was found that matched the given size exactly. Otherwise, `False` will be returned and the closest matching resolution will be used.
  - `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect ratio. Will scale width to an even number.
  - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the `interp` parameter (see `interp` above). Does nothing if OpenCV is not installed.
   - `set_post_func(func: callable(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 
@@ -412,6 +416,17 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - `fliplr` - Flips the video across y axis.
  - `flipup` - Flips the video across x axis.
 
+# Errors 
+
+- `Pyvidplayer2Error` - Base error for pyvidplayer2 related exceptions.
+- `AudioDeviceError(Pyvidplayer2Error)` - Thrown for exceptions related to PyAudio output devices.
+- `SubtitleError(Pyvidplayer2Error)` - Thrown for exceptions related to subtitles.
+- `VideoStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to general video probing and playback.
+- `FFmpegNotFoundError(Pyvidplayer2Error)` - Thrown when FFmpeg is missing.
+- `OpenCVError(Pyvidplayer2Error)` - Thrown for exceptions related to OpenCV processes.
+- `YTDLPError(Pyvidplayer2Error)` - Thrown for exceptions related to YTDLP processes.
+- `WebcamNotFoundError(Pyvidplayer2Error)` - Thrown when there are no webcams to activate.
+
 # Misc
 
 ```
@@ -419,6 +434,4 @@ print(pyvidplayer2.get_version_info())
 ```
 
 Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
-with `pyvidplayer2._version.__version__` or `pyvidplayer2.VERSION`.
-
-When there are no suitable exceptions, `pyvidplayer2.Pyvidplayer2Error` may be raised.
+with `pyvidplayer2.__version__` or `pyvidplayer2.VERSION`.

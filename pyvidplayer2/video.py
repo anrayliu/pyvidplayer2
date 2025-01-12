@@ -116,7 +116,7 @@ class Video:
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened() and CV:
-            raise OpenCVError("Failed to open file.")
+            raise OpenCVError("Failed to open file. Try downgrading yt-dlp to version 2024.12.13 as the latest release is bugged.")
 
         # file information
 
@@ -200,7 +200,10 @@ class Video:
 
     def __len__(self):
         return self.frame_count
-    
+
+    def __str__(self):
+        return f"<{type(self).__name__}(path={self.path if not (self.as_bytes or self.youtube) else ''})>"
+
     def __enter__(self):
         return self
 
@@ -261,6 +264,18 @@ class Video:
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
         return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
+
+    # mainly for testing purposes
+    def _force_ffmpeg_reader(self):
+        if not isinstance(self._vid, FFMPEGReader):
+            self._vid.release()
+            new_reader = FFMPEGReader(self.path, False)
+            new_reader.frame_count = self._vid.frame_count
+            new_reader.frame_rate = self._vid.frame_rate
+            new_reader.original_size = self._vid.original_size
+            new_reader.duration = self._vid.duration
+            new_reader.frame = self._vid.frame
+            self._vid = new_reader
 
     def _set_stream_url(self, path, max_res):
         config = {"quiet": True,

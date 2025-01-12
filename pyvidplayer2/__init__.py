@@ -71,10 +71,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-# supposed to silence cv2 ffmpeg logs
-# but doesn't seem to always work
-environ["FFMPEG_LOG_LEVEL"] = FFMPEG_LOGLVL
-
+cv2.setLogLevel(0) # silent
 
 def get_version_info():
     try:

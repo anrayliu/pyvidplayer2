@@ -123,7 +123,6 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
 env/
 venv/
 ENV/
@@ -165,6 +164,7 @@ cython_debug/
 build.txt
 test.py
 resources/
+tests/resources
 .VSCodeCounter/
 yt/
 devnote.txt

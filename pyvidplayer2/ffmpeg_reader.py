@@ -6,16 +6,22 @@ import numpy as np
 import subprocess
 from . import FFMPEG_LOGLVL
 from .video_reader import VideoReader
+from .error import *
 
 
 class FFMPEGReader(VideoReader):
-    def __init__(self, path):
-        VideoReader.__init__(self, path, True)
+    def __init__(self, path, probe=True):
+        VideoReader.__init__(self, path, probe)
 
-        self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+        try:
+            self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
+
         self._path = path
 
     def _convert_seconds(self, seconds):
+        seconds = abs(seconds)
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)

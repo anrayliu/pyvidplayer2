@@ -38,8 +38,8 @@ class VideoPySide(Video):
                 self.timer = QTimer(self)
                 self.timer.timeout.connect(self.update)
                 self.timer.start(int(1 / float(max_fps) * 1000))
-            def paintEvent(self, _):
-                self.draw(self, (0, 0))
+            def paintEvent(self_, _):
+                self.draw(self_, (0, 0))
         app = QApplication([])
         win = Window()
         win.setWindowTitle(f"pyside6 - {self.name}")

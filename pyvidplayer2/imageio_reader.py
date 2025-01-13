@@ -31,16 +31,18 @@ class IIOReader(VideoReader):
         self._gen = new_gen
 
     def read(self):
-        has = True
+        has = False
+        frame = None
         try:
             frame = next(self._gen)
         except StopIteration:
-            has = False
-            frame = None
+            pass
+        except AttributeError:  # for pyav v14 and imageio bug
+            pass
         else:
+            has = True
             self.frame += 1
 
-        #[...,::-1]
         return has, frame if has else None
 
     def release(self):

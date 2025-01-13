@@ -776,7 +776,7 @@ class Video:
         self._starting_time = min(max(0, self._starting_time), self.duration)
 
         for p in self._processes:
-            p.terminate()
+            p.kill()
         for t in self._threads:
             t.join()
             
@@ -811,7 +811,7 @@ class Video:
             self._starting_time = min(max(0, index / self.frame_rate), self.duration)
 
         for p in self._processes:
-            p.terminate()
+            p.kill()
         for t in self._threads:
             t.join()
 

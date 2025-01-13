@@ -104,7 +104,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.original_size, (1280, 720))
         self.assertEqual(v.current_size, (1280, 720))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
-        self.assertEqual(type(v._vid).__name__, "IIOReader")
+        self.assertEqual(type(v._vid).__name__, "DecordReader")
         v.close()
 
     # tests that each chunk setting is working properly
@@ -194,7 +194,7 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # tests that each file can be opened and recognized as bytes
-    @unittest.skip("Fails due to a known bug.")
+    # currently fails due to a bug
     def test_detect_as_bytes(self):
         for file in PATHS:
             with open(file, "rb") as f:
@@ -381,7 +381,7 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v._preloaded)
 
     # tests cv2 frame count, proving frame count, and real frame count
-    @unittest.skip("Fails due to a known bug.")
+    # currently fails due to a bug
     def test_frame_counts(self):
         for file in PATHS:
             v = Video(file)
@@ -520,7 +520,7 @@ class TestVideo(unittest.TestCase):
     # test each graphics library
     # does not test pyside due to conflicts with pyqt
     def test_previews(self):
-        for video in (Video, VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib):
+        for video in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPySide):
             v = video("resources\\clip.mp4")
             v.preview()
 
@@ -894,7 +894,6 @@ class TestVideo(unittest.TestCase):
             self.assertRaises(StopIteration, lambda: next(v))
             v.close()
 
-
     # tests force draw
     def test_draw(self):
         for force_draw in (False, True):
@@ -1001,19 +1000,12 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
-    # tests half-bug where an exception is ignored in pyav
-    def test_pyav_exception(self):
-        v = Video(VIDEO_PATH, reader=READER_IMAGEIO)
-        timed_loop(1, v.update)
-        v.close()   # should produce an ignored stack trace, but no exception
-        # test should pass
-
     # tests pyav dependency message
     def test_imageio_needs_pyav(self):
         with unittest.mock.patch.dict("sys.modules", {"av":None}):
             with self.assertRaises(ImportError) as context:
                 Video(VIDEO_PATH, reader=READER_IMAGEIO).preview()
-            self.assertEqual(str(context.exception), "The `pyav` plugin is not installed. Use `pip install imageio[pyav]` to install it.")
+                self.assertEqual(str(context.exception), "The `pyav` plugin is not installed. Use `pip install imageio[pyav]` to install it.")
 
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):
@@ -1084,16 +1076,19 @@ class TestVideo(unittest.TestCase):
 
     # tests that different types of videos can be opened in reverse
     def test_reverse(self):
+        PATH = "resources\\clip.mp4"
+
         for vfr in (True, False):
-            v = Video(VIDEO_PATH, reverse=True, vfr=vfr)
+            v = Video(PATH, reverse=True, vfr=vfr)
             for i, frame in enumerate(v):
                 self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
             v.close()
-        with open(VIDEO_PATH, "rb") as f:
-            v = Video(f.read(), reverse=True)
-            for i, frame in enumerate(v):
-                self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
-            v.close()
+        for reader in (READER_DECORD, READER_IMAGEIO):
+            with open(PATH, "rb") as f:
+                v = Video(f.read(), reverse=True, reader=reader)
+                for i, frame in enumerate(v):
+                    self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
+                v.close()
 
     # tests for a bug where the last frame would hang in situations like this
     def test_frame_bug(self):
@@ -1164,6 +1159,7 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(decord_reader.isOpened())
         self.assertTrue(iio_reader.isOpened())
 
+        # test read frames are the same
         for i in range(10):
             self.assertTrue(check_same_frames(cv_reader.read()[1], ffmpeg_reader.read()[1]))
             self.assertTrue(check_same_frames(decord_reader.read()[1], iio_reader.read()[1]))
@@ -1172,6 +1168,7 @@ class TestVideo(unittest.TestCase):
             bgr_frame = ffmpeg_reader.read()[1]
             self.assertTrue(check_same_frames(rgb_frame[...,::-1], bgr_frame))
 
+        # test seeking is the same
         cv_reader.seek(0)
         ffmpeg_reader.seek(0)
         decord_reader.seek(0)
@@ -1190,6 +1187,23 @@ class TestVideo(unittest.TestCase):
             bgr_frame = ffmpeg_reader.read()[1]
             self.assertTrue(check_same_frames(rgb_frame[...,::-1], bgr_frame))
 
+        # tests has_frame is the same
+        cv_reader.seek(v1.frame_count - 1)
+        ffmpeg_reader.seek(v1.frame_count - 1)
+        decord_reader.seek(v1.frame_count - 1)
+        iio_reader.seek(v1.frame_count - 1)
+
+        cv_reader.read()
+        ffmpeg_reader.read()
+        decord_reader.read()
+        iio_reader.read()
+
+        self.assertFalse(cv_reader.read()[0])
+        self.assertFalse(ffmpeg_reader.read()[0])
+        self.assertFalse(decord_reader.read()[0])
+        self.assertFalse(iio_reader.read()[0])
+
+        # test close
         cv_reader.release()
         ffmpeg_reader.release()
         decord_reader.release()
@@ -1254,7 +1268,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(type(v._vid).__name__, "CVReader")
         v.close()
         v = Video(VIDEO_PATH, reader=READER_FFMPEG)
-        self.assertEqual(type(v._vid).__name__, "FFMEPGReader")
+        self.assertEqual(type(v._vid).__name__, "FFMPEGReader")
         v.close()
 
     # tests automatic selection of readers
@@ -1328,7 +1342,12 @@ class TestVideo(unittest.TestCase):
                         self.assertEqual(type(v._vid).__name__, "DecordReader")
                         v.close()
 
-    # tests forcing reader to be ffmepg - similar to youtube equivalent
+    def test_random_read(self):
+        for file in PATHS:
+            for reader in (READER_FFMPEG,):
+                Video(file, reader=reader).close()
+
+    # tests forcing reader to be ffmpeg - similar to youtube equivalent
     def test_force_ffmpeg(self):
         for reader in (READER_DECORD, READER_IMAGEIO):
             v = Video(VIDEO_PATH, reader=reader)

@@ -7,6 +7,8 @@ class CVReader(VideoReader):
     def __init__(self, path, probe=False):
         VideoReader.__init__(self, path, probe)
 
+        self._colour_format = "BGR"
+
         self._vidcap = cv2.VideoCapture(path)
         if not self.isOpened():
             return

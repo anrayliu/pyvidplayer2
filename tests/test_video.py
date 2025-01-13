@@ -1,5 +1,6 @@
 import time
 import unittest
+import unittest.mock
 import os
 import random
 from threading import Thread
@@ -689,7 +690,6 @@ class TestVideo(unittest.TestCase):
     # tests that ffmpeg logs are hidden in case they were turned on and forgotten
     def test_loglevels(self):
         self.assertEqual(FFMPEG_LOGLVL, "quiet")
-        self.assertEqual(cv2.getLogLevel(), 0)
 
     # test get_closest_frame method
     def test_get_closest_frame(self):
@@ -853,9 +853,10 @@ class TestVideo(unittest.TestCase):
 
     # tests that an error is raised when bytes is empty
     def test_bad_bytes(self):
-        with self.assertRaises(VideoStreamError) as context:
-            Video(b'', as_bytes=True).close()
-        self.assertEqual(str(context.exception), "Could not determine video.")
+        for reader in (READER_IMAGEIO, READER_DECORD):
+            with self.assertRaises(VideoStreamError) as context:
+                Video(b'', as_bytes=True, reader=reader).close()
+            self.assertEqual(str(context.exception), "Could not determine video.")
 
     # tests that an error is raised when there are no video tracks
     def test_no_video_tracks(self):
@@ -1000,6 +1001,20 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # tests half-bug where an exception is ignored in pyav
+    def test_pyav_exception(self):
+        v = Video(VIDEO_PATH, reader=READER_IMAGEIO)
+        timed_loop(1, v.update)
+        v.close()   # should produce an ignored stack trace, but no exception
+        # test should pass
+
+    # tests pyav dependency message
+    def test_imageio_needs_pyav(self):
+        with unittest.mock.patch.dict("sys.modules", {"av":None}):
+            with self.assertRaises(ImportError) as context:
+                Video(VIDEO_PATH, reader=READER_IMAGEIO).preview()
+            self.assertEqual(str(context.exception), "The `pyav` plugin is not installed. Use `pip install imageio[pyav]` to install it.")
+
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):
         v = Video(VIDEO_PATH)
@@ -1054,6 +1069,19 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+        with unittest.mock.patch("pyvidplayer2.video.PYAUDIO", 0):
+            self.assertRaises(ModuleNotFoundError, Video, VIDEO_PATH)
+
+            # should be fine
+            Video(VIDEO_PATH, use_pygame_audio=True).close()
+
+        with unittest.mock.patch("pyvidplayer2.video.PYGAME", 0):
+            with self.assertRaises(ModuleNotFoundError):
+                Video(VIDEO_PATH, use_pygame_audio=True)
+
+            # should be fine
+            Video(VIDEO_PATH, use_pygame_audio=False).close()
+
     # tests that different types of videos can be opened in reverse
     def test_reverse(self):
         for vfr in (True, False):
@@ -1100,69 +1128,218 @@ class TestVideo(unittest.TestCase):
             self.assertEqual("<VideoPygame(path=)>", str(v))
             v.close()
 
-    # test to ensure the ffmpeg reader behaves the same as the cv reader
-    def test_readers(self):
-        # vp9 lossless video to ensure read frames are the same
+    # tests _convert_seconds method built into the ffmpeg reader
+    def test_ffmpeg_reader_convert_seconds(self):
+        v = Video(VIDEO_PATH, reader=READER_FFMPEG)
+        ffmpeg_reader = v._vid
 
-        v1 = Video("resources\\hdr.webm")
+        self.assertEqual(ffmpeg_reader._convert_seconds(7200), v._convert_seconds(7200))
+        self.assertEqual(ffmpeg_reader._convert_seconds(7325), v._convert_seconds(7325))
+        self.assertEqual(ffmpeg_reader._convert_seconds(125), v._convert_seconds(125))
+        self.assertEqual(ffmpeg_reader._convert_seconds(59), v._convert_seconds(59))
+        self.assertEqual(ffmpeg_reader._convert_seconds(7325.9), v._convert_seconds(7325.9))
+        self.assertEqual(ffmpeg_reader._convert_seconds(0), v._convert_seconds(0))
+        self.assertEqual(ffmpeg_reader._convert_seconds(90061.5), v._convert_seconds(90061.5))
+        self.assertEqual(ffmpeg_reader._convert_seconds(-3665), v._convert_seconds(-3665))
+
+        v.close()
+
+    # test to ensure each reader behaves the same
+    def test_readers(self):
+        # lossless video to ensure read frames are the same
+        PATH = "resources\\test.mp4"
+
+        v1 = Video(PATH, reader=READER_OPENCV)
+        v2 = Video(PATH, reader=READER_FFMPEG)
+        v3 = Video(PATH, reader=READER_DECORD)
+        v4 = Video(PATH, reader=READER_IMAGEIO)
+
         cv_reader = v1._vid
-        v2 = Video("resources\\hdr.webm")
-        v2._force_ffmpeg_reader()
         ffmpeg_reader = v2._vid
+        decord_reader = v3._vid
+        iio_reader = v4._vid
 
         self.assertTrue(cv_reader.isOpened())
         self.assertTrue(ffmpeg_reader.isOpened())
-
-        self.assertEqual(type(cv_reader).__name__, "CVReader")
-        self.assertEqual(type(ffmpeg_reader).__name__, "FFMPEGReader")
-
-        self.assertEqual(ffmpeg_reader._convert_seconds(7200), v1._convert_seconds(7200))
-        self.assertEqual(ffmpeg_reader._convert_seconds(7325), v1._convert_seconds(7325))
-        self.assertEqual(ffmpeg_reader._convert_seconds(125), v1._convert_seconds(125))
-        self.assertEqual(ffmpeg_reader._convert_seconds(59), v1._convert_seconds(59))
-        self.assertEqual(ffmpeg_reader._convert_seconds(7325.9), v1._convert_seconds(7325.9))
-        self.assertEqual(ffmpeg_reader._convert_seconds(0), v1._convert_seconds(0))
-        self.assertEqual(ffmpeg_reader._convert_seconds(90061.5), v1._convert_seconds(90061.5))
-        self.assertEqual(ffmpeg_reader._convert_seconds(-3665), v1._convert_seconds(-3665))
+        self.assertTrue(decord_reader.isOpened())
+        self.assertTrue(iio_reader.isOpened())
 
         for i in range(10):
             self.assertTrue(check_same_frames(cv_reader.read()[1], ffmpeg_reader.read()[1]))
+            self.assertTrue(check_same_frames(decord_reader.read()[1], iio_reader.read()[1]))
+        for i in range(5):
+            rgb_frame = decord_reader.read()[1]
+            bgr_frame = ffmpeg_reader.read()[1]
+            self.assertTrue(check_same_frames(rgb_frame[...,::-1], bgr_frame))
+
+        cv_reader.seek(0)
+        ffmpeg_reader.seek(0)
+        decord_reader.seek(0)
+        iio_reader.seek(0)
+
+        self.assertEqual(cv_reader.frame, 0)
+        self.assertEqual(ffmpeg_reader.frame, 0)
+        self.assertEqual(decord_reader.frame, 0)
+        self.assertEqual(iio_reader.frame, 0)
+
+        for i in range(10):
+            self.assertTrue(check_same_frames(cv_reader.read()[1], ffmpeg_reader.read()[1]))
+            self.assertTrue(check_same_frames(decord_reader.read()[1], iio_reader.read()[1]))
+        for i in range(5):
+            rgb_frame = decord_reader.read()[1]
+            bgr_frame = ffmpeg_reader.read()[1]
+            self.assertTrue(check_same_frames(rgb_frame[...,::-1], bgr_frame))
 
         cv_reader.release()
         ffmpeg_reader.release()
+        decord_reader.release()
+        iio_reader.release()
 
         v1.close()
         v2.close()
+        v3.close()
+        v4.close()
 
         self.assertFalse(cv_reader.isOpened())
         # non cv readers default to True for isOpened()
         self.assertTrue(ffmpeg_reader.isOpened())
+        self.assertTrue(decord_reader.isOpened())
+        self.assertTrue(iio_reader.isOpened())
 
-        # now open a seekable video to test seeking
-        v1 = Video(VIDEO_PATH)
-        cv_reader = v1._vid
-        v2 = Video(VIDEO_PATH)
-        v2._force_ffmpeg_reader()
-        ffmpeg_reader = v2._vid
+    # tests that each video has its correct colour format
+    def test_colour_format(self):
+        v = Video(VIDEO_PATH, reader=READER_DECORD)
+        self.assertEqual(v.colour_format, "RGB")
+        v.close()
+        v = Video(VIDEO_PATH, reader=READER_IMAGEIO)
+        self.assertEqual(v.colour_format, "RGB")
+        v.close()
+        v = Video(VIDEO_PATH, reader=READER_OPENCV)
+        self.assertEqual(v.colour_format, "BGR")
+        v.close()
+        v = Video(VIDEO_PATH, reader=READER_FFMPEG)
+        self.assertEqual(v.colour_format, "BGR")
+        v.close()
 
-        cv_original_frame = cv_reader.read()[1]
-        ffmpeg_original_frame = ffmpeg_reader.read()[1]
+    # tests that each video object has the correct amount of parameters
+    # here to ensure that new parameters are added to each video object
+    # pyside not tested because of its conflict with pyqt
+    def test_parameters(self):
+        # test each graphics library with exact number of arguments
 
-        for i in range(10):
-            cv_reader.read()
-            ffmpeg_reader.read()
+        v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO)
+        v.close()
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib):
+            v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
+                      0, False, "en", None, READER_AUTO)
+            v.close()
 
-        cv_reader.seek(0)
-        ffmpeg_reader.seek(0)
+        with self.assertRaises(TypeError):
+            Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO, "extra_arg")
 
-        self.assertEqual(cv_reader.frame, 0)
-        self.assertEqual(ffmpeg_reader.frame, 0)
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib):
+            with self.assertRaises(TypeError):
+                videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
+                          0, False, "en", None, READER_AUTO, "extra_arg")
 
-        self.assertTrue(check_same_frames(cv_original_frame, cv_reader.read()[1]))
-        self.assertTrue(check_same_frames(ffmpeg_original_frame, ffmpeg_reader.read()[1]))
+    # tests that each backend can be forced
+    def test_force_readers(self):
+        v = Video(VIDEO_PATH, reader=READER_DECORD)
+        self.assertEqual(type(v._vid).__name__, "DecordReader")
+        v.close()
+        v = Video(VIDEO_PATH, reader=READER_IMAGEIO)
+        self.assertEqual(type(v._vid).__name__, "IIOReader")
+        v.close()
+        v = Video(VIDEO_PATH, reader=READER_OPENCV)
+        self.assertEqual(type(v._vid).__name__, "CVReader")
+        v.close()
+        v = Video(VIDEO_PATH, reader=READER_FFMPEG)
+        self.assertEqual(type(v._vid).__name__, "FFMEPGReader")
+        v.close()
 
-        v1.close()
-        v2.close()
+    # tests automatic selection of readers
+    def test_auto_readers(self):
+        v = Video(VIDEO_PATH)
+        self.assertEqual(type(v._vid).__name__, "CVReader")
+        v.close()
+
+        with unittest.mock.patch("pyvidplayer2.video.CV", 0):
+            v = Video(VIDEO_PATH)
+            self.assertEqual(type(v._vid).__name__, "DecordReader")
+            v.close()
+
+            with self.assertRaises(ModuleNotFoundError):
+                Video(VIDEO_PATH, reader=READER_OPENCV)
+
+            with unittest.mock.patch("pyvidplayer2.video.DECORD", 0):
+                v = Video(VIDEO_PATH)
+                self.assertEqual(type(v._vid).__name__, "FFMPEGReader")
+                v.close()
+
+                with self.assertRaises(ModuleNotFoundError):
+                    Video(VIDEO_PATH, reader=READER_DECORD)
+
+                with unittest.mock.patch("pyvidplayer2.video.IIO", 0):
+                    v = Video(VIDEO_PATH)
+                    self.assertEqual(type(v._vid).__name__, "FFMPEGReader")
+                    v.close()
+
+                    with self.assertRaises(ModuleNotFoundError):
+                        Video(VIDEO_PATH, reader=READER_IMAGEIO)
+
+            with unittest.mock.patch("pyvidplayer2.video.IIO", 0):
+                v = Video(VIDEO_PATH)
+                self.assertEqual(type(v._vid).__name__, "DecordReader")
+                v.close()
+
+    # tests forced and auto selection of readers for reading from memory
+    def test_byte_readers(self):
+        with open(VIDEO_PATH, "rb") as f:
+            bytes_ = f.read()
+
+            v = Video(bytes_, as_bytes=True, reader=READER_AUTO)
+            v.close()
+            v = Video(bytes_, as_bytes=True, reader=READER_DECORD)
+            v.close()
+            v = Video(bytes_, as_bytes=True, reader=READER_IMAGEIO)
+            v.close()
+
+            with self.assertRaises(ValueError):
+                Video(bytes_, as_bytes=True, reader=READER_FFMPEG)
+            with self.assertRaises(ValueError):
+                Video(bytes_, as_bytes=True, reader=READER_OPENCV)
+
+            v = Video(bytes_, as_bytes=True)
+            self.assertEqual(type(v._vid).__name__, "DecordReader")
+            v.close()
+
+            with unittest.mock.patch("pyvidplayer2.video.DECORD", 0):
+                v = Video(bytes_, as_bytes=True)
+                self.assertEqual(type(v._vid).__name__, "IIOReader")
+                v.close()
+
+                with unittest.mock.patch("pyvidplayer2.video.IIO", 0):
+                    with self.assertRaises(ValueError) as context:
+                        Video(bytes_, as_bytes=True)
+                    self.assertEqual(str(context.exception), "Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
+
+                    with unittest.mock.patch("pyvidplayer2.video.DECORD", 1):
+                        v = Video(bytes_, as_bytes=True)
+                        self.assertEqual(type(v._vid).__name__, "DecordReader")
+                        v.close()
+
+    # tests forcing reader to be ffmepg - similar to youtube equivalent
+    def test_force_ffmpeg(self):
+        for reader in (READER_DECORD, READER_IMAGEIO):
+            v = Video(VIDEO_PATH, reader=reader)
+            self.assertEqual(v.colour_format, "RGB")
+            timed_loop(1, v.update)
+            v._force_ffmpeg_reader()
+            self.assertEqual(v.colour_format, "BGR")
+            self.assertEqual(type(v._vid).__name__, "FFMPEGReader")
+            self.assertEqual(v._vid.frame, v.frame)
+            timed_loop(1, v.update)
+            v.close()
 
 
 if __name__ == "__main__":

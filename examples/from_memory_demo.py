@@ -1,6 +1,6 @@
 '''
 This example shows how videos can be played from memory instead of disk
-pip install imageio before using
+pip install decord before using
 '''
 
 

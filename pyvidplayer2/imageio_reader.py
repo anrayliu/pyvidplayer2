@@ -6,6 +6,8 @@ class IIOReader(VideoReader):
     def __init__(self, path):
         VideoReader.__init__(self, path, False)
 
+        self._colour_format = "RGB"
+
         self._path = path
         self._gen = None
         self._as_bytes = isinstance(path, bytes)
@@ -38,9 +40,8 @@ class IIOReader(VideoReader):
         else:
             self.frame += 1
 
-        # unfortunately for this particular reader it is converting from RGB to BGR,
-        # then it will be converted back from BGR to RGB for rendering
-        return has, frame[...,::-1] if has else None
+        #[...,::-1]
+        return has, frame if has else None
 
     def release(self):
         self._path = b''

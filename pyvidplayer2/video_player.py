@@ -82,18 +82,18 @@ class VideoPlayer:
                 self.video._vid.seek(int(i * self.video.frame_rate * self._interval))
                 data = self.video._vid.read()[1]
 
-            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(data, size, "fast_bilinear", True).tobytes(), size, "BGR"))
+            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(data, size, "fast_bilinear", True).tobytes(), size, self.video._vid._colour_format))
 
         # add last readable frame
 
         if self.video._preloaded:
-            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._preloaded_frames[-1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
+            self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._preloaded_frames[-1], size, "fast_bilinear", True).tobytes(), size, self.video._vid._colour_format))
         else:
             i = 1
             while True:
                 self.video._vid.seek(self.video.frame_count - i)
                 try:
-                    self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, "BGR"))
+                    self._interval_frames.append(pygame.image.frombuffer(self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(), size, self.video._vid._colour_format))
                 except:
                     i += 1
                 else:

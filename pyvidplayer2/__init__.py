@@ -6,8 +6,7 @@ FFMPEG_LOGLVL = "quiet"
 
 
 from subprocess import run
-from os import environ
-
+from .video import READER_FFMPEG, READER_DECORD, READER_OPENCV, READER_IMAGEIO, READER_AUTO
 from .error import *
 from .post_processing import PostProcessing
 
@@ -71,7 +70,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-cv2.setLogLevel(0) # silent
+#cv2.setLogLevel(0) # silent
 
 def get_version_info():
     try:

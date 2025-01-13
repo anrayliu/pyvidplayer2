@@ -1,7 +1,7 @@
 import time
 import unittest
 from threading import Thread
-
+import unittest.mock
 import yt_dlp
 import random
 from test_subtitles import SUBS
@@ -229,12 +229,39 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests forcing reader to be ffmepg
     def test_force_ffmpeg(self):
         v = Video(YOUTUBE_PATH, youtube=True)
-        self.assertEqual(type(v._vid).__name__, "CVReader")
-        timed_loop(3, v.update)
+        timed_loop(2, v.update)
         v._force_ffmpeg_reader()
         self.assertEqual(type(v._vid).__name__, "FFMPEGReader")
         self.assertEqual(v._vid.frame, v.frame)
-        timed_loop(3, v.update)
+        timed_loop(2, v.update)
+        v.close()
+
+    # tests forced and auto selection of readers for youtube
+    def test_youtube_readers(self):
+        v = Video(YOUTUBE_PATH, youtube=True)
+        self.assertEqual(type(v._vid).__name__, "CVReader")
+
+        # using _get_best_reader instead of creating Video objects
+        # to reduce network spam
+
+        # test for exceptions here
+        # youtube = True, as_bytes = False, reader = READER_AUTO
+        v._get_best_reader( True, False, READER_AUTO)
+        v._get_best_reader( True, False, READER_OPENCV)
+
+        with self.assertRaises(ValueError):
+            v._get_best_reader(True, False, READER_FFMPEG)
+        with self.assertRaises(ValueError):
+            v._get_best_reader(True, False, READER_IMAGEIO)
+        with self.assertRaises(ValueError):
+            v._get_best_reader(True, False, READER_IMAGEIO)
+
+        with unittest.mock.patch("pyvidplayer2.video.CV", 0):
+            with self.assertRaises(ValueError) as context:
+                Video(YOUTUBE_PATH, youtube=True)
+            self.assertEqual(str(context.exception),
+                             "Only READER_OPENCV is supported for Youtube videos.")
+
         v.close()
 
 

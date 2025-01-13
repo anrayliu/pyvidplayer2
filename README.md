@@ -82,11 +82,12 @@ pygame          (graphics and audio library, comes installed)
 PyAudio         (better audio library, comes installed)
 pysubs2         (for subtitles, comes installed)
 yt_dlp          (for streaming Youtube videos)
+decord          (for videos in bytes, best option)
 imageio         (for videos in bytes)
 pyglet          (graphics library)
 PySide6         (graphics library)
 PyQt6           (graphics library)
-tkinter         (graphics library, optionally installed with Python)
+tkinter         (graphics library, installed through Python and not pip)
 raylib          (graphics library)
 ```
 
@@ -163,7 +164,7 @@ Documentation also available in repository as documentation.md.
 
 # Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None)
 
-Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see `use_pygame_audio` below). Pygame or Pygame CE are the only graphics libraries to support subtitles. YTDLP is required to stream videos from Youtube. IMAGEIO and PyAV are required to play videos from memory. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is `VideoPygame`.
+Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see `use_pygame_audio` below). Pygame or Pygame CE are the only graphics libraries to support subtitles. YTDLP is required to stream videos from Youtube. Decord is required to play videos from memory. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is `VideoPygame`.
 
 ## Parameters
  - `path: str | bytes` - Path to video file. Supports almost all file types such as mkv, mp4, mov, avi, 3gp, etc. Can also provide the video in bytes (see `as_bytes` below). If streaming from Youtube (see `youtube` below), provide the URL here.
@@ -179,7 +180,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `speed: float | int` - Float from 0.5 to 10.0 that multiplies the playback speed. Note that if for example, speed=2, the video will play twice as fast. However, every single video frame will still be processed. Therefore, the frame rate of your program must be at least twice that of the video's frame rate to prevent dropped frames. So for example, for a 24 fps video, the video will have to be updated (see `draw` below) at least, but ideally more than 48 times a second to achieve true x2 speed.
  - `youtube: bool` - Specifies whether to stream a Youtube video. Path must be a valid Youtube video URL. The python packages yt_dlp and opencv-python are required for this feature. They can be installed through pip. Setting this to `True` will force `chunk_size` to be at least 60 and `max_threads` to be 1. Cannot play active livestreams.
  - `max_res: int` - Only used when streaming Youtube videos. Sets the highest possible resolution when choosing video quality. 4320p is the highest Youtube supports. Note that actual video quality is not guaranteed to match `max_res`.
- - `as_bytes: bool` - Specifies whether `path` is a video in byte form. The python packages imageio and av are required for this feature. It can be installed through pip.
+ - `as_bytes: bool` - Specifies whether `path` is a video in byte form. The python package decord is required for this feature. It can be installed through pip.
  - `audio_track: int` - Selects which audio track to use. 0 will play the first, 1 will play the second, and so on.
  - `vfr: bool` - Used to play variable frame rate videos properly. If `False`, a constant frame rate will be assumed. If `True`, presentation timestamps will be extracted for each frame (see `timestamps` below). This still works for constant frame rate videos, but extracting the timestamps will mean a longer initial load.
  - `pref_lang: str` - Only used when streaming Youtube videos. Used to select a language track if video has multiple.

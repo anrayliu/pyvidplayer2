@@ -137,7 +137,7 @@ class Webcam:
         return False
 
     def _create_frame(self, data):
-        return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
+        return pygame.image.frombuffer(data.tobytes(), self.current_size, self.video._vid._colour_format)
     
     def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)

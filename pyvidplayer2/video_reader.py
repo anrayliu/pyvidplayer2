@@ -11,6 +11,7 @@ class VideoReader:
         self.original_size = (0, 0)
         self.duration = 0
         self.frame = 0
+        self._colour_format = ""
 
         self.released = False
 

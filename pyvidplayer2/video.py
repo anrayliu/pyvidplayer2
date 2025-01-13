@@ -40,21 +40,20 @@ else:
     YTDLP = 1
 
 try:
-    import imageio.v3 as iio
+    import imageio.v3
 except ImportError:
     IIO = 0
 else:
     IIO = 1
     from .imageio_reader import IIOReader
 
-# pyav is an optional package for imageio
-
 try:
-    import av
+    import decord
 except ImportError:
-    PYAV = 0
+    DECORD = 0
 else:
-    PYAV = 1
+    DECORD = 1
+    from .decord_reader import DecordReader
 
 try:
     from .subtitles import Subtitles
@@ -64,9 +63,17 @@ else:
     SUBS = 1
 
 
+# for specifying differetn reader backends
+READER_AUTO = 0
+READER_FFMPEG = 1
+READER_OPENCV = 2
+READER_IMAGEIO = 3
+READER_DECORD = 4
+
+
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, 
-                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index):
+                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader):
         
         self._audio_path = path     # used for audio only when streaming
         self.path = path
@@ -79,18 +86,17 @@ class Video:
 
         self.pref_lang = pref_lang
 
+        # determines correct backend here
+        reader = self._get_best_reader(youtube, as_bytes, reader)
         if youtube:
             if YTDLP:
                 # sets path and audio path for cv2 and ffmpeg
                 # also sets name and ext
                 self._set_stream_url(path, max_res)
-                if CV:
-                    self._vid = CVReader(self.path)
-                else:
-                    raise ModuleNotFoundError("Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
+                self._vid = reader(self.path)
             else:
                 raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
-            
+
             # having less than 60 hurts performance
             if chunk_size < 60:
                 chunk_size = 60
@@ -98,25 +104,20 @@ class Video:
                 max_threads = 1
 
         elif as_bytes:
-            if not IIO:
-                raise ModuleNotFoundError("Unable to read video from memory because IMAGEIO is not installed. IMAGEIO can be installed via pip.")
-            if not PYAV:
-                raise ModuleNotFoundError("Unable to read video from memory because PyAV is not installed. PyAV can be installed via pip.")
-            self._vid = IIOReader(self.path)
+            self._vid = reader(self.path)
             self._audio_path = "-"  # read from pipe
 
         else:
             if not os.path.exists(self.path):
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
 
-            if CV:
-                self._vid = CVReader(self.path)
-            else:
-                self._vid = FFMPEGReader(self.path)
+            self._vid = reader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened() and CV:
             raise OpenCVError("Failed to open file. Try downgrading yt-dlp to version 2024.12.13 as the latest release is bugged.")
+
+        self.colour_format = self._vid._colour_format
 
         # file information
 
@@ -236,6 +237,47 @@ class Video:
         else:
             raise StopIteration("No more frames to read.")
 
+    def _get_best_reader(self, youtube, as_bytes, reader):
+        if youtube:
+            if reader == READER_AUTO or reader == READER_OPENCV:
+                if CV:
+                    return CVReader
+                elif reader != READER_AUTO:
+                    ModuleNotFoundError(
+                        "Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
+            raise ValueError("Only READER_OPENCV is supported for Youtube videos.")
+        elif as_bytes:
+            if reader == READER_AUTO or reader == READER_DECORD:
+                if DECORD:
+                    return DecordReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError(
+                        "Unable to read video from memory because decord is not installed. Decord can be installed via pip.")
+            if reader == READER_AUTO or reader == READER_IMAGEIO:
+                if IIO:
+                    return IIOReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError("Unable to read video from memory because IMAGEIO is not installed. IMAGEIO can be installed via pip.")
+            raise ValueError("Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
+        else:
+            if reader == READER_AUTO or reader == READER_OPENCV:
+                if CV:
+                    return CVReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError("OpenCV is not installed. OpenCV can be installed through pip.")
+            if reader == READER_AUTO or reader == READER_DECORD:
+                if DECORD:
+                    return DecordReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError("Decord is not installed. Decord can be installed through pip.")
+            if reader == READER_AUTO or reader == READER_FFMPEG:
+                return FFMPEGReader
+            if reader == READER_IMAGEIO:
+                if IIO:
+                    return IIOReader
+                raise ModuleNotFoundError("ImageIO is not installed. ImageIO can be installed through pip.")
+            raise ValueError("Could not identify backend.")
+
     def _filter_subs(self, subs):
         if SUBS and isinstance(subs, Subtitles):
             return [subs]
@@ -275,6 +317,7 @@ class Video:
             new_reader.original_size = self._vid.original_size
             new_reader.duration = self._vid.duration
             new_reader.frame = self._vid.frame
+            self.colour_format = new_reader._colour_format
             self._vid = new_reader
 
     def _set_stream_url(self, path, max_res):

@@ -13,6 +13,8 @@ class FFMPEGReader(VideoReader):
     def __init__(self, path, probe=True):
         VideoReader.__init__(self, path, probe)
 
+        self._colour_format = "BGR"
+
         try:
             self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
         except FileNotFoundError:

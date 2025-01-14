@@ -960,6 +960,17 @@ class TestVideo(unittest.TestCase):
         self.assertRaises(OpenCVError, lambda: Video("resources\\fake.txt"))
         self.assertRaises(FileNotFoundError, lambda: Video("badpath"))
 
+    # tests get position accuracy
+    def test_get_pos(self):
+        v = Video(VIDEO_PATH)
+        while_loop(lambda: v.get_pos() == 0.0, v.update, 2)
+        excess = v.get_pos()
+        t = time.time()
+        timed_loop(5, v.update)
+        pos = v.get_pos()
+        t = time.time() - t
+        self.assertTrue(abs(pos - excess - t) <= 0.05)
+
     # tests choosing audio tracks
     def test_audio_track(self):
         for audio_handler in (True, False):

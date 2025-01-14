@@ -40,7 +40,13 @@ class VideoReader:
         info = info[0]
 
         self.original_size = int(info["width"]), int(info["height"])
+
+        if self.original_size == (0, 0):
+            raise VideoStreamError("Could not extract metadata from video.")
+
         self.frame_rate = float(info["r_frame_rate"].split("/")[0]) / float(info["r_frame_rate"].split("/")[1])
+
+        # this detects duration instead
 
         '''try:
             p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_format -loglevel {FFMPEG_LOGLVL} -print_format json",

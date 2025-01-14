@@ -517,13 +517,6 @@ class TestVideo(unittest.TestCase):
         while_loop(lambda: v.active, v.update, 10)
         v.close()
 
-    # test each graphics library
-    # does not test pyside due to conflicts with pyqt
-    def test_previews(self):
-        for video in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPySide):
-            v = video("resources\\clip.mp4")
-            v.preview()
-
     # tests that high frame rate videos can be achieved
     def test_unlocked_fps(self):
         for audio_handler in (True, False):
@@ -548,6 +541,32 @@ class TestVideo(unittest.TestCase):
                     frames += 1
             v.close()
             self.assertTrue(passed)
+
+    # test each readers ability to choose the first video track when there are many
+    # fails because decord does not read the first track
+    def test_many_video_tracks(self):
+        v = Video("resources\\birds.avi")
+        vids = [Video("resources\\manyv.mp4", reader=reader) for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
+        for i in range(10):
+            frame = next(v)
+            for vid in vids:
+                self.assertTrue(check_same_frames(frame, next(vid)))
+        v.close()
+        [vid.close() for vid in vids]
+
+    # test each reader's ability to handle 16 bit colours
+    def test_16_bit_colour(self):
+        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
+            v = Video("resources\\16bit.mp4", reader=reader)
+            while_loop(lambda: v.frame_surf is None, v.update, 5)
+            v.close()
+
+    # test each reader's ability to handle a single colour channel
+    def test_grayscale(self):
+        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
+            v = Video("resources\\1channel.mp4", reader=reader)
+            while_loop(lambda: v.frame_surf is None, v.update, 5)
+            v.close()
 
     # tests that pausing works correctly
     def test_pausing(self):
@@ -632,7 +651,7 @@ class TestVideo(unittest.TestCase):
     def test_no_audio_detection(self):
         for file in PATHS:
             v = Video(file)
-            self.assertEqual(v.no_audio, v.name in ("60fps", "silent", "hdr", "test", "av1"), f"{file} failed unit test")
+            self.assertEqual(v.no_audio, v.name in ("60fps", "silent", "hdr", "test", "av1", "16bit", "1channel"), f"{file} failed unit test")
             v.close()
 
     # tests cv2 and ffmepg resamplers work as intended
@@ -925,14 +944,16 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(flag, force_draw)
 
     # tests that previews start from where the video position is, and that they close the video afterwards
-    def test_preview(self):
-        v = Video(VIDEO_PATH)
-        v.seek(v.duration)
-        thread = Thread(target=lambda: v.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(v.closed)
+    # does not test pyside6 because it conflicts with pyqt6
+    def test_previews(self):
+        for v in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT):
+            v = Video(VIDEO_PATH)
+            v.seek(v.duration)
+            thread = Thread(target=lambda: v.preview())
+            thread.start()
+            time.sleep(1)
+            self.assertFalse(thread.is_alive())
+            self.assertTrue(v.closed)
 
     # tests correct errors are raised when given bad input paths
     def test_open_video(self):
@@ -1005,7 +1026,7 @@ class TestVideo(unittest.TestCase):
         with unittest.mock.patch.dict("sys.modules", {"av":None}):
             with self.assertRaises(ImportError) as context:
                 Video(VIDEO_PATH, reader=READER_IMAGEIO).preview()
-                self.assertEqual(str(context.exception), "The `pyav` plugin is not installed. Use `pip install imageio[pyav]` to install it.")
+            self.assertEqual(str(context.exception), "The `pyav` plugin is not installed. Use `pip install imageio[pyav]` to install it.")
 
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):

@@ -18,8 +18,9 @@ class VideoTkinter(Video):
 
     def _create_frame(self, data):
         h, w = data.shape[:2]
-        # [...,::-1] converts from BGR to RGB
-        return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data[...,::-1].tobytes(), format='PPM')
+        if self.colour_format == "BGR":
+            data = data[...,::-1] # converts to RGB
+        return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data.tobytes(), format='PPM')
 
     def _render_frame(self, canvas, pos):
         canvas.create_image(*pos, image=self.frame_surf)

@@ -16,7 +16,7 @@ class FFMPEGReader(VideoReader):
         self._colour_format = "BGR"
 
         try:
-            self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+            self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -map 0:v:0 -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 

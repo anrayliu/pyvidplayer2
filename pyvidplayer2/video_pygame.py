@@ -17,7 +17,7 @@ class VideoPygame(Video):
                        as_bytes, audio_track, vfr, pref_lang, audio_index, reader)
 
     def _create_frame(self, data):
-        return pygame.image.frombuffer(data.tobytes(), self.current_size, self._vid._colour_format)
+        return pygame.image.frombuffer(data.tobytes(), (data.shape[1], data.shape[0]), self._vid._colour_format)
     
     def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)

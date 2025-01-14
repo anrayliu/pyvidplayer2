@@ -20,7 +20,9 @@ class VideoPySide(Video):
                        as_bytes, audio_track, vfr, pref_lang, audio_index, reader)
 
     def _create_frame(self, data):
-        return QImage(data, data.shape[1], data.shape[0], data.strides[0], QImage.Format.Format_BGR888)
+        # only BGR and RGB formats in readers right now
+        f = QImage.Format.Format_BGR888 if self.colour_format == "BGR" else QImage.Format.Format_RGB888
+        return QImage(data, data.shape[1], data.shape[0], data.strides[0], f)
 
     def _render_frame(self, win, pos): # must be called in paintEvent
         QPainter(win).drawPixmap(*pos, QPixmap.fromImage(self.frame_surf))
@@ -40,6 +42,8 @@ class VideoPySide(Video):
                 self.timer.start(int(1 / float(max_fps) * 1000))
             def paintEvent(self_, _):
                 self.draw(self_, (0, 0))
+                if not self.active:
+                    QApplication.quit()
         app = QApplication([])
         win = Window()
         win.setWindowTitle(f"pyside6 - {self.name}")

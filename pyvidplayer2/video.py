@@ -63,7 +63,7 @@ else:
     SUBS = 1
 
 
-# for specifying differetn reader backends
+# for specifying different reader backends
 READER_AUTO = 0
 READER_FFMPEG = 1
 READER_OPENCV = 2
@@ -144,6 +144,9 @@ class Video:
 
         self.frame_data = None
         self.frame_surf = None
+        # this is used to load the next frame after the current frame is displayed
+        # minimizes lag between audio and video
+        self._frame_buffer = None
 
         self.active = False
         self.buffering = False

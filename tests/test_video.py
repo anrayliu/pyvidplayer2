@@ -955,6 +955,20 @@ class TestVideo(unittest.TestCase):
             self.assertFalse(thread.is_alive())
             self.assertTrue(v.closed)
 
+    # tests that the last frame can be achieved
+    # performs test by counting rendered frames
+    def test_last_frame(self):
+        PATH = "resources\\5frames.mp4"
+        for v in (Video(PATH, vfr=True), Video(PATH), Video(PATH, reverse=True)):
+            frames = 0
+            def update():
+                nonlocal frames
+                if v.update():
+                    frames += 1
+            while_loop(lambda: v.active, update, 8)
+            self.assertEqual(frames, 5)
+            v.close()
+
     # tests correct errors are raised when given bad input paths
     def test_open_video(self):
         self.assertRaises(OpenCVError, lambda: Video("resources\\fake.txt"))

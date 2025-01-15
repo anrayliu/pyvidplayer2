@@ -146,7 +146,6 @@ class Video:
         self.frame_surf = None
         # this is used to load the next frame after the current frame is displayed
         # minimizes lag between audio and video
-        self._frame_buffer = None
 
         self.active = False
         self.buffering = False
@@ -549,8 +548,8 @@ class Video:
     
     def _has_frame(self, p):
         if self.vfr:
-            return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
-        return p > (self.frame + 1) / self.frame_rate
+            return self.frame < self.frame_count and p > self.timestamps[self.frame]
+        return p > self.frame / self.frame_rate
     
     def _update(self):
         if self._missing_ffmpeg:
@@ -566,10 +565,9 @@ class Video:
             p = self.get_pos()
 
             while self._has_frame(p):
-
+                data = None
                 if self.reverse:
                     has_frame = True
-                    data = None
                     try:
                         data = self._preloaded_frames[self.frame_count - self.frame - 1]
                     except IndexError:
@@ -577,7 +575,6 @@ class Video:
                 else:
 
                     self.buffering = True
-
                     if self._preloaded:
                         has_frame = True
                         try:
@@ -586,7 +583,6 @@ class Video:
                             has_frame = False
                     else:
                         has_frame, data = self._vid.read()
-
                     self.buffering = False
 
                 self.frame += 1

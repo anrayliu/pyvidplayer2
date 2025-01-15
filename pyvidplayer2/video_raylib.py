@@ -17,7 +17,7 @@ class VideoRaylib(Video):
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
                  no_audio: bool = False, speed: float = 1, youtube: bool = False,
-                 max_res: int = 1080, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
+                 max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
                  pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,

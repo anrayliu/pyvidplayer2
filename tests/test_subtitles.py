@@ -129,17 +129,16 @@ class TestSubtitles(unittest.TestCase):
 
 
     # tests that subtitles are properly read and displayed
-    # test still sometimes fails, but it seems  to be still a good test as long as it can succeed
     def test_subtitles(self):
-        # running video in x5 to speed up test
-        v = Video("resources\\trailer1.mp4", subs=Subtitles("resources\\subs1.srt"), speed=5)
+        # running video in x6 to speed up test
+        v = Video("resources\\trailer1.mp4", subs=Subtitles("resources\\subs1.srt"), speed=6)
 
         def check_subs():
             v.update()
 
-            timestamp = v.frame / v.frame_rate
+            timestamp = (v.frame - 1) / v.frame_rate
             # skip when frame has not been rendered yet
-            if timestamp == 0:
+            if v.frame_data is None:
                 return
 
             in_interval = False

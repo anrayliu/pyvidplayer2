@@ -62,6 +62,12 @@ class VideoPlayer:
     def __len__(self):
         return len(self.queue_) + 1
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        self.close()
+
     def _close_queue(self):
         for video in self.queue_:
             try:

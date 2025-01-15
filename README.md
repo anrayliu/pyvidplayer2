@@ -162,7 +162,7 @@ If you see an issue not listed, feel free to open an issues page!
 
 Documentation also available in repository as documentation.md.
 
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=1080, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None, reader=pyvidplayer2.READER_AUTO)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=720, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None, reader=pyvidplayer2.READER_AUTO)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see `use_pygame_audio` below). Pygame or Pygame CE are the only graphics libraries to support subtitles. YTDLP is required to stream videos from Youtube. Decord is required to play videos from memory. This particular object uses Pygame for graphics, but see bottom for other supported libraries. Actual class name is `VideoPygame`.
 

@@ -115,7 +115,7 @@ class Video:
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened() and CV:
-            raise OpenCVError("Failed to open file. Try downgrading yt-dlp to version 2024.12.13 as the latest release is bugged.")
+            raise OpenCVError("Failed to open file. Please make sure your yt-dlp is the newest version.")
 
         self.colour_format = self._vid._colour_format
 
@@ -144,8 +144,6 @@ class Video:
 
         self.frame_data = None
         self.frame_surf = None
-        # this is used to load the next frame after the current frame is displayed
-        # minimizes lag between audio and video
 
         self.active = False
         self.buffering = False

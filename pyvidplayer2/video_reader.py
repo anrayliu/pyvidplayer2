@@ -42,7 +42,7 @@ class VideoReader:
         self.original_size = int(info["width"]), int(info["height"])
 
         if self.original_size == (0, 0):
-            raise VideoStreamError("Could not extract metadata from video.")
+            raise VideoStreamError("FFmpeg failed to read video.")
 
         self.frame_rate = float(info["r_frame_rate"].split("/")[0]) / float(info["r_frame_rate"].split("/")[1])
 

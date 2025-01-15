@@ -7,13 +7,6 @@ from pyvidplayer2 import *
 
 
 class TestVideoPlayer(unittest.TestCase):
-    def setUp(self):
-        self.static_video = Video(VIDEO_PATH)
-        self.static_player = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
-
-    def tearDown(self):
-        self.static_player.close()
-
     # tests that a video can be played entirely in a video player
     def test_full_player(self):
         v = Video("resources\\clip.mp4")
@@ -27,7 +20,7 @@ class TestVideoPlayer(unittest.TestCase):
         for i in range(100):
             pos = (random.randint(0, 2000), random.randint(0, 2000))
             size = (random.randint(100, 2000), random.randint(100, 2000))
-            vp = VideoPlayer(self.static_video, (*pos, *size))
+            vp = VideoPlayer(Video(VIDEO_PATH), (*pos, *size))
 
             original_vid_rect = vp.vid_rect.copy()
             original_frame_rect = vp.frame_rect.copy()
@@ -51,18 +44,22 @@ class TestVideoPlayer(unittest.TestCase):
             self.assertEqual(vp.vid_rect, original_vid_rect)
             self.assertEqual(vp.frame_rect, original_frame_rect)
 
+            vp.close()
+
     # tests default video player
     def test_open_video_player(self):
-        vp = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
-        self.assertIs(vp.video, self.static_video)
-        self.assertIs(vp.get_video(), self.static_video)
-        self.assertEqual(vp.vid_rect, pygame.Rect(0, 0, self.static_video.original_size[0], self.static_video.original_size[1]))
-        self.assertEqual(vp.frame_rect, pygame.Rect(0, 0, self.static_video.original_size[0], self.static_video.original_size[1]))
+        v = Video(VIDEO_PATH)
+        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        self.assertIs(vp.video, v)
+        self.assertIs(vp.get_video(), v)
+        self.assertEqual(vp.vid_rect, pygame.Rect(0, 0, v.original_size[0], v.original_size[1]))
+        self.assertEqual(vp.frame_rect, pygame.Rect(0, 0, v.original_size[0], v.original_size[1]))
         self.assertFalse(vp.interactable)
         self.assertFalse(vp.loop)
         self.assertEqual(vp.preview_thumbnails, 0)
         self.assertEqual(vp._font.get_height(), 12) # point size 10 should result in 12 height
         self.assertEqual(vp._font.name, "Arial")
+        vp.close()
 
     # tests queue system
     def test_queue(self):
@@ -133,6 +130,14 @@ class TestVideoPlayer(unittest.TestCase):
         for v in (v1, v2, v3, v4):
             self.assertTrue(v.closed)
 
+    # tests video player with context manager
+    def test_context_manager(self):
+        with VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720)) as vp:
+            self.assertFalse(vp.closed)
+            self.assertFalse(vp.get_video().closed)
+        self.assertTrue(vp.closed)
+        self.assertTrue(vp.get_video().closed)
+
     # tests queue system with loop
     def test_queue_loop(self):
         original_video = Video("resources\\trailer1.mp4")
@@ -176,7 +181,8 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests the move method video player
     def test_move_video_player(self):
-        vp = VideoPlayer(self.static_video, (0, 0, *self.static_video.original_size))
+        v = Video(VIDEO_PATH)
+        vp = VideoPlayer(v, (0, 0, *v.original_size))
 
         vid_pos = vp.vid_rect.topleft
         vid_size = vp.vid_rect.size
@@ -194,6 +200,8 @@ class TestVideoPlayer(unittest.TestCase):
         # ensures that vid rect was properly changed
         self.assertNotEqual(vp.vid_rect.topleft, vid_pos)
         self.assertEqual(vp.vid_rect.size, vid_size)
+
+        vp.close()
 
     # tests queueing with video paths instead of objects
     def test_queue_str_path(self):
@@ -250,7 +258,7 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests the _best_fit method for videoplayer
     def test_best_fit(self):
-        vp = self.static_player
+        vp = VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720))
 
         # Test case 1: Rectangle with exact aspect ratio
         rect = pygame.Rect(0, 0, 1920, 1080)
@@ -312,9 +320,11 @@ class TestVideoPlayer(unittest.TestCase):
         expected = pygame.Rect(0, 0, 0, 0)  # No space to fit
         self.assertEqual(vp._best_fit(rect, aspect_ratio), expected)
 
+        vp.close()
+
     # tests _convert_seconds for videoplayer
     def test_video_player_convert_seconds(self):
-        vp = self.static_player
+        vp = VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720))
 
         # Whole Hours
         self.assertEqual(vp._convert_seconds(3600), "1:0:0")
@@ -348,6 +358,8 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertEqual(vp._convert_seconds(-5), "0:0:5")
         self.assertEqual(vp._convert_seconds(-3665), "1:1:5")
 
+        vp.close()
+
     # tests different arguments for videoplayers to check for errors
     def test_bad_player_path(self):
         with self.assertRaises(ValueError) as context:
@@ -364,7 +376,9 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests __str__
     def test_str_magic_method(self):
-        self.assertEqual("<VideoPlayer(path=resources\\trailer1.mp4)>", str(self.static_player))
+        vp = VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720))
+        self.assertEqual("<VideoPlayer(path=resources\\trailer1.mp4)>", str(vp))
+        vp.close()
 
     # tests that previews behave correctly
     def test_preview(self):

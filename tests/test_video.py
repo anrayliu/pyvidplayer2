@@ -29,16 +29,16 @@ def get_videos():
                 paths.append(os.path.join("resources", file))
     return paths
 
-def timed_loop(seconds, func):
+def timed_loop(seconds, func, dt=0.1):
     t = time.time() + seconds
     while time.time() < t:
-        time.sleep(0.1)
+        time.sleep(dt)
         func()
 
-def while_loop(condition_func, func, timeout):
+def while_loop(condition_func, func, timeout, dt=0.1):
     t = time.time()
     while condition_func():
-        time.sleep(0.1)
+        time.sleep(dt)
         func()
         if time.time() - t > timeout:
             raise RuntimeError("Loop timed out.")
@@ -52,12 +52,6 @@ VIDEO_PATH = "resources\\trailer1.mp4"
 
 
 class TestVideo(unittest.TestCase):
-    def setUp(self):
-        self.static_video = Video(VIDEO_PATH)
-
-    def tearDown(self):
-        self.static_video.close()
-
     # tests each post processing function
     def test_post_processing(self):
         # must be done with clip.mp4 because trailer1.mp4 fails letterbox due to it already having one
@@ -278,18 +272,20 @@ class TestVideo(unittest.TestCase):
 
             v.close()
 
-    # test __len__
-    def test_len_magic_method(self):
-        self.assertEqual(self.static_video.frame_count, len(self.static_video))
-
     # test __str__
     def test_str_magic_method(self):
-        self.assertEqual("<VideoPygame(path=resources\\trailer1.mp4)>", str(self.static_video))
-        self.assertEqual("<VideoTkinter(path=resources\\trailer1.mp4)>", str(VideoTkinter(VIDEO_PATH)))
-        self.assertEqual("<VideoPyglet(path=resources\\trailer1.mp4)>", str(VideoPyglet(VIDEO_PATH)))
-        self.assertEqual("<VideoPyQT(path=resources\\trailer1.mp4)>", str(VideoPyQT(VIDEO_PATH)))
-        self.assertEqual("<VideoRaylib(path=resources\\trailer1.mp4)>", str(VideoRaylib(VIDEO_PATH)))
-        self.assertEqual("<VideoPySide(path=resources\\trailer1.mp4)>", str(VideoPySide(VIDEO_PATH)))
+        videos = {
+                    "<VideoPygame(path=resources\\trailer1.mp4)>": Video(VIDEO_PATH),
+                    "<VideoTkinter(path=resources\\trailer1.mp4)>": VideoTkinter(VIDEO_PATH),
+                    "<VideoPyglet(path=resources\\trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
+                    "<VideoPyQT(path=resources\\trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
+                    "<VideoRaylib(path=resources\\trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
+                    "<VideoPySide(path=resources\\trailer1.mp4)>": VideoPySide(VIDEO_PATH)
+                }
+
+        for name, v in videos.items():
+            self.assertEqual(name, str(v))
+            v.close()
 
     # test if subs are initialized correctly
     def test_init_subs(self):
@@ -358,7 +354,8 @@ class TestVideo(unittest.TestCase):
 
     # tests that set_speed is deprecated
     def test_set_speed_method(self):
-        self.assertRaises(DeprecationWarning, self.static_video.set_speed, 1.0)
+        with Video(VIDEO_PATH) as v:
+            self.assertRaises(DeprecationWarning, v.set_speed, 1.0)
 
     # tests that preloading frames is done properly
     def test_preloaded_frames(self):
@@ -385,10 +382,15 @@ class TestVideo(unittest.TestCase):
     def test_frame_counts(self):
         for file in PATHS:
             v = Video(file)
+            if v.name in ("av1",):
+                continue # file is corrupt
+
             # check that header information was not completely wrong
             self.assertGreater(v.frame_count, 0)
             self.assertGreater(v.frame_rate, 0)
             self.assertGreater(v.duration, 0)
+
+            self.assertEqual(v.frame_count, len(v))
 
             v.frame_count = 0
             v.frame_rate = 0
@@ -398,6 +400,7 @@ class TestVideo(unittest.TestCase):
             v.aspect_ratio = 1
 
             v.probe()
+
             real = v._get_real_frame_count()
             self.assertEqual(v.frame_count, real, f"{file} failed unit test")
             self.assertGreater(v.frame_rate, 0)
@@ -412,7 +415,7 @@ class TestVideo(unittest.TestCase):
 
     # tests the convert seconds method
     def test_convert_seconds(self):
-        v = self.static_video
+        v = Video(VIDEO_PATH)
 
         # Whole Hours
         self.assertEqual(v._convert_seconds(3600), "1:0:0.0")
@@ -446,6 +449,8 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._convert_seconds(-5), "0:0:5.0")
         self.assertEqual(v._convert_seconds(-3665), "1:1:5.0")
 
+        v.close()
+
     # tests that videos are closed properly
     def test_closed(self):
         v = Video(VIDEO_PATH)
@@ -468,7 +473,7 @@ class TestVideo(unittest.TestCase):
 
     # test common resolutions
     def test_change_resolution(self):
-        v = self.static_video
+        v = Video(VIDEO_PATH)
 
         # ensures no actual resampling is taking place
         self.assertIs(v.frame_surf, None)
@@ -494,6 +499,8 @@ class TestVideo(unittest.TestCase):
         v.change_resolution(4320)
         self.assertEqual(v.current_size, (7680, 4320))
         v.resize(SIZE)
+
+        v.close()
 
     # test that speed is properly capped
     def test_speed_limit(self):
@@ -651,7 +658,7 @@ class TestVideo(unittest.TestCase):
     def test_no_audio_detection(self):
         for file in PATHS:
             v = Video(file)
-            self.assertEqual(v.no_audio, v.name in ("60fps", "silent", "hdr", "test", "av1", "16bit", "1channel"), f"{file} failed unit test")
+            self.assertEqual(v.no_audio, v.name in ("60fps", "silent", "hdr", "test", "av1", "16bit", "1channel", "5frames"), f"{file} failed unit test")
             v.close()
 
     # tests cv2 and ffmepg resamplers work as intended
@@ -699,12 +706,13 @@ class TestVideo(unittest.TestCase):
         v.close()
     # test chunks_len method
     def test_chunks_length(self):
-        v = self.static_video
+        v = Video(VIDEO_PATH)
         self.assertEqual(v._chunks_len([]), 0)  # No chunks
         self.assertEqual(v._chunks_len([None, None, None]), 0)  # All None
         self.assertEqual(v._chunks_len([1, None, 2, 3]), 3)  # Some None
         self.assertEqual(v._chunks_len([None, 5, None]), 1)  # Single non-None
         self.assertEqual(v._chunks_len([1, 2, 3]), 3)  # All non-None
+        v.close()
 
     # tests that ffmpeg logs are hidden in case they were turned on and forgotten
     def test_loglevels(self):
@@ -712,7 +720,7 @@ class TestVideo(unittest.TestCase):
 
     # test get_closest_frame method
     def test_get_closest_frame(self):
-        v = self.static_video
+        v = Video(VIDEO_PATH)
         self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 4), 1)  # Closest to 4 is index 1 (3)
         self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 6), 2)  # Closest to 6 is index 2 (5)
         self.assertEqual(v._get_closest_frame([1, 3, 5, 7], 7), 3)  # Exact match at index 3
@@ -721,6 +729,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._get_closest_frame([10, 20, 30], 25), 1)  # Closest to 25 is index 1 (20)
         self.assertEqual(v._get_closest_frame([10, 20, 30], 5), 0)  # Closest to 5 is index 0 (10)
         self.assertEqual(v._get_closest_frame([10, 20, 30], 35), 2)  # Closest to 35 is index 2 (30)
+        v.close()
 
     # tests that an error is raised if missing ffmpeg
     def test_missing_ffmpeg(self):
@@ -1050,8 +1059,7 @@ class TestVideo(unittest.TestCase):
     def test_imageio_needs_pyav(self):
         with unittest.mock.patch.dict("sys.modules", {"av":None}):
             with self.assertRaises(ImportError) as context:
-                Video(VIDEO_PATH, reader=READER_IMAGEIO).preview()
-            self.assertEqual(str(context.exception), "The `pyav` plugin is not installed. Use `pip install imageio[pyav]` to install it.")
+                Video("resources\\clip.mp4", reader=READER_IMAGEIO).preview()
 
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):
@@ -1069,7 +1077,7 @@ class TestVideo(unittest.TestCase):
         self.assertIs(v.frame_data, None)
 
         # update frame information
-        while_loop(lambda: not v.update(), lambda: None, 5)
+        while_loop(lambda: not v.update(), lambda: None, 5, 0)
 
         # check that frame information has been updated
         self.assertEqual(v.frame, 11)

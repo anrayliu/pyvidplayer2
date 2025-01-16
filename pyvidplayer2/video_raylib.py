@@ -50,6 +50,7 @@ class VideoRaylib(Video):
         if self.frame_surf is not None:
             pyray.unload_texture(self.frame_surf)
         pyray.close_window()
+        self.close()
 
     def close(self) -> None:
         if self.frame_surf is not None:

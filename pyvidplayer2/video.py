@@ -184,6 +184,7 @@ class Video:
         self._missing_ffmpeg = False  # for throwing errors
         self._generated_frame = False # for when used as a generator
         self._preloaded = False
+        self._update_time = 0.0 # for testing
 
         self.timestamps = []
         self.min_fr = self.max_fr = self.avg_fr = self.frame_rate
@@ -305,7 +306,12 @@ class Video:
 
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
-        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
+        pts = sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
+        if pts:
+            offset = pts[0]
+            pts = [t - offset for t in pts]
+
+        return pts
 
     # mainly for testing purposes
     def _force_ffmpeg_reader(self):
@@ -561,6 +567,7 @@ class Video:
         if self._audio.get_busy() or self.paused:
 
             p = self.get_pos()
+            self._update_time = p
 
             while self._has_frame(p):
                 data = None

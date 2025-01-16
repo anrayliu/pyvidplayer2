@@ -136,7 +136,7 @@ class TestSubtitles(unittest.TestCase):
         def check_subs():
             v.update()
 
-            timestamp = (v.frame - 1) / v.frame_rate
+            timestamp = v._update_time
             # skip when frame has not been rendered yet
             if v.frame_data is None:
                 return

@@ -45,7 +45,7 @@ class FFMPEGReader(VideoReader):
         self.frame = index
         self._process.kill()
         # uses input seeking for very fast reading
-        self._process = subprocess.Popen(f"ffmpeg -ss {self._convert_seconds(index / self.frame_rate)} -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+        self._process = subprocess.Popen(f"ffmpeg -ss {self._convert_seconds(index / self.frame_rate)} -i {self._path} -loglevel {FFMPEG_LOGLVL} -map 0:v:0 -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
         
     def release(self):
         self._process.kill()

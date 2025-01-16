@@ -1,3 +1,4 @@
+import sys
 import time
 import unittest
 import unittest.mock
@@ -658,7 +659,7 @@ class TestVideo(unittest.TestCase):
     def test_no_audio_detection(self):
         for file in PATHS:
             v = Video(file)
-            self.assertEqual(v.no_audio, v.name in ("60fps", "silent", "hdr", "test", "av1", "16bit", "1channel", "5frames"), f"{file} failed unit test")
+            self.assertEqual(v.no_audio, v.name in ("60fps", "hdr", "test", "av1", "16bit", "1channel", "5frames"), f"{file} failed unit test")
             v.close()
 
     # tests cv2 and ffmepg resamplers work as intended
@@ -815,12 +816,33 @@ class TestVideo(unittest.TestCase):
                 v.close()
 
     # tests that each video can be opened in vfr mode
-    def test_vfr(self):
+    def test_open_vfr(self):
          for file in PATHS:
              v = Video(file, vfr=True)
              self.assertGreater(len(v.timestamps), 0)
              self.assertTrue(v.vfr, f"{file} failed unit test")
              v.close()
+
+    # tests that frames appear at the correct timestamps for vfr videos
+    def test_vfr(self):
+        v = Video("resources\\vfr.mp4", vfr=True)
+        v._preload_frames()
+        def update():
+            n = v.update()
+            timestamp = v._update_time
+            if v.frame != 0:
+                if n:
+                    self.assertTrue(check_same_frames(v._preloaded_frames[v.frame - 1], v.frame_data))
+                    # tests that the timestamp for the current frame has passed
+                    self.assertTrue(timestamp >= v.timestamps[v.frame - 1])
+                else:
+                    # tests that the timestamp for the next frame has not yet been reached
+                    if v.frame == len(v._preloaded_frames):
+                        self.assertTrue(timestamp < v.duration)
+                    else:
+                        self.assertTrue(timestamp < v.timestamps[v.frame])
+        while_loop(lambda: v.active, update, 30)
+        v.close()
 
     # tests seeking in vfr mode
     def test_vfr_seeking(self):
@@ -953,15 +975,11 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(flag, force_draw)
 
     # tests that previews start from where the video position is, and that they close the video afterwards
-    # does not test pyside6 because it conflicts with pyqt6
     def test_previews(self):
-        for v in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT):
-            v = Video(VIDEO_PATH)
+        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide):
+            v = lib(VIDEO_PATH)
             v.seek(v.duration)
-            thread = Thread(target=lambda: v.preview())
-            thread.start()
-            time.sleep(1)
-            self.assertFalse(thread.is_alive())
+            v.preview()
             self.assertTrue(v.closed)
 
     # tests that the last frame can be achieved
@@ -1057,7 +1075,10 @@ class TestVideo(unittest.TestCase):
 
     # tests pyav dependency message
     def test_imageio_needs_pyav(self):
-        with unittest.mock.patch.dict("sys.modules", {"av":None}):
+        # mocks away av
+        dict_ = {key: None for key in sys.modules.keys() if key.startswith("av.")}
+        dict_.update({"av": None})
+        with unittest.mock.patch.dict("sys.modules", dict_):
             with self.assertRaises(ImportError) as context:
                 Video("resources\\clip.mp4", reader=READER_IMAGEIO).preview()
 
@@ -1291,7 +1312,6 @@ class TestVideo(unittest.TestCase):
 
     # tests that each video object has the correct amount of parameters
     # here to ensure that new parameters are added to each video object
-    # pyside not tested because of its conflict with pyqt
     def test_parameters(self):
         # test each graphics library with exact number of arguments
 
@@ -1305,7 +1325,7 @@ class TestVideo(unittest.TestCase):
         with self.assertRaises(TypeError):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO, "extra_arg")
 
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                           0, False, "en", None, READER_AUTO, "extra_arg")

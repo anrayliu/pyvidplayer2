@@ -450,6 +450,10 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._convert_seconds(-5), "0:0:5.0")
         self.assertEqual(v._convert_seconds(-3665), "1:1:5.0")
 
+        self.assertEqual(v._convert_seconds(4.98), "0:0:4.98")
+        self.assertEqual(v._convert_seconds(4.98881), "0:0:4.98881")
+        self.assertEqual(v._convert_seconds(12.1280937198881), "0:0:12.1280937198881")
+
         v.close()
 
     # tests that videos are closed properly
@@ -1211,6 +1215,10 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(ffmpeg_reader._convert_seconds(0), v._convert_seconds(0))
         self.assertEqual(ffmpeg_reader._convert_seconds(90061.5), v._convert_seconds(90061.5))
         self.assertEqual(ffmpeg_reader._convert_seconds(-3665), v._convert_seconds(-3665))
+        self.assertEqual(ffmpeg_reader._convert_seconds(4.98), v._convert_seconds(4.98))
+        self.assertEqual(ffmpeg_reader._convert_seconds(4.98881), v._convert_seconds(4.98881))
+        self.assertEqual(ffmpeg_reader._convert_seconds(12.1280937198881), v._convert_seconds(12.1280937198881))
+
 
         v.close()
 

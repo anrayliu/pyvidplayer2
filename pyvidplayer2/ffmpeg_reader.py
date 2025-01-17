@@ -24,12 +24,12 @@ class FFMPEGReader(VideoReader):
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
+        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)
         s = int(seconds % 60)
-        d = round(seconds % 1, 1)
-        return f"{h}:{m}:{s}.{int(d * 10)}"
+        return f"{h}:{m}:{s}.{d}"
 
     def read(self):
         b = self._process.stdout.read(self.original_size[0] * self.original_size[1] * 3)

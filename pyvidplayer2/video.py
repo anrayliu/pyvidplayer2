@@ -316,7 +316,6 @@ class Video:
     # mainly for testing purposes
     def _force_ffmpeg_reader(self):
         if not isinstance(self._vid, FFMPEGReader):
-            self._vid.release()
             new_reader = FFMPEGReader(self.path, False)
             new_reader.frame_count = self._vid.frame_count
             new_reader.frame_rate = self._vid.frame_rate
@@ -325,6 +324,7 @@ class Video:
             new_reader.frame = self._vid.frame
             new_reader.seek(self._vid.frame)
             self.colour_format = new_reader._colour_format
+            self._vid.release()
             self._vid = new_reader
 
     def _set_stream_url(self, path, max_res):
@@ -386,12 +386,12 @@ class Video:
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
+        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)
         s = int(seconds % 60)
-        d = round(seconds % 1, 1)
-        return f"{h}:{m}:{s}.{int(d * 10)}"
+        return f"{h}:{m}:{s}.{d}"
     
     # not used
     def _test_youtube(self):

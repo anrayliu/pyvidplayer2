@@ -358,6 +358,10 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertEqual(vp._convert_seconds(-5), "0:0:5")
         self.assertEqual(vp._convert_seconds(-3665), "1:1:5")
 
+        self.assertEqual(vp._convert_seconds(4.98), "0:0:4")
+        self.assertEqual(vp._convert_seconds(4.98881), "0:0:4")
+        self.assertEqual(vp._convert_seconds(12.1280937198881), "0:0:12")
+
         vp.close()
 
     # tests different arguments for videoplayers to check for errors

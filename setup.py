@@ -21,8 +21,8 @@ setup(
                     "pysubs2",
                     "PyAudio"],
     url="https://github.com/anrayliu/pyvidplayer2",
-    platforms=["windows", "linux"],
-    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "youtube", "stream"],
+    platforms=["windows", "linux", "macos"],
+    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "raylib", "youtube", "stream"],
     python_requires=">=3.9",
     classifiers = [
         "Development Status :: 4 - Beta",

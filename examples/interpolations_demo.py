@@ -1,8 +1,6 @@
 '''
 This example compares the default interpolation technique with the best
 Can you tell a difference?
-
-Only works if OpenCV is installed
 '''
 
 import pygame
@@ -12,15 +10,15 @@ from pyvidplayer2 import Video
 win = pygame.display.set_mode((1280, 480))
 pygame.display.set_caption("interpolations demo")
 
-# default
+# default interpolation technique
 
 vid1 = Video(r"resources\medic.mov", interp="linear")
-vid1.change_resolution(480)
+vid1.change_resolution(480) # automatically resizes video to maintain aspect ratio
 
-# best
+# sharpest but least performant interpolation technique
 
 vid2 = Video(r"resources\medic.mov", interp="lanczos4")
-vid2.change_resolution(480)
+vid2.resize((854, 480)) # alternatively, can set a custom size
 
 
 while True:

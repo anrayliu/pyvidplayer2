@@ -30,4 +30,5 @@ win.setWindowTitle(f"pyqt6 support demo")
 win.setFixedSize(*video.current_size)
 win.show()
 app.exec()
+
 video.close()

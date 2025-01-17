@@ -5,6 +5,7 @@ from io import BytesIO
 class MixerHandler:
     def __init__(self):
         self.muted = False
+        self.loaded = False
         self.volume = 1
 
         pygame.mixer.music.unload()
@@ -12,12 +13,17 @@ class MixerHandler:
     def get_busy(self):
         return pygame.mixer.music.get_busy()
 
-    def load(self, bytes, _):
-        pygame.mixer.music.load(BytesIO(bytes))
+    def load(self, bytes_):
+        pygame.mixer.music.load(BytesIO(bytes_))
+        self.loaded = True
+
+    def get_num_channels(self):
+        return pygame.mixer.get_num_channels()
 
     def unload(self):
         self.stop()
         pygame.mixer.music.unload()
+        self.loaded = False
 
     def play(self):
         pygame.mixer.music.play()
@@ -30,7 +36,7 @@ class MixerHandler:
         return self.volume
 
     def get_pos(self):
-        return max(0, pygame.mixer.music.get_pos()) / 1000
+        return max(0, pygame.mixer.music.get_pos()) / 1000.0
 
     def stop(self):
         pygame.mixer.music.stop()

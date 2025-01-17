@@ -10,8 +10,10 @@ import win32api, win32gui, win32con
 from win32com.client import Dispatch
 
 
-webcam = Webcam(interp="area")
-webcam.change_resolution(360)
+webcam = Webcam(interp="area", capture_size=(1920, 1080))
+webcam.change_resolution(240)   # scales video without changing aspect ratio
+
+print(f"Webcam capturing at {webcam.original_size[1]}p resolution, scaling to {webcam.current_size[1]}p for display")
 
 win = pygame.display.set_mode(webcam.current_size, pygame.NOFRAME)
 pygame.display.set_caption("webcam app demo")
@@ -24,7 +26,7 @@ shell = Dispatch("WScript.Shell") # required workaround for a windows bug
 
 HWND = pygame.display.get_wm_info()["window"]
 
-# makes window topmsot
+# makes window topmost
 win32gui.SetWindowPos(HWND, win32con.HWND_TOPMOST, *window_rect, win32con.SWP_NOSIZE)
 
 while True:

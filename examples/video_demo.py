@@ -11,13 +11,14 @@ pygame.init()
 win = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 
-#provide video class with the path to your video
+# 1. provide video class with the path to your file
 vid = Video(r"resources\medic.mov")
 
 while True:
     key = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            # 3. close video when done to release resources
             vid.close()
             pygame.quit()
             exit()
@@ -40,7 +41,11 @@ while True:
     elif key == "down":
         vid.set_volume(0.0)     #min volume
         
-    #draws the video to the given surface, at the given position
+    # 2. draw the video to the given surface, at the given position
+
+    # with force_draw=False, only new frames will be drawn, saving
+    # resources by not drawing already existing frames
+
     vid.draw(win, (0, 0), force_draw=False)
     
     pygame.display.update()

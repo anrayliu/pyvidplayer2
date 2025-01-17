@@ -9,6 +9,7 @@ from pyvidplayer2 import Video, VideoPlayer
 win = pygame.display.set_mode((1066, 744))
 pygame.display.set_caption("many videos demo")
 
+# simultaneous playback is only possible when using PyAudio for audio
 
 videos = [VideoPlayer(Video(r"resources\billiejean.mp4"), (0, 0, 426, 240),),
           VideoPlayer(Video(r"resources\trailer1.mp4"), (426, 0, 256, 144)),

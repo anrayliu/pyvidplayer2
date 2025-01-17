@@ -1,23 +1,21 @@
 '''
-This example shows the 2 ways of seeking
+This example shows the two ways of seeking
 '''
 
 from pyvidplayer2 import Video 
 
 
-v1 = Video("resources\\billiejean.mp4")
+with Video("resources\\billiejean.mp4") as v:
+    # skip ahead 60 seconds
+    # accepts floats as well
 
-# seek to first minute
-
-v1.seek(60, relative=False)
-
-v1.preview()
+    v.seek(60, relative=True)
+    v.preview()
 
 
-v2 = Video("resources\\trailer2.mp4")
+with Video("resources\\trailer2.mp4") as v:
 
-# seek to 500th frame 
+    # seek to 500th frame
 
-v2.seek_frame(499, relative=False)
-
-v2.preview()
+    v.seek_frame(499, relative=False)
+    v.preview()

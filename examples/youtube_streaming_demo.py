@@ -7,10 +7,10 @@ from pyvidplayer2 import Video
 
 
 # chunk_size must be at least 60 for a smooth experience
-# keep max_threads at 1
+# max_threads is forced to 1
 
-Video("https://www.youtube.com/watch?v=K8PoK3533es", youtube=True, max_res=480, chunk_size=60, max_threads=1).preview()
+Video("https://www.youtube.com/watch?v=K8PoK3533es", youtube=True, max_res=480, chunk_size=60).preview()
 
 # increasing chunks_size is better for long videos
 
-Video("https://www.youtube.com/watch?v=KJwYBJMSbPI&t=1s", youtube=True, max_res=720, chunk_size=300, max_threads=1).preview()
+Video("https://www.youtube.com/watch?v=KJwYBJMSbPI&t=1s", youtube=True, max_res=720, chunk_size=300).preview()

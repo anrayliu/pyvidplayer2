@@ -6,7 +6,7 @@ import time
 import numpy as np
 from threading import Thread
 from io import BytesIO
-from .error import Pyvidplayer2Error
+from .error import *
 
 
 class PyaudioHandler:
@@ -57,6 +57,17 @@ class PyaudioHandler:
             "default",  # no sound & freezes on Ubuntu Studio 24.04
             # "sysdefault",  # not an output device
         ]
+        self.device_index = self.choose_device()
+
+        self._buffer = None # used for testing purposes
+
+    def _set_device_index(self, index):
+        try:
+            self.audio_devices[index]
+        except IndexError:
+            raise AudioDeviceError(f"Audio device with index {index} does not exist.")
+        else:
+            self.device_index = index
 
     def get_busy(self):
         return self.active
@@ -67,6 +78,35 @@ class PyaudioHandler:
     #
     #     data = self.wave.readframes(frame_count)
     #     return (data, pyaudio.paContinue)
+
+    def choose_device(self):
+        device_index = -1
+        # List available devices
+        self.refresh_devices()
+
+        for try_name in self.preferred_device_names:
+            device_index = self.find_device_by_name(try_name)
+            if device_index != -1:
+                # warnings.warn("Detected {}".format(try_name))
+                break
+        # if device_index < 0:
+        # warnings.warn(
+        #    "No preferred device was present: {}"
+        #    .format(self.preferred_device_names))
+
+        if device_index < 0:
+            # If no device was present, load the first output device
+            #   (may stutter and fail under pipewire+jack):
+            for i, info in enumerate(self.audio_devices):
+                if info["maxOutputChannels"] > 0:
+                    # warnings.warn("- selected (first output device)")
+                    device_index = i
+                    break
+
+        if device_index < 0:
+            raise AudioDeviceError("No audio devices found.")
+
+        return device_index
 
     def refresh_devices(self):
         self.audio_devices = []  # indices must match output_device_index
@@ -93,7 +133,7 @@ class PyaudioHandler:
                 #        " (has no output)".format(info['name']))
         return -1
 
-    def load(self, bytes_, forced_device):
+    def load(self, bytes_):
         self.unload()
         try:
             self.wave = wave.open(BytesIO(bytes_), "rb")
@@ -107,29 +147,6 @@ class PyaudioHandler:
             )
 
         if self.stream is None:
-            device_index = -1
-            # List available devices
-            self.refresh_devices()
-
-            for try_name in self.preferred_device_names:
-                device_index = self.find_device_by_name(try_name)
-                if device_index != -1:
-                    #warnings.warn("Detected {}".format(try_name))
-                    break
-            #if device_index < 0:
-                #warnings.warn(
-                #    "No preferred device was present: {}"
-                #    .format(self.preferred_device_names))
-
-            if device_index < 0:
-                # If no device was present, load the first output device
-                #   (may stutter and fail under pipewire+jack):
-                for i, info in enumerate(self.audio_devices):
-                    if info["maxOutputChannels"] > 0:
-                        #warnings.warn("- selected (first output device)")
-                        device_index = i 
-                        break
-            
             try:
                 self.stream = self.p.open(
                     format=self.p.get_format_from_width(
@@ -138,17 +155,17 @@ class PyaudioHandler:
                     channels=self.wave.getnchannels(),
                     rate=self.wave.getframerate(),
                     output=True,
-                    output_device_index=forced_device if forced_device is not None else device_index,
+                    output_device_index=self.device_index,
                     # stream_callback=self.callback,
                 )
 
-            except Exception as e:
-                if device_index == -1:
-                    raise Pyvidplayer2Error("No audio devices found.")
-                else:
-                    raise Pyvidplayer2Error("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[device_index]["name"]))
+            except:
+                raise AudioDeviceError("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[self.device_index]["name"]))
                 
         self.loaded = True
+
+    def get_num_channels(self):
+        return self.audio_devices[self.device_index]["maxOutputChannels"]
 
     def close(self):
         if self.stream is not None:
@@ -174,34 +191,35 @@ class PyaudioHandler:
         self.active = True
 
         self.wave.rewind()
-        self.thread = Thread(target=self._threaded_play)
+        self.thread = Thread(target=self._threaded_play, daemon=True)
 
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK = 128
+        CHUNK_SIZE = 128 #increasing this will reduce get_pos precision
 
-        data = self.wave.readframes(CHUNK)
-
-        while data != b'' and not self.stop_thread:
-
+        while not self.stop_thread:
             if self.paused:
                 time.sleep(0.01)
             else:
+                data = self.wave.readframes(CHUNK_SIZE)
+                if data == b"":
+                    break
+
                 audio = np.frombuffer(data, dtype=np.int16)
 
                 if self.volume == 0.0 or self.muted:
                     audio = np.zeros_like(audio)
                 else:
                     db = 20 * math.log10(self.volume)
-                    audio = (audio * 10**(db/20)).astype(np.int16)  # noqa: E226, E501
+                    audio = (audio * 10 ** (db / 20)).astype(np.int16)  # noqa: E226, E501
+
+                self._buffer = audio
 
                 self.stream.write(audio.tobytes())
 
-                self.chunks_played += CHUNK 
+                self.chunks_played += CHUNK_SIZE
                 self.position = self.chunks_played / float(self.wave.getframerate())
-                
-                data = self.wave.readframes(CHUNK)
 
         self.active = False
 

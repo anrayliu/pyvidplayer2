@@ -4,50 +4,32 @@ Object that mimics cv2.VideoCapture to read frames
 
 import numpy as np
 import subprocess
-import json
 from . import FFMPEG_LOGLVL
+from .video_reader import VideoReader
+from .error import *
 
 
-class FFMPEGReader():
-    def __init__(self, path):
-        self._path = path
-        self._opened = False
+class FFMPEGReader(VideoReader):
+    def __init__(self, path, probe=True):
+        VideoReader.__init__(self, path, probe)
 
-        self.frame = 0
-        self.frame_count = 0
-        self.frame_rate = 0
-        self.original_size = (0, 0)
+        self._colour_format = "BGR"
 
-        if self._probe():
-            self._process = subprocess.Popen(f"ffmpeg -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
-            self._opened = True
-
-    def _probe(self):
-        # strangely for ffprobe, - is not required to indicate output
-        
         try:
-            p = subprocess.Popen(f"ffprobe -i {self._path} -show_streams -count_packets -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdout=subprocess.PIPE)
+            self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -map 0:v:0 -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
         except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
-        try:
-            info = json.loads(p.communicate()[0])["streams"][0]
-        except KeyError:
-            return False
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
-        self.original_size = int(info["width"]), int(info["height"])
-        self.frame_count = int(info["nb_read_packets"])
-        self.frame_rate = float(info["avg_frame_rate"].split("/")[0]) / float(info["avg_frame_rate"].split("/")[1])
-
-        return True
+        self._path = path
 
     def _convert_seconds(self, seconds):
+        seconds = abs(seconds)
+        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)
         s = int(seconds % 60)
-        d = round(seconds % 1, 1)
-        return f"{h}:{m}:{s}.{int(d * 10)}"
+        return f"{h}:{m}:{s}.{d}"
 
     def read(self):
         b = self._process.stdout.read(self.original_size[0] * self.original_size[1] * 3)
@@ -61,12 +43,10 @@ class FFMPEGReader():
 
     def seek(self, index):
         self.frame = index
-        self._process.terminate()
+        self._process.kill()
         # uses input seeking for very fast reading
-        self._process = subprocess.Popen(f"ffmpeg -ss {self._convert_seconds(index / self.frame_rate)} -i {self._path} -loglevel {FFMPEG_LOGLVL} -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+        self._process = subprocess.Popen(f"ffmpeg -ss {self._convert_seconds(index / self.frame_rate)} -i {self._path} -loglevel {FFMPEG_LOGLVL} -map 0:v:0 -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
         
     def release(self):
-        self._process.terminate()
-
-    def isOpened(self):
-        return self._opened
+        self._process.kill()
+        VideoReader.release(self)

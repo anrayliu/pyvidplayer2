@@ -5,11 +5,11 @@ import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
 from .ffmpeg_reader import FFMPEGReader
-from .error import Pyvidplayer2Error
+from .error import *
 from . import FFMPEG_LOGLVL
 
 try:
-    import cv2 
+    import cv2
 except ImportError:
     CV = 0
 else:
@@ -18,7 +18,7 @@ else:
 
 try:
     import pyaudio
-except ImportError: # test this
+except ImportError:
     PYAUDIO = 0
 else:
     PYAUDIO = 1
@@ -40,26 +40,40 @@ else:
     YTDLP = 1
 
 try:
-    import imageio.v3 as iio
+    import imageio.v3
 except ImportError:
     IIO = 0
 else:
     IIO = 1
     from .imageio_reader import IIOReader
 
-# pyav is an optional package for imageio
+try:
+    import decord
+except ImportError:
+    DECORD = 0
+else:
+    DECORD = 1
+    from .decord_reader import DecordReader
 
 try:
-    import av
+    from .subtitles import Subtitles
 except ImportError:
-    PYAV = 0
+    SUBS = 0
 else:
-    PYAV = 1
+    SUBS = 1
+
+
+# for specifying different reader backends
+READER_AUTO = 0
+READER_FFMPEG = 1
+READER_OPENCV = 2
+READER_IMAGEIO = 3
+READER_DECORD = 4
 
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, 
-                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index):
+                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader):
         
         self._audio_path = path     # used for audio only when streaming
         self.path = path
@@ -72,18 +86,17 @@ class Video:
 
         self.pref_lang = pref_lang
 
+        # determines correct backend here
+        reader = self._get_best_reader(youtube, as_bytes, reader)
         if youtube:
             if YTDLP:
                 # sets path and audio path for cv2 and ffmpeg
                 # also sets name and ext
                 self._set_stream_url(path, max_res)
-                if CV:
-                    self._vid = CVReader(self.path)
-                else:
-                    raise ModuleNotFoundError("Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
+                self._vid = reader(self.path)
             else:
                 raise ModuleNotFoundError("Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
-            
+
             # having less than 60 hurts performance
             if chunk_size < 60:
                 chunk_size = 60
@@ -91,39 +104,32 @@ class Video:
                 max_threads = 1
 
         elif as_bytes:
-            if not IIO:
-                raise ModuleNotFoundError("Unable to read video from memory because IMAGEIO is not installed. IMAGEIO can be installed via pip.")
-            if not PYAV:
-                raise ModuleNotFoundError("Unable to read video from memory because PyAV is not installed. PyAV can be installed via pip.")
-            self._vid = IIOReader(self.path)
+            self._vid = reader(self.path)
             self._audio_path = "-"  # read from pipe
 
         else:
-            if CV:
-                self._vid = CVReader(self.path)
-            else:
-                self._vid = FFMPEGReader(self.path)
+            if not os.path.exists(self.path):
+                raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
+
+            self._vid = reader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
-        if not self._vid.isOpened():
-            if youtube:
-                raise Pyvidplayer2Error("Open-cv could not open stream.")
-            elif as_bytes:
-                raise Pyvidplayer2Error("Could not identify video from given bytes.")
-            else:
-                raise FileNotFoundError("Could not find file. Make sure the path is correct.")
+        if not self._vid.isOpened() and CV:
+            raise OpenCVError("Failed to open file. Please make sure your yt-dlp is the newest version.")
+
+        self.colour_format = self._vid._colour_format
 
         # file information
 
         self.frame_count = self._vid.frame_count
         self.frame_rate = self._vid.frame_rate
         self.frame_delay = 1 / self.frame_rate
-        self.duration = self.frame_count / self.frame_rate
+        self.duration = self._vid.duration
         self.original_size = self._vid.original_size
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
-        self.chunk_size = chunk_size
+        self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
         self.max_threads = max_threads
 
@@ -143,8 +149,11 @@ class Video:
         self.buffering = False
         self.paused = False
         self.muted = False
+        self.subs_hidden = False
+        self.closed = False
 
-        self.subs = subs
+        self.subs = self._filter_subs(subs)
+
         self.post_func = post_process
         self.interp = None
         self.use_pygame_audio = use_pygame_audio# or (PYGAME and not PYAUDIO)
@@ -163,15 +172,19 @@ class Video:
         else:
             if PYAUDIO:
                 self._audio = PyaudioHandler()
+                if self.audio_index is not None:
+                    self._audio._set_device_index(self.audio_index)
             else:
                 raise ModuleNotFoundError("Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
             
-        self.speed = max(0.5, min(10, speed))
+        self.speed = float(max(0.25, min(10, speed)))
         self.reverse = reverse
         self.no_audio = no_audio or self._test_no_audio()
 
         self._missing_ffmpeg = False  # for throwing errors
         self._generated_frame = False # for when used as a generator
+        self._preloaded = False
+        self._update_time = 0.0 # for testing
 
         self.timestamps = []
         self.min_fr = self.max_fr = self.avg_fr = self.frame_rate
@@ -187,39 +200,90 @@ class Video:
 
         self.play()
 
-    def __len__(self) -> float:
-        return self.duration
-    
-    def __enter__(self) -> "self":
+    def __len__(self):
+        return self.frame_count
+
+    def __str__(self):
+        return f"<{type(self).__name__}(path={self.path if not (self.as_bytes or self.youtube) else ''})>"
+
+    def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback) -> None:
+    def __exit__(self, type_, value, traceback):
         self.close()
 
-    def __iter__(self) -> "self":
+    def __iter__(self):
         self.stop()
         return self
-    
+
     def __next__(self) -> np.ndarray:
         self._generated_frame = True
         data = None
 
         if self.reverse:
-            if self.frame < self.frame_count:
-                self.frame += 1
+            try:
                 data = self._preloaded_frames[self.frame_count - self.frame - 1]
+            except IndexError:
+                pass
         else:
-            has_frame, data = self._vid.read()
-            if has_frame:
-                self.frame += 1
+            data = self._vid.read()[1]
 
         if data is not None:
+            self.frame += 1
             if self.original_size != self.current_size:
-                data = self._resize_frame(data, self.current_size)
+                data = self._resize_frame(data, self.current_size, self.interp, not CV)
+            data = self.post_func(data)
 
-            return self.post_func(data)
+            return data
         else:
-            raise StopIteration
+            raise StopIteration("No more frames to read.")
+
+    def _get_best_reader(self, youtube, as_bytes, reader):
+        if youtube:
+            if reader == READER_AUTO or reader == READER_OPENCV:
+                if CV:
+                    return CVReader
+                elif reader != READER_AUTO:
+                    ModuleNotFoundError(
+                        "Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
+            raise ValueError("Only READER_OPENCV is supported for Youtube videos.")
+        elif as_bytes:
+            if reader == READER_AUTO or reader == READER_DECORD:
+                if DECORD:
+                    return DecordReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError(
+                        "Unable to read video from memory because decord is not installed. Decord can be installed via pip.")
+            if reader == READER_AUTO or reader == READER_IMAGEIO:
+                if IIO:
+                    return IIOReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError("Unable to read video from memory because IMAGEIO is not installed. IMAGEIO can be installed via pip.")
+            raise ValueError("Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
+        else:
+            if reader == READER_AUTO or reader == READER_OPENCV:
+                if CV:
+                    return CVReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError("OpenCV is not installed. OpenCV can be installed through pip.")
+            if reader == READER_AUTO or reader == READER_DECORD:
+                if DECORD:
+                    return DecordReader
+                elif reader != READER_AUTO:
+                    raise ModuleNotFoundError("Decord is not installed. Decord can be installed through pip.")
+            if reader == READER_AUTO or reader == READER_FFMPEG:
+                return FFMPEGReader
+            if reader == READER_IMAGEIO:
+                if IIO:
+                    return IIOReader
+                raise ModuleNotFoundError("ImageIO is not installed. ImageIO can be installed through pip.")
+            raise ValueError("Could not identify backend.")
+
+    def _filter_subs(self, subs):
+        if SUBS and isinstance(subs, Subtitles):
+            return [subs]
+        else:
+            return [] if subs is None else subs
     
     def _get_vfrs(self, pts):
         # calculates differences in frametime, except the first and last frames are ignored because
@@ -238,11 +302,30 @@ class Video:
         try:
             p = subprocess.Popen(f"ffprobe -i {'-' if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
-            raise FileNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
-        
+            raise FFmpegNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
-        return sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
+        pts = sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
+        if pts:
+            offset = pts[0]
+            pts = [t - offset for t in pts]
+
+        return pts
+
+    # mainly for testing purposes
+    def _force_ffmpeg_reader(self):
+        if not isinstance(self._vid, FFMPEGReader):
+            new_reader = FFMPEGReader(self.path, False)
+            new_reader.frame_count = self._vid.frame_count
+            new_reader.frame_rate = self._vid.frame_rate
+            new_reader.original_size = self._vid.original_size
+            new_reader.duration = self._vid.duration
+            new_reader.frame = self._vid.frame
+            new_reader.seek(self._vid.frame)
+            self.colour_format = new_reader._colour_format
+            self._vid.release()
+            self._vid = new_reader
 
     def _set_stream_url(self, path, max_res):
         config = {"quiet": True,
@@ -255,18 +338,22 @@ class Video:
                 info = ydl.extract_info(path, download=False)
                 formats = info.get("requested_formats", None)
                 if formats is None:
-                    raise Pyvidplayer2Error("No streaming links found.")
-            except Pyvidplayer2Error:
+                    raise YTDLPError("No streaming links found.")
+            except YTDLPError:
                 raise
-            except: # something went wrong with yt_dlp
-                raise Pyvidplayer2Error("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
+            except Exception as e: # something went wrong with yt_dlp
+                if "Requested format is not available" in str(e):
+                    raise YTDLPError("Could not find requested resolution.")
+                raise YTDLPError("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
             else:
                 self.path = formats[0]["url"]
                 self._audio_path = formats[1]["url"]
                 self.name = info.get("title", "")
-                self.ext = "webm"
+                self.ext = ".webm"
 
     def _preload_frames(self):
+        self._preloaded = True
+
         self._preloaded_frames.clear()
 
         self._vid.seek(0)
@@ -279,26 +366,38 @@ class Video:
 
         self._vid.seek(self.frame)
 
-    def _chunks_len(self):
+    def _get_real_frame_count(self):
+        self._vid.seek(0)
+        counter = 0
+        has_frame = True
+        while has_frame:
+            has_frame = self._vid.read()[0]
+            if has_frame:
+                counter += 1
+        self._vid.seek(self.frame)
+        return counter
+
+    def _chunks_len(self, chunks):
         i = 0
-        for c in self._chunks:
+        for c in chunks:
             if c is not None:
                 i += 1
         return i
 
     def _convert_seconds(self, seconds):
+        seconds = abs(seconds)
+        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)
         s = int(seconds % 60)
-        d = round(seconds % 1, 1)
-        return f"{h}:{m}:{s}.{int(d * 10)}"
+        return f"{h}:{m}:{s}.{d}"
     
     # not used
     def _test_youtube(self):
         return YTDLP and next((ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"), None) is not None
     
-    # not used
+    # not used, not always accurate
     def _test_vfr(self):
         min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
         return (max_ - min_) > 0.1
@@ -365,6 +464,8 @@ class Video:
                 self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
                 "-vn",
                 "-sn",
+                "-ac",
+                str(self._audio.get_num_channels()),
                 "-map",
                 f"0:a:{self.audio_track}",
                 "-f",
@@ -383,6 +484,7 @@ class Video:
                 filters += ["-af", "areverse"]
             elif self.speed != 1:
                 filters += ["-af", f"atempo={self.speed}"]
+                #filters += ["-af", f"rubberband=tempo={self.speed}"]
 
             command = command[:7] + filters + command[7:]
 
@@ -414,20 +516,22 @@ class Video:
                 self._threads.remove(t)
 
         self._stop_loading = self._starting_time + self._chunks_claimed * self.chunk_size >= self.duration
-        if not self._stop_loading and (len(self._threads) < self.max_threads) and ((self._chunks_len() + len(self._threads)) < self.max_chunks):
+        if not self._stop_loading and (len(self._threads) < self.max_threads) and ((self._chunks_len(self._chunks) + len(self._threads)) < self.max_chunks):
             self._chunks_claimed += 1
             self._threads.append(Thread(target=self._threaded_load, args=(self._chunks_claimed,)))
             self._threads[-1].start()
 
-    def _write_subs(self):
-        p = self.get_pos()
+    def _write_subs(self, p):
+        for sub in self.subs:
+            self._next_sub_line(sub, p)
 
-        if p >= self.subs.start:
-            if p > self.subs.end:
-                if self.subs._get_next():
-                    self._write_subs()
+    def _next_sub_line(self, sub, p):
+        if p >= sub.start:
+            if p > sub.end:
+                if sub._get_next():
+                    self._next_sub_line(sub, p)
             else:
-                self.subs._write_subs(self.frame_surf)
+                sub._write_subs(self.frame_surf)
 
     def _get_closest_frame(self, pts, ts):
         lo, hi = 0, len(pts) - 1
@@ -449,12 +553,12 @@ class Video:
     
     def _has_frame(self, p):
         if self.vfr:
-            return self.frame < self.frame_count - 1 and p > self.timestamps[self.frame]
-        return p > self.frame * self.frame_delay
+            return self.frame < self.frame_count and p > self.timestamps[self.frame]
+        return p > self.frame / self.frame_rate
     
     def _update(self):
         if self._missing_ffmpeg:
-            raise FileNotFoundError("Could not find FFMPEG. Make sure it's downloaded and accessible via PATH.")
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         self._update_threads()
 
@@ -464,12 +568,12 @@ class Video:
         if self._audio.get_busy() or self.paused:
 
             p = self.get_pos()
+            self._update_time = p
 
             while self._has_frame(p):
-
+                data = None
                 if self.reverse:
                     has_frame = True
-                    data = None
                     try:
                         data = self._preloaded_frames[self.frame_count - self.frame - 1]
                     except IndexError:
@@ -477,7 +581,14 @@ class Video:
                 else:
 
                     self.buffering = True
-                    has_frame, data = self._vid.read()
+                    if self._preloaded:
+                        has_frame = True
+                        try:
+                            data = self._preloaded_frames[self.frame]
+                        except IndexError:
+                            has_frame = False
+                    else:
+                        has_frame, data = self._vid.read()
                     self.buffering = False
 
                 self.frame += 1
@@ -488,14 +599,14 @@ class Video:
 
                 if has_frame:
                     if self.original_size != self.current_size:
-                        data = self._resize_frame(data, self.current_size)
+                        data = self._resize_frame(data, self.current_size, self.interp, not CV)
                     data = self.post_func(data)
 
                     self.frame_data = data
                     self.frame_surf = self._create_frame(data)
 
-                    if self.subs is not None:
-                        self._write_subs()
+                    if self.subs and not self.subs_hidden:
+                        self._write_subs(p)
 
                     n = True
                 else:
@@ -504,42 +615,57 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                self._audio.load(self._chunks.pop(0), self.audio_index)
+                self._audio.load(self._chunks.pop(0))
                 self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()
             else:
-                self.buffering = True
+                self.buffering = True # waiting for audio to load
 
         return n
 
     # interp parameter only used for ffmpeg resampling
     
-    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp: str = "bilinear"):
-        if CV:
-            return cv2.resize(data, dsize=size, interpolation=self.interp)
+    def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp, use_ffmpeg=False):
+        if not use_ffmpeg:
+            return cv2.resize(data, dsize=size, interpolation=interp)
 
-        # without opencv, use ffmpeg resizing 
+        # without opencv, use ffmpeg resizing
 
-        process = subprocess.Popen(
-            [
-                "ffmpeg",
-                "-loglevel", str(FFMPEG_LOGLVL),
-                "-f", "rawvideo",
-                "-pix_fmt", "rgb24",
-                "-s", f"{data.shape[1]}x{data.shape[0]}",
-                "-i", "-",
-                "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
-                "-f", "rawvideo",
-                "-"
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
+        if type(interp) == int:
+            interp = ("neighbor", "bilinear", "bicubic", "area", "lanczos")[interp]
+
+        try:
+            process = subprocess.Popen(
+                [
+                    "ffmpeg",
+                    "-loglevel", str(FFMPEG_LOGLVL),
+                    "-f", "rawvideo",
+                    "-pix_fmt", "rgb24",
+                    "-s", f"{data.shape[1]}x{data.shape[0]}",
+                    "-i", "-",
+                    "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
+                    "-f", "rawvideo",
+                    "-"
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            )
+        except FileNotFoundError:
+            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure it's downloaded and accessible via PATH.")
 
         return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
-    
-    def update(self):
+
+    def probe(self) -> None:
+        self._vid._probe(self.path, self.as_bytes)
+        self.frame_count = self._vid.frame_count
+        self.frame_rate = self._vid.frame_rate
+        self.frame_delay = 1 / self.frame_rate
+        self.duration = self._vid.duration
+        self.original_size = self._vid.original_size
+        self.aspect_ratio = self.original_size[0] / self.original_size[1]
+
+    def update(self) -> bool:
         return self._update()
 
     @property
@@ -547,18 +673,16 @@ class Video:
         return self.get_volume()
 
     def set_interp(self, interp: Union[str, int]) -> None:
-        if not CV:
-            return
-        elif interp in ("nearest", 0):
-            self.interp = cv2.INTER_NEAREST
+        if interp in ("nearest", 0):
+            self.interp = 0 #cv2.INTER_NEAREST
         elif interp in ("linear", 1):
-            self.interp = cv2.INTER_LINEAR
+            self.interp = 1 #cv2.INTER_LINEAR
         elif interp in ("area", 3):
-            self.interp = cv2.INTER_AREA
+            self.interp = 3 #cv2.INTER_AREA
         elif interp in ("cubic", 2):
-            self.interp = cv2.INTER_CUBIC
+            self.interp = 2 #cv2.INTER_CUBIC
         elif interp in ("lanczos4", 4):
-            self.interp = cv2.INTER_LANCZOS4
+            self.interp = 4 #cv2.INTER_LANCZOS4
         else:
             raise ValueError("Interpolation technique not recognized.")
 
@@ -574,7 +698,7 @@ class Video:
         self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
-        raise DeprecationWarning("set_speed is depreciated. Use the speed parameter instead.")
+        raise DeprecationWarning("set_speed is deprecated. Use the speed parameter instead.")
 
     def get_speed(self) -> float:
         return self.speed
@@ -594,16 +718,24 @@ class Video:
 
     def resize(self, size: Tuple[int, int]) -> None:
         self.current_size = size
+        if self.frame_data is not None:
+            self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
+            self.frame_surf = self._create_frame(self.frame_data)
 
     def change_resolution(self, height: int) -> None:
-        self.current_size = (int(height * self.aspect_ratio), height)
+        w = int(height * self.aspect_ratio)
+        if w % 2 == 1:
+            w += 1
+        self.resize((w, height))
 
     def close(self) -> None:
+        self._preloaded_frames.clear()
         self.stop()
         self._vid.release()
         self._audio.unload()
         if not self.use_pygame_audio:
             self._audio.close()
+        self.closed = True
 
     def restart(self) -> None:
         self.seek(0, relative=False)
@@ -646,10 +778,10 @@ class Video:
         # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
-        self._starting_time = round(min(max(0, self._starting_time), self.duration), 2)
+        self._starting_time = min(max(0, self._starting_time), self.duration)
 
         for p in self._processes:
-            p.terminate()
+            p.kill()
         for t in self._threads:
             t.join()
             
@@ -662,25 +794,29 @@ class Video:
         if self.vfr:
             self._vid.seek(self._get_closest_frame(self.timestamps, self._starting_time))
         else:
-            self._vid.seek(self._starting_time * self.frame_rate)
+            frame = int(self._starting_time * self.frame_rate)
+            if frame >= self.frame_count:
+                frame = self.frame_count - 1
+            self._vid.seek(frame)
 
         self.frame = self._vid.frame
 
-        if self.subs is not None:
-            self.subs._seek(self._starting_time)
+        for sub in self.subs:
+            sub._seek(self._starting_time)
 
     def seek_frame(self, index: int, relative: bool = False) -> None:
         # seeking accurate to 1/100 of a second 
 
         index = (self.frame + index) if relative else index
+        index = min(max(index, 0), self.frame_count - 1)
 
         if self.vfr:
             self._starting_time = self.timestamps[index]
         else:
-            self._starting_time = round(min(max(0, index * self.frame_delay), self.duration), 2)
+            self._starting_time = min(max(0, index / self.frame_rate), self.duration)
 
         for p in self._processes:
-            p.terminate()
+            p.kill()
         for t in self._threads:
             t.join()
 
@@ -693,8 +829,8 @@ class Video:
         self._vid.seek(index)
         self.frame = index
 
-        if self.subs is not None:
-            self.subs._seek(self._starting_time)
+        for sub in self.subs:
+            sub._seek(self._starting_time)
 
     # type hints declared by inherited subclasses
 

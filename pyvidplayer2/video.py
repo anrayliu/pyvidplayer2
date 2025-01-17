@@ -323,6 +323,7 @@ class Video:
             new_reader.original_size = self._vid.original_size
             new_reader.duration = self._vid.duration
             new_reader.frame = self._vid.frame
+            new_reader.seek(self._vid.frame)
             self.colour_format = new_reader._colour_format
             self._vid = new_reader
 

@@ -135,6 +135,7 @@ class PyaudioHandler:
 
     def load(self, bytes_):
         self.unload()
+
         try:
             self.wave = wave.open(BytesIO(bytes_), "rb")
         except EOFError:

@@ -39,6 +39,13 @@ else:
     from .video_pyqt import VideoPyQT
 
 try:
+    import wx
+except ImportError:
+    pass
+else:
+    from .video_wx import VideoWx
+
+try:
     import pygame
 except ImportError:
     pass

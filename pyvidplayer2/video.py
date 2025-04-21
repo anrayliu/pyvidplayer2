@@ -138,6 +138,8 @@ class Video:
         self._starting_time = 0
         self._chunks_claimed = 0
         self._chunks_played = 0
+        self._buffer_first_chunk = False
+        self._buffered_chunk = None
         self._stop_loading = False
         self._processes = []
         self.frame = 0
@@ -615,7 +617,10 @@ class Video:
         elif self.active:
             if self._chunks and self._chunks[0] is not None:
                 self._chunks_played += 1
-                self._audio.load(self._chunks.pop(0))
+                tmp = self._chunks.pop(0)
+                if self._chunks_played == 1 and self._buffer_first_chunk and self._buffered_chunk is None:
+                    self._buffered_chunk = tmp
+                self._audio.load(tmp)
                 self._audio.play()
             elif self._stop_loading and self._chunks_played == self._chunks_claimed:
                 self.stop()
@@ -712,8 +717,9 @@ class Video:
     def stop(self) -> None:
         self.seek(0, relative=False)
         self.active = False
-        self.frame_data = None
-        self.frame_surf = None
+        # removing this to prevent flickering during loops
+        # self.frame_data = None
+        # self.frame_surf = None
         self.paused = False
 
     def resize(self, size: Tuple[int, int]) -> None:
@@ -739,6 +745,11 @@ class Video:
 
     def restart(self) -> None:
         self.seek(0, relative=False)
+
+        if self._buffered_chunk is not None:
+            self._chunks_claimed = 1
+            self._chunks.append(self._buffered_chunk)
+
         self.play()
 
     def set_volume(self, vol: float) -> None:

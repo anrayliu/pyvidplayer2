@@ -16,6 +16,7 @@ class VideoPlayer:
         if isinstance(self.video, VideoPygame):
             if self.video.closed:
                 raise VideoStreamError("Provided video is closed.")
+            self.video._buffer_first_chunk = loop
         else:
             raise ValueError("Must be a VideoPygame object.")
 
@@ -133,7 +134,7 @@ class VideoPlayer:
 
         w = s[0]
         h = int(w / r)
-        y = int(s[1] /2 - h / 2)
+        y = int(s[1] / 2 - h / 2)
         x = 0
         if h > s[1]:
             h = s[1]
@@ -163,13 +164,13 @@ class VideoPlayer:
     def zoom_to_fill(self) -> None:
         s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
         self.vid_rect.inflate_ip(s, s)
-        self.vid_rect.center = self.frame_rect.center #adjusts for 1.0 rounding imprecisions
+        self.vid_rect.center = self.frame_rect.center # adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
         self._zoomed = True
 
     def zoom_out(self) -> None:
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
-        self.vid_rect.center = self.frame_rect.center #adjusts for 1.0 rounding imprecisions
+        self.vid_rect.center = self.frame_rect.center # adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
         self._zoomed = False
 
@@ -188,6 +189,9 @@ class VideoPlayer:
             input_._update()
         except AttributeError:
             pass
+
+    def enqueue(self, input_: Union[str, Video]) -> None:
+        self.queue(input_)
         
     def resize(self, size: Tuple[int, int]) -> None:
         self.frame_rect.size = size

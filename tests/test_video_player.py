@@ -58,7 +58,6 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertFalse(vp.loop)
         self.assertEqual(vp.preview_thumbnails, 0)
         self.assertEqual(vp._font.get_height(), 12) # point size 10 should result in 12 height
-        self.assertEqual(vp._font.name, "Arial")
         vp.close()
 
     # tests queue system

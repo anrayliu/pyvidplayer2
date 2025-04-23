@@ -25,7 +25,7 @@ All the features from the original library have been ported over, with the excep
 - Play multiple videos in parallel
 - Add multiple subtitles to a video
 - Built in GUI and queue system
-- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, and Raylib
+- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, and wxPython
 - Post process effects
 - Webcam feed
 - Stream videos from Youtube
@@ -34,6 +34,7 @@ All the features from the original library have been ported over, with the excep
 - Specify which audio devices to use
 - Frame-by-frame iteration
 - Choose audio different audio tracks
+- Seamless video looping
 
 # Installation
 
@@ -63,9 +64,9 @@ The following NEW packages will be installed:
 ```
 
 ## MacOS
-FFMPEG and FFPROBE can easily be installed with homebrew.
+FFmpeg can easily be installed with homebrew. Portaudio is also required to prevent missing portaudio.h errors.
 ```
-brew install ffmpeg
+brew install ffmpeg portaudio
 ```
 
 # Dependencies

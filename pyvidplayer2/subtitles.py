@@ -91,8 +91,17 @@ class Subtitles:
         return surface
 
     def _extract_internal_subs(self):
+        command = [
+            "ffmpeg",
+            "-i", self.path,
+            "-loglevel", FFMPEG_LOGLVL,
+            "-map", f"0:s:{self.track_index}",
+            "-f", "srt",
+            "-"
+        ]
+
         try:
-            p = subprocess.Popen(f"ffmpeg -i {self.path} -loglevel {FFMPEG_LOGLVL} -map 0:s:{self.track_index} -f srt -", stdout=subprocess.PIPE)
+            p = subprocess.Popen(command, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 

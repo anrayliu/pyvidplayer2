@@ -5,6 +5,9 @@ class Pyvidplayer2Error(Exception):
 class AudioDeviceError(Pyvidplayer2Error):
     pass
 
+class AudioStreamError(Pyvidplayer2Error):
+    pass
+
 class SubtitleError(Pyvidplayer2Error):
     pass
 

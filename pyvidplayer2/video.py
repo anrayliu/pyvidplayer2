@@ -115,7 +115,7 @@ class Video:
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened() and CV:
-            raise OpenCVError("Failed to open file. Please make sure your yt-dlp is the newest version.")
+            raise OpenCVError("Failed to open file.")
 
         self.colour_format = self._vid._colour_format
 
@@ -128,6 +128,7 @@ class Video:
         self.original_size = self._vid.original_size
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
+        self.audio_channels = 0
 
         self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
@@ -199,6 +200,8 @@ class Video:
             self._preload_frames()
 
         self.set_interp(interp)
+
+        self.set_audio_track(self.audio_track)
 
         self.play()
 
@@ -302,7 +305,16 @@ class Video:
 
     def _get_all_pts(self):
         try:
-            p = subprocess.Popen(f"ffprobe -i {'-' if self.as_bytes else self.path} -select_streams v:0 -show_entries packet=pts_time -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
+            command = [
+                "ffprobe",
+                "-i", "-" if self.as_bytes else self.path,
+                "-select_streams", "v:0",
+                "-show_entries", "packet=pts_time",
+                "-loglevel", FFMPEG_LOGLVL,
+                "-print_format", "json"
+            ]
+
+            p = subprocess.Popen(command, stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 
@@ -407,15 +419,11 @@ class Video:
     def _test_no_audio(self):
         command = [
             "ffmpeg",
-            "-i",
-            self._audio_path,
-            "-t",
-            str(self._convert_seconds(0.1)),
+            "-i", self._audio_path,
+            "-t", str(self._convert_seconds(0.1)),
             "-vn",
-            "-f",
-            "wav",
-            "-loglevel",
-            f"{FFMPEG_LOGLVL}",
+            "-f", "wav",
+            "-loglevel", FFMPEG_LOGLVL,
             "-"
         ]
 
@@ -441,16 +449,11 @@ class Video:
         if self.no_audio:
             command = [
                 "ffmpeg",
-                "-f",
-                "lavfi",
-                "-i",
-                "anullsrc",
-                "-t",
-                str(self._convert_seconds(min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
-                "-f",
-                "wav",
-                "-loglevel",
-                f"{FFMPEG_LOGLVL}",
+                "-f", "lavfi",
+                "-i", "anullsrc",
+                "-t", str(self._convert_seconds(min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
+                "-f", "wav",
+                "-loglevel", FFMPEG_LOGLVL,
                 "-"
             ]
 
@@ -458,22 +461,15 @@ class Video:
 
             command = [
                 "ffmpeg",
-                "-i",
-                self._audio_path,
-                "-ss",
-                self._convert_seconds(s),
-                "-t",
-                self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
+                "-i", self._audio_path,
+                "-ss", self._convert_seconds(s),
+                "-t", self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
                 "-vn",
                 "-sn",
-                "-ac",
-                str(self._audio.get_num_channels()),
-                "-map",
-                f"0:a:{self.audio_track}",
-                "-f",
-                "wav",
-                "-loglevel",
-                f"{FFMPEG_LOGLVL}",
+                "-map", f"0:a:{self.audio_track}",
+                "-ac", str(self._audio.get_num_channels()) if self.use_pygame_audio else str(self.audio_channels),
+                "-f", "wav",
+                "-loglevel", FFMPEG_LOGLVL,
                 "-"
             ]
 
@@ -500,7 +496,17 @@ class Video:
             # apply speed change to already reversed audio chunk
 
             if not self.no_audio and self.speed != 1 and self.reverse:
-                process = subprocess.Popen(f"ffmpeg -i - -af atempo={self.speed} -f wav -loglevel {FFMPEG_LOGLVL} -", stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+                command = [
+                    "ffmpeg",
+                    "-i", "-",
+                    "-af", f"atempo={self.speed}",
+                    "-f", "wav",
+                    "-loglevel", FFMPEG_LOGLVL,
+                    "-"
+                ]
+
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
                 self._processes.append(process)
                 audio = process.communicate(input=audio)[0]
                 self._processes.remove(process)
@@ -770,7 +776,35 @@ class Video:
 
     def set_audio_track(self, index: int) -> None:
         self.audio_track = index
-        self.seek(self.get_pos()) # reloads current audio chunks
+
+        try:
+
+            command = [
+                "ffprobe",
+                "-i", "-" if self.as_bytes else self.path,
+                "-show_streams",
+                "-select_streams", f"a:{index}",
+                "-loglevel", FFMPEG_LOGLVL,
+                "-print_format", "json"
+            ]
+
+            p = subprocess.Popen(
+                command,
+                stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
+        except FileNotFoundError:
+            raise FFmpegNotFoundError(
+                "Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+
+        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+
+        if len(info) == 0:
+            raise VideoStreamError("Could not determine video.")
+        info = info["streams"]
+        if len(info) == 0:
+            raise AudioStreamError("Audio index out of range.")
+        self.audio_channels = info[0]["channels"]
+
+        self.seek(self.get_pos(), relative=False) # reloads current audio chunks
 
     def pause(self) -> None:
         if self.active:

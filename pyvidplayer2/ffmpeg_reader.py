@@ -16,7 +16,18 @@ class FFMPEGReader(VideoReader):
         self._colour_format = "BGR"
 
         try:
-            self._process = subprocess.Popen(f"ffmpeg -i {path} -loglevel {FFMPEG_LOGLVL} -map 0:v:0 -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+            command = [
+                "ffmpeg",
+                "-i", path,
+                "-loglevel", FFMPEG_LOGLVL,
+                "-map", "0:v:0",
+                "-f", "rawvideo",
+                "-vf", "format=bgr24",
+                "-sn",
+                "-an",
+                "-"
+            ]
+            self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
@@ -45,7 +56,21 @@ class FFMPEGReader(VideoReader):
         self.frame = index
         self._process.kill()
         # uses input seeking for very fast reading
-        self._process = subprocess.Popen(f"ffmpeg -ss {self._convert_seconds(index / self.frame_rate)} -i {self._path} -loglevel {FFMPEG_LOGLVL} -map 0:v:0 -f rawvideo -vf format=bgr24 -sn -an -", stdout=subprocess.PIPE)
+
+        command = [
+            "ffmpeg",
+            "-ss", self._convert_seconds(index / self.frame_rate),
+            "-i", self.path,
+            "-loglevel", FFMPEG_LOGLVL,
+            "-map", "0:v:0",
+            "-f", "rawvideo",
+            "-vf", "format=bgr24",
+            "-sn",
+            "-an",
+            "-"
+        ]
+
+        self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
         
     def release(self):
         self._process.kill()

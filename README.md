@@ -204,6 +204,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `original_size: (int, int)` - Tuple containing the width and height of each original frame. Unaffected by resizing.
  - `current_size: (int, int)` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
  - `aspect_ratio: float` - Width divided by height of original size.
+ - `audio_channels: int` - Number of audio channels in current audio track. May change when other tracks are set with `set_audio_track`.
  - `chunk_size: float` - Same as given argument. May change if `youtube` is `True` (see `youtube` above).
  - `max_chunks: int` - Same as given argument.
  - `max_threads: int` - Same as given argument. May change if `youtube` is `True` (see `youtube` above).
@@ -246,7 +247,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `toggle_pause() -> None` - Pauses if the video is playing, and resumes if the video is paused.
  - `pause() -> None`
  - `resume() -> None`
- - `set_audio_path(index: int)` - Sets the audio track used (see `audio_track` above).
+ - `set_audio_track(index: int)` - Sets the audio track used (see `audio_track` above). This will re-probe the video for number of audio channels.
  - `toggle_mute() -> None`
  - `mute() -> None`
  - `unmute() -> None`
@@ -271,6 +272,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - PySide6 (`VideoPySide`)
  - PyQT6 (`VideoPyQT`)
  - RayLib (`VideoRayLib`)
+ - WxPython (`VideoWx`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`, `Webcam`, and `VideoPlayer` only work with Pygame installed. Preview methods for other graphics libraries also do not accept any arguments.
 
@@ -318,6 +320,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `zoom_out() -> None` - Reverts `zoom_to_fill()`.
  - `toggle_zoom() -> None` - Switches between zoomed in and zoomed out.
  - `queue(input: pyvidplayer2.VideoPygame | str) -> None` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - `enqueue(input: pyvidplayer2.VideoPygame | str) -> None` - Same exact method as `queue`, but with a more conventionally correct name. I'm keeping `queue` only for backwards compatibility. 
  - `get_queue(): list[pyvidplayer2.VideoPygame]` - Returns list of queued video objects.
  - `resize(size: (int, int)) -> None` - Resizes the video player. The contained video will automatically re-adjust to fit the player.
  - `move(pos: (int, int), relative: bool = False) -> None` - Moves the VideoPlayer. If `relative` is `True`, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
@@ -426,6 +429,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 - `AudioDeviceError(Pyvidplayer2Error)` - Thrown for exceptions related to PyAudio output devices.
 - `SubtitleError(Pyvidplayer2Error)` - Thrown for exceptions related to subtitles.
 - `VideoStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to general video probing and playback.
+- `AudioStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to audio tracks.
 - `FFmpegNotFoundError(Pyvidplayer2Error)` - Thrown when FFmpeg is missing.
 - `OpenCVError(Pyvidplayer2Error)` - Thrown for exceptions related to OpenCV processes.
 - `YTDLPError(Pyvidplayer2Error)` - Thrown for exceptions related to YTDLP processes.

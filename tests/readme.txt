@@ -11,4 +11,3 @@ test_detect_as_bytes - fails because ffprobe really struggles to extract informa
 test_frame_counts - fails because frame count extraction is currently unreliable
 test_many_video_tracks - fails because decord does not read from the first video track
 test_webcam_60_fps - should only fail if you don't have a 60 fps webcam
-

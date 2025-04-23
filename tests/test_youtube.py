@@ -54,6 +54,8 @@ class TestYoutubeVideo(unittest.TestCase):
             time.sleep(0.1)  # prevents spamming youtube
 
     # test opens the first 5 trending youtube videos
+    # can sometimes fail when the trending videos have an age restriction, preventing yt-dlp from outright
+    # opening it
     def test_youtube(self):
         for url in get_youtube_urls():
             v = Video(url, youtube=True)

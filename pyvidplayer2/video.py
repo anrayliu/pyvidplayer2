@@ -201,7 +201,8 @@ class Video:
 
         self.set_interp(interp)
 
-        self.set_audio_track(self.audio_track)
+        if not self.no_audio:
+            self.set_audio_track(self.audio_track)
 
         self.play()
 
@@ -467,7 +468,7 @@ class Video:
                 "-vn",
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
-                "-ac", str(self._audio.get_num_channels()) if self.use_pygame_audio else str(self.audio_channels),
+                "-ac", str(self._audio.get_num_channels()) if self.use_pygame_audio else str(min(self.audio_channels, self._audio.get_num_channels())),
                 "-f", "wav",
                 "-loglevel", FFMPEG_LOGLVL,
                 "-"
@@ -775,10 +776,10 @@ class Video:
         self.unmute() if self.muted else self.mute()
 
     def set_audio_track(self, index: int) -> None:
-        self.audio_track = index
+        if self.youtube:
+            return
 
         try:
-
             command = [
                 "ffprobe",
                 "-i", "-" if self.as_bytes else self.path,
@@ -801,9 +802,10 @@ class Video:
             raise VideoStreamError("Could not determine video.")
         info = info["streams"]
         if len(info) == 0:
-            raise AudioStreamError("Audio index out of range.")
-        self.audio_channels = info[0]["channels"]
+            raise AudioStreamError(f"Audio index {index} out of range.")
 
+        self.audio_channels = info[0]["channels"]
+        self.audio_track = index
         self.seek(self.get_pos(), relative=False) # reloads current audio chunks
 
     def pause(self) -> None:

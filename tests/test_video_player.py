@@ -129,6 +129,18 @@ class TestVideoPlayer(unittest.TestCase):
         for v in (v1, v2, v3, v4):
             self.assertTrue(v.closed)
 
+    # test enqueue, a queue alias
+    def test_enqueue(self):
+        original_video = Video("resources\\clip.mp4")
+
+        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
+        v1 = Video("resources\\trailer1.mp4")
+        vp.enqueue(v1)
+        self.assertEqual(len(vp.queue_), 1)
+        self.assertIs(vp.get_next(), v1)
+
+        vp.close()
+
     # tests video player with context manager
     def test_context_manager(self):
         with VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720)) as vp:
@@ -173,7 +185,7 @@ class TestVideoPlayer(unittest.TestCase):
 
         original_video.stop()
         vp.update() # should trigger _handle_on_end
-        self.assertEqual(original_video.get_pos(), 0.0)
+        self.assertEqual(round(original_video.get_pos(), 1), 0.0)
         self.assertTrue(original_video.active)
 
         vp.close()

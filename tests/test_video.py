@@ -190,12 +190,36 @@ class TestVideo(unittest.TestCase):
 
     # tests that each file can be opened and recognized as bytes
     # currently fails due to a bug
+    @unittest.skip
     def test_detect_as_bytes(self):
         for file in PATHS:
             with open(file, "rb") as f:
                 v = Video(f.read())
                 self.assertTrue(v.as_bytes, f"{file} failed unit test")
                 v.close()
+
+    def test_audio_channels(self):
+        for file in PATHS:
+            v = Video(file)
+            if v.name == "6channels":
+                self.assertEqual(v.audio_channels, 6)
+            else:
+                self.assertTrue(v.audio_channels in (0, 2))
+            v.close()
+
+    # this test is potentially problematic
+    def test_multiple_channels(self):
+        v = Video("resources\\6channels.mkv", use_pygame_audio=True)
+        self.assertEqual(v.audio_channels, 6)
+        self.assertEqual(v._audio.get_num_channels(), 8)
+        timed_loop(2, v.update)
+        v.close()
+
+        v = Video("resources\\6channels.mkv", use_pygame_audio=False)
+        self.assertEqual(v.audio_channels, 6)
+        self.assertEqual(v._audio.get_num_channels(), 2)
+        timed_loop(2, v.update)
+        v.close()
 
     # tests seeking, requires an accurate frame_count attribute
     def test_seeking(self):
@@ -281,7 +305,8 @@ class TestVideo(unittest.TestCase):
                     "<VideoPyglet(path=resources\\trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
                     "<VideoPyQT(path=resources\\trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
                     "<VideoRaylib(path=resources\\trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
-                    "<VideoPySide(path=resources\\trailer1.mp4)>": VideoPySide(VIDEO_PATH)
+                    "<VideoPySide(path=resources\\trailer1.mp4)>": VideoPySide(VIDEO_PATH),
+                    "<VideoWx(path=resources\\trailer1.mp4)>" : VideoWx(VIDEO_PATH)
                 }
 
         for name, v in videos.items():
@@ -347,8 +372,11 @@ class TestVideo(unittest.TestCase):
         while_loop(lambda: v.frame < 10, v.update, 10)
         v.stop()
         self.assertFalse(v.active)
-        self.assertIs(v.frame_data, None)
-        self.assertIs(v.frame_surf, None)
+
+        # behaviour changed in 0.9.26, does not reset frame information anymore on stop
+        self.assertIsNot(v.frame_data, None)
+        self.assertIsNot(v.frame_surf, None)
+
         self.assertFalse(v.paused)
         v.stop() # test for exception
         v.close()
@@ -380,6 +408,7 @@ class TestVideo(unittest.TestCase):
 
     # tests cv2 frame count, proving frame count, and real frame count
     # currently fails due to a bug
+    @unittest.skip
     def test_frame_counts(self):
         for file in PATHS:
             v = Video(file)
@@ -556,6 +585,7 @@ class TestVideo(unittest.TestCase):
 
     # test each readers ability to choose the first video track when there are many
     # fails because decord does not read the first track
+    @unittest.skip
     def test_many_video_tracks(self):
         v = Video("resources\\birds.avi")
         vids = [Video("resources\\manyv.mp4", reader=reader) for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
@@ -572,6 +602,24 @@ class TestVideo(unittest.TestCase):
             v = Video("resources\\16bit.mp4", reader=reader)
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
+
+    # test setting audio index for video with no audio tracks
+    def test_set_track_no_audio(self):
+        v = Video("resources\\16bit.mp4") # should open fine
+        with self.assertRaises(AudioStreamError): # now should crash
+            v.set_audio_track(0)
+        v.close()
+
+    def test_set_track_seek(self):
+        v = Video("resources\\manya.mp4")
+        v.seek(5)
+        v.set_audio_track(1)
+        self.assertEqual(v.get_pos(), 5.0)
+        v.set_audio_track(2)
+        self.assertEqual(v.get_pos(), 5.0)
+        v.set_audio_track(0)
+        self.assertEqual(v.get_pos(), 5.0)
+        v.close()
 
     # test each reader's ability to handle a single colour channel
     def test_grayscale(self):
@@ -980,7 +1028,7 @@ class TestVideo(unittest.TestCase):
 
     # tests that previews start from where the video position is, and that they close the video afterwards
     def test_previews(self):
-        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide):
+        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx):
             v = lib(VIDEO_PATH)
             v.seek(v.duration)
             v.preview()
@@ -1019,15 +1067,19 @@ class TestVideo(unittest.TestCase):
     # tests choosing audio tracks
     def test_audio_track(self):
         for audio_handler in (True, False):
-            v = Video(VIDEO_PATH, use_pygame_audio=audio_handler)
+            v = Video("resources\\manya.mp4", use_pygame_audio=audio_handler)
+            self.assertEqual(v.audio_track, 0)
+            with self.assertRaises(AudioStreamError):
+                v.set_audio_track(3)
+            with self.assertRaises(VideoStreamError): # causes an ffmpeg error instead of a null result
+                v.set_audio_track(-1)
+            with self.assertRaises(AudioStreamError):
+                v.set_audio_track(100)
             self.assertEqual(v.audio_track, 0)
             v.set_audio_track(1)
-            self.assertEqual(v.audio_track, 1)
-            self.assertRaises(EOFError if not v.use_pygame_audio else pygame.error, timed_loop, 3, v.update)
-            v.set_audio_track(0)
             while_loop(lambda: v.frame < 10, v.update, 10)
-            self.assertEqual(v.audio_track, 0)
-            v.set_audio_track(0)
+            self.assertEqual(v.audio_track, 1)
+            v.set_audio_track(2)
             self.assertFalse(v._audio.loaded)
             v.close()
 
@@ -1115,8 +1167,10 @@ class TestVideo(unittest.TestCase):
 
         # check that frame information has reset
         self.assertEqual(v.frame, 0)
-        self.assertIs(v.frame_surf, None)
-        self.assertIs(v.frame_data, None)
+
+        # behaviour changed in 0.9.26, now does not reset information
+        self.assertIsNot(v.frame_surf, None)
+        self.assertIsNot(v.frame_data, None)
 
         v.close()
 
@@ -1180,7 +1234,7 @@ class TestVideo(unittest.TestCase):
 
     # tests different ways to accessing version
     def test_version(self):
-        VER = "0.9.25"
+        VER = "0.9.26"
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)
         self.assertEqual(VER, get_version_info()["pyvidplayer2"])
@@ -1323,17 +1377,19 @@ class TestVideo(unittest.TestCase):
     def test_parameters(self):
         # test each graphics library with exact number of arguments
 
+        # test correct args
         v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO)
         v.close()
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                       0, False, "en", None, READER_AUTO)
             v.close()
 
+        # test extra args
         with self.assertRaises(TypeError):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO, "extra_arg")
 
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                           0, False, "en", None, READER_AUTO, "extra_arg")

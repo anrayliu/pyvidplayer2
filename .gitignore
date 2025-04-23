@@ -172,3 +172,6 @@ devnote.txt
 .venv/
 .DS_Store
 .vscode/
+tests/README.md
+tests/readme-unit-tests.txt
+tests/.gitignore

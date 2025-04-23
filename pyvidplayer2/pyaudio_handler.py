@@ -168,7 +168,7 @@ class PyaudioHandler:
     # only get_num_channels from mixer handler is used for now
     # pyaudio channels are handled by video class
     def get_num_channels(self):
-        pass
+        return self.audio_devices[self.device_index]["maxOutputChannels"]
 
     def close(self):
         if self.stream is not None:

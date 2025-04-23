@@ -60,7 +60,7 @@ class FFMPEGReader(VideoReader):
         command = [
             "ffmpeg",
             "-ss", self._convert_seconds(index / self.frame_rate),
-            "-i", self.path,
+            "-i", self._path,
             "-loglevel", FFMPEG_LOGLVL,
             "-map", "0:v:0",
             "-f", "rawvideo",

@@ -201,7 +201,7 @@ class TestVideo(unittest.TestCase):
     def test_audio_channels(self):
         for file in PATHS:
             v = Video(file)
-            if v.name == "6channels":
+            if v.name in ("6channels", "5.1"):
                 self.assertEqual(v.audio_channels, 6)
             else:
                 self.assertTrue(v.audio_channels in (0, 2))
@@ -231,12 +231,11 @@ class TestVideo(unittest.TestCase):
             v.probe() # get accurate frame count
 
             # testing relative time seek
-            v.seek(2, relative=False)
+            v.seek(1.5, relative=False)
 
-            self.assertEqual(v.get_pos(), 2.0)
+            self.assertEqual(v.get_pos(), 1.5)
 
-            FRAME = int(2 * v.frame_rate)
-
+            FRAME = int(1.5 * v.frame_rate)
             self.assertEqual(v.frame, FRAME)
             original_frame = next(v)
 
@@ -711,7 +710,7 @@ class TestVideo(unittest.TestCase):
     def test_no_audio_detection(self):
         for file in PATHS:
             v = Video(file)
-            self.assertEqual(v.no_audio, v.name in ("60fps", "hdr", "test", "av1", "16bit", "1channel", "5frames"), f"{file} failed unit test")
+            self.assertEqual(v.no_audio, v.name in ("60fps", "hdr", "test", "av1", "16bit", "1channel", "5frames", "loop", "loop2"), f"{file} failed unit test")
             v.close()
 
     # tests cv2 and ffmepg resamplers work as intended
@@ -1232,6 +1231,14 @@ class TestVideo(unittest.TestCase):
         time.sleep(1)
         self.assertFalse(thread.is_alive())
 
+    # tests for videos with special characters in their title (e.g spaces, symbols, etc)
+    def test_special_filename(self):
+        v = Video("resources\\specia1 video$% -.mp4", speed=5)
+        thread = Thread(target=lambda: v.preview())
+        thread.start()
+        time.sleep(2)
+        self.assertFalse(thread.is_alive())
+
     # tests different ways to accessing version
     def test_version(self):
         VER = "0.9.26"
@@ -1497,6 +1504,7 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(v._vid.frame, v.frame)
             timed_loop(1, v.update)
             v.close()
+
 
 
 if __name__ == "__main__":

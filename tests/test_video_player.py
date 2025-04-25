@@ -1,4 +1,5 @@
 import random
+import pygame
 import time
 from threading import Thread
 from test_video import VIDEO_PATH, while_loop, timed_loop, check_same_frames
@@ -175,7 +176,8 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertEqual(len(vp), 3)
 
         # queue an incorrect argument
-        vp.queue(1)
+        with self.assertRaises(ValueError):
+            vp.queue(1)
 
         # manually wipe queue
         vp.clear_queue()
@@ -183,9 +185,13 @@ class TestVideoPlayer(unittest.TestCase):
             self.assertTrue(v.closed)
         self.assertEqual(len(vp.queue_), 0)
 
+        vp.queue("bad path")
+        with self.assertRaises(FileNotFoundError):
+            vp.skip()
+
         original_video.stop()
         vp.update() # should trigger _handle_on_end
-        self.assertEqual(round(original_video.get_pos(), 1), 0.0)
+        self.assertEqual(original_video.get_pos(), 0)
         self.assertTrue(original_video.active)
 
         vp.close()
@@ -211,6 +217,66 @@ class TestVideoPlayer(unittest.TestCase):
         # ensures that vid rect was properly changed
         self.assertNotEqual(vp.vid_rect.topleft, vid_pos)
         self.assertEqual(vp.vid_rect.size, vid_size)
+
+        vp.close()
+
+    # tests that looping is seamless
+    # also tests that video does indeed loop by timing out otherwise
+    def test_seamless_loop(self):
+        v = Video("resources\\loop.mp4")
+        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
+
+        self.assertTrue(v._buffer_first_chunk)
+
+        thread = Thread(target=lambda: vp.preview())
+        thread.start()
+
+        t = 0
+        track = False
+        buffers = []
+        timeout = time.time()
+        while True:
+            if time.time() - timeout > 30:
+                raise TimeoutError("Test timed out.")
+            if not v.active and not track:
+                t = time.time()
+                track = True
+            elif v.active and track:
+                track = False
+                buffers.append(time.time() - t)
+                if len(buffers) == 10:
+                    self.assertTrue(v.frame_delay > sum(buffers) / 10.0)
+                    break
+
+        # gracefully shut down thread which would otherwise loop forever
+        vp.loop = False
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+        thread.join()
+
+        vp.close()
+
+    # tests for a bug where previews would never end if video was looping
+    def test_looping_preview(self):
+        v = Video(VIDEO_PATH)
+        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
+
+        thread = Thread(target=lambda: vp.preview())
+        thread.start()
+
+        time.sleep(0.5)
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+        time.sleep(0.5)
+
+        if v.active:
+            # gracefully shut down thread which would otherwise loop forever
+            vp.loop = False
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+            thread.join()
+
+            # make v active again to raise an assertion error
+            v.active = True
+
+        self.assertFalse(v.active)
 
         vp.close()
 

@@ -176,28 +176,29 @@ class TestYoutubeVideo(unittest.TestCase):
         v = Video("https://www.youtube.com/watch?v=HurjfO_TDlQ", subs=Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="en-US"), speed=5, youtube=True)
 
         def check_subs():
-            v.update()
+            if v.update():
+                timestamp = v._update_time
+                # skip when frame has not been rendered yet
+                if timestamp == 0:
+                    return
 
-            timestamp = v.frame / v.frame_rate
-            # skip when frame has not been rendered yet
-            if timestamp == 0:
-                return
+                in_interval = False
+                for start, end, text in SUBS:
+                    if start <= timestamp <= end:
+                        in_interval = True
+                        self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
+                            v.frame_data))), v.subs_hidden)
 
-            in_interval = False
-            for start, end, text in SUBS:
-                if start <= timestamp <= end:
-                    in_interval = True
-                    self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                        v.frame_data))), v.subs_hidden)
+                        # check the correct subtitle was generated
+                        if not v.subs_hidden:
+                            self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
 
-                    # check the correct subtitle was generated
-                    if not v.subs_hidden:
-                        self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
+                        break
 
-            if not in_interval:
-                self.assertTrue(
-                    check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                        v.frame_data))))
+                if not in_interval:
+                    self.assertTrue(
+                        check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
+                            v.frame_data))))
 
         self.assertFalse(v.subs_hidden)
 

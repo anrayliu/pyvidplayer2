@@ -1,3 +1,5 @@
+from argparse import ArgumentError
+
 import pygame
 import math
 from typing import Tuple, Union, List
@@ -181,6 +183,9 @@ class VideoPlayer:
             self.zoom_to_fill()
 
     def queue(self, input_: Union[str, Video]) -> None:
+        if type(input_) != str and not isinstance(input_, Video):
+            raise ValueError("Can only queue video paths or video objects.")
+
         self.queue_.append(input_)
 
         # update once to trigger audio loading
@@ -207,10 +212,10 @@ class VideoPlayer:
     def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None, fps: int = 0) -> bool:
         dt = self._clock.tick(fps)
 
+        self.video.update()
+
         if not self.video.active:
             self._handle_on_end()
-
-        self.video.update()
 
         if self.interactable:
 
@@ -314,11 +319,13 @@ class VideoPlayer:
         win = pygame.display.set_mode(self.frame_rect.size, pygame.RESIZABLE)
         pygame.display.set_caption(f"videoplayer - {self.video.name}")
         self.video.play()
-        while self.video.active:
+        stop = False
+        while self.video.active and not stop:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     self.video.stop()
+                    stop = True
                 elif event.type == pygame.WINDOWRESIZED:
                     self.resize(win.get_size())
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:

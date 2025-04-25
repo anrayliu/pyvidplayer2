@@ -17,6 +17,7 @@ All the features from the original library have been ported over, with the excep
 - Low CPU usage
 - No audio/video sync issues
 - Unlocked frame rate
+- Supports GIFs!
 - Can play a huge variety of video formats
 - Play variable frame rate videos (VFR)
 - Adjust playback speed
@@ -264,6 +265,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `hide_subs() -> None` - Disables subtitles.
  - `set_subs(subs: Subtitles | [Subtitles]) -> None` - Set the subtitles to use. Works the same as providing subtitles through the initialization parameter.
  - `probe() -> None` - Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count or frame rate are read through the file headers, which is sometimes incorrect. For more accuracy, call this method to start a probe and update the video information.
+ - `get_metadata() -> dict` - Outputs a dictionary with attributes about the file metadata, including frame_count, frame_rate, etc. Can be combined with `pprint` to quickly see a general overview of a video file.
 
 ## Supported Graphics Libraries
  - Pygame or Pygame CE (`Video`) <- default and best supported

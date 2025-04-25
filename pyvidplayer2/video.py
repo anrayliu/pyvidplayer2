@@ -700,7 +700,28 @@ class Video:
 
     def set_post_func(self, func: Callable[[np.ndarray], np.ndarray]) -> None:
         self.post_func = func
-    
+
+    def get_metadata(self):
+        return {
+            "path": self.path,
+            "name": self.name,
+            "ext": self.ext,
+            "frame_rate": self.frame_rate,
+            "vfr": self.vfr,
+            "max_fr": self.max_fr,
+            "min_fr": self.min_fr,
+            "avg_fr": self.avg_fr,
+
+            "frame_count": self.frame_count,
+            "duration": self.duration,
+            "original_size": self.original_size,
+            "aspect_ratio": self.aspect_ratio,
+
+            "audio_channels": self.audio_channels,
+            "no_audio": self.no_audio
+
+        }
+
     def mute(self) -> None:
         self.muted = True
         self._audio.mute()

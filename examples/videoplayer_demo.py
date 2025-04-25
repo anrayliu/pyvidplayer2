@@ -42,3 +42,5 @@ while True:
     player.draw(win)
     
     pygame.display.update()
+
+# alternatively, use VideoPlayer.preview()

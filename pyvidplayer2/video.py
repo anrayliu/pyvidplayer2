@@ -563,7 +563,7 @@ class Video:
     def _has_frame(self, p):
         if self.vfr:
             return self.frame < self.frame_count and p > self.timestamps[self.frame]
-        return p > self.frame / self.frame_rate
+        return p > self.frame / float(self.frame_rate)
     
     def _update(self):
         if self._missing_ffmpeg:

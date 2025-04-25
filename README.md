@@ -78,6 +78,7 @@ FFmpeg and FFprobe (not Python packages)
 ```
 
 ## Optional Packages
+At least one graphics library and one audio library is required.
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
 pygame          (graphics and audio library, comes installed)
@@ -89,8 +90,9 @@ imageio         (for videos in bytes)
 pyglet          (graphics library)
 PySide6         (graphics library)
 PyQt6           (graphics library)
-tkinter         (graphics library, installed through Python and not pip)
+tkinter         (graphics library, installed through Python, not pip)
 raylib          (graphics library)
+wxPython        (graphics library)
 ```
 
 # Quickstart

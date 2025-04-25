@@ -1256,6 +1256,35 @@ class TestVideo(unittest.TestCase):
                                         67.233833])
         v.close()
 
+    # test that gifs can be played
+    def test_gif(self):
+        v = Video("resources\\myGif.gif")
+        thread = Thread(target=lambda: v.preview())
+        thread.start()
+        time.sleep(1.5)
+        self.assertFalse(thread.is_alive())
+
+    # tests the metadata method
+    def test_metadata(self):
+        for file in PATHS:
+            v = Video(file)
+            data = v.get_metadata()
+            self.assertEqual(data["path"], v.path)
+            self.assertEqual(data["name"], v.name)
+            self.assertEqual(data["ext"], v.ext)
+            self.assertEqual(data["frame_rate"], v.frame_rate)
+            self.assertEqual(data["vfr"], v.vfr)
+            self.assertEqual(data["max_fr"], v.max_fr)
+            self.assertEqual(data["min_fr"], v.min_fr)
+            self.assertEqual(data["avg_fr"], v.avg_fr)
+            self.assertEqual(data["frame_count"], v.frame_count)
+            self.assertEqual(data["duration"], v.duration)
+            self.assertEqual(data["original_size"], v.original_size)
+            self.assertEqual(data["aspect_ratio"], v.aspect_ratio)
+            self.assertEqual(data["audio_channels"], v.audio_channels)
+            self.assertEqual(data["no_audio"], v.no_audio)
+            v.close()
+
     # test __str__ from bytes
     def test_bytes_str(self):
         with open(VIDEO_PATH, "rb") as f:
@@ -1279,7 +1308,6 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(ffmpeg_reader._convert_seconds(4.98), v._convert_seconds(4.98))
         self.assertEqual(ffmpeg_reader._convert_seconds(4.98881), v._convert_seconds(4.98881))
         self.assertEqual(ffmpeg_reader._convert_seconds(12.1280937198881), v._convert_seconds(12.1280937198881))
-
 
         v.close()
 
@@ -1505,6 +1533,16 @@ class TestVideo(unittest.TestCase):
             timed_loop(1, v.update)
             v.close()
 
+    # test that each frame is rendered
+    # doesn't work on high speeds because frames will be skipped
+    def test_all_frames_reached(self):
+        v = Video("resources//clip.mp4")
+        frames = 0
+        while v.active:
+            if v.update():
+                frames += 1
+        self.assertEqual(frames, v.frame_count)
+        v.close()
 
 
 if __name__ == "__main__":

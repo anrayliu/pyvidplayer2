@@ -49,7 +49,7 @@ def check_same_frames(f1, f2):
 
 
 PATHS = get_videos()
-VIDEO_PATH = "resources\\trailer1.mp4"
+VIDEO_PATH = "resources/trailer1.mp4"
 
 
 class TestVideo(unittest.TestCase):
@@ -58,9 +58,9 @@ class TestVideo(unittest.TestCase):
         # must be done with clip.mp4 because trailer1.mp4 fails letterbox due to it already having one
         # and trailer2.mp4 fails noise due to the black opening frames
 
-        v1 = Video("resources\\clip.mp4")
+        v1 = Video("resources/clip.mp4")
         original_frame = next(v1)
-        v2 = Video("resources\\clip.mp4")
+        v2 = Video("resources/clip.mp4")
         new_frame = next(v2)
         self.assertTrue(check_same_frames(original_frame, new_frame))
 
@@ -73,9 +73,9 @@ class TestVideo(unittest.TestCase):
 
     # tests metadata accuracy for 3 main types of videos
     def test_metadata(self):
-        v = Video("resources\\trailer1.mp4")
-        self.assertEqual(v.path, "resources\\trailer1.mp4")
-        self.assertEqual(v._audio_path, "resources\\trailer1.mp4")
+        v = Video("resources/trailer1.mp4")
+        self.assertEqual(v.path, "resources/trailer1.mp4")
+        self.assertEqual(v._audio_path, "resources/trailer1.mp4")
         self.assertEqual(v.name, "trailer1")
         self.assertEqual(v.ext, ".mp4")
         self.assertEqual(v.duration, 67.27554166666665)
@@ -87,7 +87,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(type(v._vid).__name__, "CVReader")
         v.close()
 
-        with open("resources\\trailer1.mp4", "rb") as file:
+        with open("resources/trailer1.mp4", "rb") as file:
             v = Video(file.read())
         self.assertTrue(type(v.path) == bytes)
         self.assertEqual(v._audio_path, "-")
@@ -209,13 +209,13 @@ class TestVideo(unittest.TestCase):
 
     # this test is potentially problematic
     def test_multiple_channels(self):
-        v = Video("resources\\6channels.mkv", use_pygame_audio=True)
+        v = Video("resources/6channels.mkv", use_pygame_audio=True)
         self.assertEqual(v.audio_channels, 6)
         self.assertEqual(v._audio.get_num_channels(), 8)
         timed_loop(2, v.update)
         v.close()
 
-        v = Video("resources\\6channels.mkv", use_pygame_audio=False)
+        v = Video("resources/6channels.mkv", use_pygame_audio=False)
         self.assertEqual(v.audio_channels, 6)
         self.assertEqual(v._audio.get_num_channels(), 2)
         timed_loop(2, v.update)
@@ -299,13 +299,13 @@ class TestVideo(unittest.TestCase):
     # test __str__
     def test_str_magic_method(self):
         videos = {
-                    "<VideoPygame(path=resources\\trailer1.mp4)>": Video(VIDEO_PATH),
-                    "<VideoTkinter(path=resources\\trailer1.mp4)>": VideoTkinter(VIDEO_PATH),
-                    "<VideoPyglet(path=resources\\trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
-                    "<VideoPyQT(path=resources\\trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
-                    "<VideoRaylib(path=resources\\trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
-                    "<VideoPySide(path=resources\\trailer1.mp4)>": VideoPySide(VIDEO_PATH),
-                    "<VideoWx(path=resources\\trailer1.mp4)>" : VideoWx(VIDEO_PATH)
+                    "<VideoPygame(path=resources/trailer1.mp4)>": Video(VIDEO_PATH),
+                    "<VideoTkinter(path=resources/trailer1.mp4)>": VideoTkinter(VIDEO_PATH),
+                    "<VideoPyglet(path=resources/trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
+                    "<VideoPyQT(path=resources/trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
+                    "<VideoRaylib(path=resources/trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
+                    "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH),
+                    "<VideoWx(path=resources/trailer1.mp4)>" : VideoWx(VIDEO_PATH)
                 }
 
         for name, v in videos.items():
@@ -318,7 +318,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.subs, [])
         v.close()
 
-        s = Subtitles("resources\\subs1.srt")
+        s = Subtitles("resources/subs1.srt")
         v = Video(VIDEO_PATH, subs=s)
         self.assertEqual(v.subs, [s])
         v.close()
@@ -387,7 +387,7 @@ class TestVideo(unittest.TestCase):
 
     # tests that preloading frames is done properly
     def test_preloaded_frames(self):
-        v = Video("resources\\clip.mp4")
+        v = Video("resources/clip.mp4")
         self.assertFalse(v._preloaded)
         timed_loop(2, v.update)
         frame = v.frame
@@ -553,14 +553,14 @@ class TestVideo(unittest.TestCase):
 
     # tests that a video can be played entirely without issues
     def test_full_playback(self):
-        v = Video("resources\\clip.mp4")
+        v = Video("resources/clip.mp4")
         while_loop(lambda: v.active, v.update, 10)
         v.close()
 
     # tests that high frame rate videos can be achieved
     def test_unlocked_fps(self):
         for audio_handler in (True, False):
-            v = Video("resources\\100fps.mp4", use_pygame_audio=audio_handler)
+            v = Video("resources/100fps.mp4", use_pygame_audio=audio_handler)
             seconds_elapsed = 0
             clock = pygame.time.Clock()
             v.play()
@@ -586,8 +586,8 @@ class TestVideo(unittest.TestCase):
     # fails because decord does not read the first track
     @unittest.skip
     def test_many_video_tracks(self):
-        v = Video("resources\\birds.avi")
-        vids = [Video("resources\\manyv.mp4", reader=reader) for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
+        v = Video("resources/birds.avi")
+        vids = [Video("resources/manyv.mp4", reader=reader) for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
         for i in range(10):
             frame = next(v)
             for vid in vids:
@@ -598,19 +598,19 @@ class TestVideo(unittest.TestCase):
     # test each reader's ability to handle 16 bit colours
     def test_16_bit_colour(self):
         for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
-            v = Video("resources\\16bit.mp4", reader=reader)
+            v = Video("resources/16bit.mp4", reader=reader)
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
 
     # test setting audio index for video with no audio tracks
     def test_set_track_no_audio(self):
-        v = Video("resources\\16bit.mp4") # should open fine
+        v = Video("resources/16bit.mp4") # should open fine
         with self.assertRaises(AudioStreamError): # now should crash
             v.set_audio_track(0)
         v.close()
 
     def test_set_track_seek(self):
-        v = Video("resources\\manya.mp4")
+        v = Video("resources/manya.mp4")
         v.seek(5)
         v.set_audio_track(1)
         self.assertEqual(v.get_pos(), 5.0)
@@ -623,7 +623,7 @@ class TestVideo(unittest.TestCase):
     # test each reader's ability to handle a single colour channel
     def test_grayscale(self):
         for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
-            v = Video("resources\\1channel.mp4", reader=reader)
+            v = Video("resources/1channel.mp4", reader=reader)
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
 
@@ -876,7 +876,7 @@ class TestVideo(unittest.TestCase):
 
     # tests that frames appear at the correct timestamps for vfr videos
     def test_vfr(self):
-        v = Video("resources\\vfr.mp4", vfr=True)
+        v = Video("resources/vfr.mp4", vfr=True)
         v._preload_frames()
         def update():
             n = v.update()
@@ -947,7 +947,7 @@ class TestVideo(unittest.TestCase):
 
     # tests that when a video is preloaded, frames no longer need to be read on the fly
     def test_preloaded_playback(self):
-        v = Video("resources\\clip.mp4")
+        v = Video("resources/clip.mp4")
         v._preload_frames()
         while_loop(lambda: v.frame < 50, lambda: (v.update(), self.assertEqual(v._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)), 3)
         v.close()
@@ -1036,7 +1036,7 @@ class TestVideo(unittest.TestCase):
     # tests that the last frame can be achieved
     # performs test by counting rendered frames
     def test_last_frame(self):
-        PATH = "resources\\5frames.mp4"
+        PATH = "resources/5frames.mp4"
         for v in (Video(PATH, vfr=True), Video(PATH), Video(PATH, reverse=True)):
             frames = 0
             def update():
@@ -1049,7 +1049,7 @@ class TestVideo(unittest.TestCase):
 
     # tests correct errors are raised when given bad input paths
     def test_open_video(self):
-        self.assertRaises(OpenCVError, lambda: Video("resources\\fake.txt"))
+        self.assertRaises(OpenCVError, lambda: Video("resources/fake.txt"))
         self.assertRaises(FileNotFoundError, lambda: Video("badpath"))
 
     # tests get position accuracy
@@ -1066,7 +1066,7 @@ class TestVideo(unittest.TestCase):
     # tests choosing audio tracks
     def test_audio_track(self):
         for audio_handler in (True, False):
-            v = Video("resources\\manya.mp4", use_pygame_audio=audio_handler)
+            v = Video("resources/manya.mp4", use_pygame_audio=audio_handler)
             self.assertEqual(v.audio_track, 0)
             with self.assertRaises(AudioStreamError):
                 v.set_audio_track(3)
@@ -1135,7 +1135,7 @@ class TestVideo(unittest.TestCase):
         dict_.update({"av": None})
         with unittest.mock.patch.dict("sys.modules", dict_):
             with self.assertRaises(ImportError) as context:
-                Video("resources\\clip.mp4", reader=READER_IMAGEIO).preview()
+                Video("resources/clip.mp4", reader=READER_IMAGEIO).preview()
 
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):
@@ -1208,7 +1208,7 @@ class TestVideo(unittest.TestCase):
 
     # tests that different types of videos can be opened in reverse
     def test_reverse(self):
-        PATH = "resources\\clip.mp4"
+        PATH = "resources/clip.mp4"
 
         for vfr in (True, False):
             v = Video(PATH, reverse=True, vfr=vfr)
@@ -1233,7 +1233,7 @@ class TestVideo(unittest.TestCase):
 
     # tests for videos with special characters in their title (e.g spaces, symbols, etc)
     def test_special_filename(self):
-        v = Video("resources\\specia1 video$% -.mp4", speed=5)
+        v = Video("resources/specia1 video$% -.mp4", speed=5)
         thread = Thread(target=lambda: v.preview())
         thread.start()
         time.sleep(2)
@@ -1258,7 +1258,7 @@ class TestVideo(unittest.TestCase):
 
     # test that gifs can be played
     def test_gif(self):
-        v = Video("resources\\myGif.gif")
+        v = Video("resources/myGif.gif")
         thread = Thread(target=lambda: v.preview())
         thread.start()
         time.sleep(1.5)
@@ -1314,7 +1314,7 @@ class TestVideo(unittest.TestCase):
     # test to ensure each reader behaves the same
     def test_readers(self):
         # lossless video to ensure read frames are the same
-        PATH = "resources\\test.mp4"
+        PATH = "resources/test.mp4"
 
         v1 = Video(PATH, reader=READER_OPENCV)
         v2 = Video(PATH, reader=READER_FFMPEG)

@@ -26,7 +26,7 @@ print(sounddevice.query_devices())
 
 
 # replace None with the index of the chosen device (first number listed by sd)
-# e.g Video("resources\\trailer1.mp4", audio_index=0).preview()
+# e.g Video("resources/trailer1.mp4", audio_index=0).preview()
 
-with Video("resources\\trailer1.mp4", audio_index=None) as v:
+with Video("resources/trailer1.mp4", audio_index=None) as v:
     v.preview()

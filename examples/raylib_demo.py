@@ -6,7 +6,7 @@ import pyray
 from pyvidplayer2 import VideoRaylib
 
 # 1. create video
-video = VideoRaylib("resources\\trailer1.mp4")
+video = VideoRaylib("resources/trailer1.mp4")
 
 # disables logs
 pyray.set_trace_log_level(pyray.TraceLogLevel.LOG_NONE)

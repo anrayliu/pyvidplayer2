@@ -58,7 +58,7 @@ class TestYoutubeVideo(unittest.TestCase):
     # opening it
     def test_youtube(self):
         for url in get_youtube_urls():
-            v = Video(url, youtube=True)
+            v = Video(url, youtube=True, max_res=360)
             self.assertTrue(v._audio_path.startswith("https"))
             self.assertTrue(v.path.startswith("https"))
             while_loop(lambda: v.get_pos() < 1, v.update, 10)
@@ -77,7 +77,7 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests opening a youtube video with bad paths
     def test_open_youtube(self):
         with self.assertRaises(YTDLPError) as context:
-            Video("resources\\trailer1.mp4", youtube=True)
+            Video("resources/trailer1.mp4", youtube=True)
         self.assertEqual(str(context.exception),
                          "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
         time.sleep(0.1)

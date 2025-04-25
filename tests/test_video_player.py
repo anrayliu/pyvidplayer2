@@ -10,7 +10,7 @@ from pyvidplayer2 import *
 class TestVideoPlayer(unittest.TestCase):
     # tests that a video can be played entirely in a video player
     def test_full_player(self):
-        v = Video("resources\\clip.mp4")
+        v = Video("resources/clip.mp4")
         vp = VideoPlayer(v, (0, 0, *v.original_size))
         while_loop(lambda: v.active, vp.update, 10)
         vp.close()
@@ -63,7 +63,7 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests queue system
     def test_queue(self):
-        original_video = Video("resources\\clip.mp4")
+        original_video = Video("resources/clip.mp4")
 
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
         self.assertEqual(len(vp.queue_), 0)
@@ -71,10 +71,10 @@ class TestVideoPlayer(unittest.TestCase):
 
         self.assertIs(vp.get_next(), None)
 
-        v1 = Video("resources\\trailer1.mp4")
-        v2 = Video("resources\\ocean.mkv")
-        v3 = Video("resources\\medic.mov")
-        v4 = Video("resources\\birds.avi")
+        v1 = Video("resources/trailer1.mp4")
+        v2 = Video("resources/ocean.mkv")
+        v3 = Video("resources/medic.mov")
+        v4 = Video("resources/birds.avi")
 
         # v1 is not loaded when it is created
         self.assertTrue(v1.active)
@@ -132,10 +132,10 @@ class TestVideoPlayer(unittest.TestCase):
 
     # test enqueue, a queue alias
     def test_enqueue(self):
-        original_video = Video("resources\\clip.mp4")
+        original_video = Video("resources/clip.mp4")
 
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
-        v1 = Video("resources\\trailer1.mp4")
+        v1 = Video("resources/trailer1.mp4")
         vp.enqueue(v1)
         self.assertEqual(len(vp.queue_), 1)
         self.assertIs(vp.get_next(), v1)
@@ -152,9 +152,9 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests queue system with loop
     def test_queue_loop(self):
-        original_video = Video("resources\\trailer1.mp4")
-        v1 = Video("resources\\trailer2.mp4")
-        v2 = Video("resources\\clip.mp4")
+        original_video = Video("resources/trailer1.mp4")
+        v1 = Video("resources/trailer2.mp4")
+        v2 = Video("resources/clip.mp4")
 
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
         vp.queue(v1)
@@ -223,7 +223,7 @@ class TestVideoPlayer(unittest.TestCase):
     # tests that looping is seamless
     # also tests that video does indeed loop by timing out otherwise
     def test_seamless_loop(self):
-        v = Video("resources\\loop.mp4")
+        v = Video("resources/loop.mp4")
         vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
 
         self.assertTrue(v._buffer_first_chunk)
@@ -285,10 +285,10 @@ class TestVideoPlayer(unittest.TestCase):
         original_video = Video(VIDEO_PATH)
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
 
-        vp.queue("resources\\trailer2.mp4")
-        vp.queue("resources\\clip.mp4")
+        vp.queue("resources/trailer2.mp4")
+        vp.queue("resources/clip.mp4")
 
-        self.assertEqual(vp.queue_, ["resources\\trailer2.mp4", "resources\\clip.mp4"])
+        self.assertEqual(vp.queue_, ["resources/trailer2.mp4", "resources/clip.mp4"])
 
         vp.skip()
         vp.skip()
@@ -303,7 +303,7 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests that each preview thumbnail is read
     def test_preview_thumbnails(self):
-        original_video = Video("resources\\clip.mp4")
+        original_video = Video("resources/clip.mp4")
 
         # test that preview thumbnail loading does not change vid frame pointer
         self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
@@ -458,7 +458,7 @@ class TestVideoPlayer(unittest.TestCase):
     # tests __str__
     def test_str_magic_method(self):
         vp = VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720))
-        self.assertEqual("<VideoPlayer(path=resources\\trailer1.mp4)>", str(vp))
+        self.assertEqual("<VideoPlayer(path=resources/trailer1.mp4)>", str(vp))
         vp.close()
 
     # tests that previews behave correctly

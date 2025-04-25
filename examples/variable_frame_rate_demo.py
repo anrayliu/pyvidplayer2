@@ -8,7 +8,7 @@ from pyvidplayer2 import Video
 
 # normal videos can still be playedin vfr mode
 
-v = Video("resources\\billiejean.mp4", vfr=True)
+v = Video("resources/billiejean.mp4", vfr=True)
 
 print(v.min_fr)
 print(v.max_fr)

@@ -35,6 +35,24 @@ classifiers = [
   "Programming Language :: Python :: 3.12"
 ]
 
+[project.optional-dependencies]
+all = [
+        "numpy",
+        "opencv-python",
+        "pygame",
+        "PyAudio",
+        "pysubs2",
+        "yt-dlp",
+        "decord",
+        "imageio",
+        "pyav",
+        "pyglet",
+        "PySide6",
+        "PyQt6",
+        "raylib",
+        "wxPython"
+    ]
+
 [tool.setuptools.dynamic]
 version = {attr = "pyvidplayer2._version.__version__"}
 

@@ -3,6 +3,9 @@ This example compares the default interpolation technique with the best
 Can you tell a difference?
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 import pygame
 from pyvidplayer2 import Video
 

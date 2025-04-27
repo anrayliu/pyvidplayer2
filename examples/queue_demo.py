@@ -2,6 +2,9 @@
 This example shows how videos can be queued and skipped through with the VideoPlayer object
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 import pygame
 from pyvidplayer2 import VideoPlayer, Video
 

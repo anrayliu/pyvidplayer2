@@ -3,6 +3,9 @@ This example shows how to play vfr videos
 Unfortunately, none of the example videos are vfr - try using your own!
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 from pyvidplayer2 import Video
 
 

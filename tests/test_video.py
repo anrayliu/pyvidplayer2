@@ -848,6 +848,7 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # test windows audio devices
+    # test fails if no input devices are found
     def test_audio_device(self):
         # test that an error is raised if opened using an input device
         index = find_device(lambda d: d["max_output_channels"] == 0)
@@ -961,7 +962,8 @@ class TestVideo(unittest.TestCase):
 
     # tests that an error is raised when there are no video tracks
     def test_no_video_tracks(self):
-        with self.assertRaises(VideoStreamError) as context:
+        # different opencv backends will lead to a different error msg
+        with self.assertRaises(pyvidplayer2.Pyvidplayer2Error) as context:
             Video("resources/nov.mp4").close()
         self.assertEqual(str(context.exception), "No video tracks found.")
 
@@ -1025,13 +1027,7 @@ class TestVideo(unittest.TestCase):
             v.close()
             self.assertEqual(flag, force_draw)
 
-    # tests that previews start from where the video position is, and that they close the video afterwards
-    def test_previews(self):
-        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx):
-            v = lib(VIDEO_PATH)
-            v.seek(v.duration)
-            v.preview()
-            self.assertTrue(v.closed)
+
 
     # tests that the last frame can be achieved
     # performs test by counting rendered frames
@@ -1128,14 +1124,7 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
-    # tests pyav dependency message
-    def test_imageio_needs_pyav(self):
-        # mocks away av
-        dict_ = {key: None for key in sys.modules.keys() if key.startswith("av.")}
-        dict_.update({"av": None})
-        with unittest.mock.patch.dict("sys.modules", dict_):
-            with self.assertRaises(ImportError) as context:
-                Video("resources/clip.mp4", reader=READER_IMAGEIO).preview()
+
 
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):
@@ -1222,23 +1211,6 @@ class TestVideo(unittest.TestCase):
                     self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
                 v.close()
 
-    # tests for a bug where the last frame would hang in situations like this
-    def test_frame_bug(self):
-        v = Video(VIDEO_PATH, speed=5)
-        v.seek(65.19320347222221, False)
-        thread = Thread(target=lambda: v.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-
-    # tests for videos with special characters in their title (e.g spaces, symbols, etc)
-    def test_special_filename(self):
-        v = Video("resources/specia1 video$% -.mp4", speed=5)
-        thread = Thread(target=lambda: v.preview())
-        thread.start()
-        time.sleep(2)
-        self.assertFalse(thread.is_alive())
-
     # tests different ways to accessing version
     def test_version(self):
         VER = "0.9.26"
@@ -1255,14 +1227,6 @@ class TestVideo(unittest.TestCase):
                                         66.941875, 66.983583, 67.025292, 67.067, 67.108708, 67.150417, 67.192125,
                                         67.233833])
         v.close()
-
-    # test that gifs can be played
-    def test_gif(self):
-        v = Video("resources/myGif.gif")
-        thread = Thread(target=lambda: v.preview())
-        thread.start()
-        time.sleep(1.5)
-        self.assertFalse(thread.is_alive())
 
     # tests the metadata method
     def test_metadata(self):

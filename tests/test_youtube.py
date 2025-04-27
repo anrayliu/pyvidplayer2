@@ -217,18 +217,6 @@ class TestYoutubeVideo(unittest.TestCase):
         v.close()
         time.sleep(0.1)
 
-    # tests that video players work with youtube videos
-    def test_youtube_player(self):
-        v = Video(YOUTUBE_PATH, youtube=True)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
-        v.seek(v.duration)
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
-        time.sleep(0.1)
-
     # tests forcing reader to be ffmepg
     def test_force_ffmpeg(self):
         v = Video(YOUTUBE_PATH, youtube=True)

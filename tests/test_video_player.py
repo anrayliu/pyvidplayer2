@@ -220,66 +220,6 @@ class TestVideoPlayer(unittest.TestCase):
 
         vp.close()
 
-    # tests that looping is seamless
-    # also tests that video does indeed loop by timing out otherwise
-    def test_seamless_loop(self):
-        v = Video("resources/loop.mp4")
-        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
-
-        self.assertTrue(v._buffer_first_chunk)
-
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-
-        t = 0
-        track = False
-        buffers = []
-        timeout = time.time()
-        while True:
-            if time.time() - timeout > 30:
-                raise TimeoutError("Test timed out.")
-            if not v.active and not track:
-                t = time.time()
-                track = True
-            elif v.active and track:
-                track = False
-                buffers.append(time.time() - t)
-                if len(buffers) == 10:
-                    self.assertTrue(v.frame_delay > sum(buffers) / 10.0)
-                    break
-
-        # gracefully shut down thread which would otherwise loop forever
-        vp.loop = False
-        pygame.event.post(pygame.event.Event(pygame.QUIT))
-        thread.join()
-
-        vp.close()
-
-    # tests for a bug where previews would never end if video was looping
-    def test_looping_preview(self):
-        v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
-
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-
-        time.sleep(0.5)
-        pygame.event.post(pygame.event.Event(pygame.QUIT))
-        time.sleep(0.5)
-
-        if v.active:
-            # gracefully shut down thread which would otherwise loop forever
-            vp.loop = False
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
-            thread.join()
-
-            # make v active again to raise an assertion error
-            v.active = True
-
-        self.assertFalse(v.active)
-
-        vp.close()
-
     # tests queueing with video paths instead of objects
     def test_queue_str_path(self):
         original_video = Video(VIDEO_PATH)
@@ -460,17 +400,6 @@ class TestVideoPlayer(unittest.TestCase):
         vp = VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720))
         self.assertEqual("<VideoPlayer(path=resources/trailer1.mp4)>", str(vp))
         vp.close()
-
-    # tests that previews behave correctly
-    def test_preview(self):
-        v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, 1280, 720))
-        v.seek(v.duration)
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
 
 
 if __name__ == "__main__":

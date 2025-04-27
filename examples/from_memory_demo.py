@@ -3,6 +3,8 @@ This example shows how videos can be played from memory instead of disk
 pip install decord before using
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from pyvidplayer2 import Video
 

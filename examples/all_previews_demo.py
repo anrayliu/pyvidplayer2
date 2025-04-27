@@ -3,6 +3,8 @@ This shows off each graphics api and their respective preview methods
 Must install pygame, tkinter, pyglet, and pyqt6, pyside, and raylib for this example
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from pyvidplayer2 import Video, VideoTkinter, VideoPyglet, VideoPyQT, VideoPySide, VideoRaylib, VideoWx
 

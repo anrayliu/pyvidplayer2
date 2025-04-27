@@ -3,6 +3,9 @@ This demo shows how the audio output device can be specified for each video
 pip install sounddevice before using
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 from pyvidplayer2 import Video 
 import sounddevice
 

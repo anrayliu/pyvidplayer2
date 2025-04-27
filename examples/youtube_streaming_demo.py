@@ -3,6 +3,9 @@ This example shows how to stream videos from youtube in 720p
 pip install yt-dlp before using
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 from pyvidplayer2 import Video
 
 

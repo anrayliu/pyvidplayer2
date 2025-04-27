@@ -2,6 +2,8 @@
 This is a quick example of integrating a video into a wxpython project
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from pyvidplayer2 import VideoWx
 import wx

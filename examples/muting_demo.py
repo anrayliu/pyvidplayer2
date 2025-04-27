@@ -2,6 +2,8 @@
 This example shows how the audio for any video can be disabled
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from pyvidplayer2 import Video
 

@@ -1,6 +1,11 @@
 '''
 This is an example of seamless looping
+
+v0.9.26 brought significant improvements to looping
+looping is now much more seamless
 '''
+
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 import pygame

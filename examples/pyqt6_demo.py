@@ -2,6 +2,8 @@
 This is a quick example of integrating a video into a pyqt6 project
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt6.QtCore import QTimer

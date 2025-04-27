@@ -1,3 +1,7 @@
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import unittest
 import random
 from pyvidplayer2 import *
@@ -36,8 +40,8 @@ SUBS = (
 
 class TestSubtitles(unittest.TestCase):
     def test_str_magic_method(self):
-        s = Subtitles("resources\\subs1.srt")
-        self.assertEqual("<Subtitles(path=resources\\subs1.srt)>", str(s))
+        s = Subtitles("resources/subs1.srt")
+        self.assertEqual("<Subtitles(path=resources/subs1.srt)>", str(s))
 
     # tests that subtitle tracks from videos can also be read
     def test_embedded_subtitles(self):
@@ -53,13 +57,13 @@ class TestSubtitles(unittest.TestCase):
 
     # tests minor features of the subtitles for crashes
     def test_additional_tests(self):
-        s1 = Subtitles("resources\\subs1.srt", colour="blue", highlight="red",
+        s1 = Subtitles("resources/subs1.srt", colour="blue", highlight="red",
                        font=pygame.font.SysFont("arial", 35), offset=70, delay=-1)
-        s2 = Subtitles("resources\\subs2.srt", colour=pygame.Color("pink"), highlight=(129, 12, 31, 128),
+        s2 = Subtitles("resources/subs2.srt", colour=pygame.Color("pink"), highlight=(129, 12, 31, 128),
                        font=pygame.font.SysFont("arial", 20))
-        s3 = Subtitles("resources\\subs2.srt", colour=(123, 13, 52, 128), highlight=(4, 131, 141, 200),
+        s3 = Subtitles("resources/subs2.srt", colour=(123, 13, 52, 128), highlight=(4, 131, 141, 200),
                        font=pygame.font.SysFont("arial", 40), delay=1)
-        s4 = Subtitles("resources\\subs1.srt", delay=10000)
+        s4 = Subtitles("resources/subs1.srt", delay=10000)
         font = pygame.font.SysFont("arial", 10)
         self.assertRaises(ValueError, lambda: s1.set_font(pygame.font.Font))
         s1.set_font(font)
@@ -67,13 +71,13 @@ class TestSubtitles(unittest.TestCase):
 
     # tests opening subtitle files with different encodings
     def test_subtitle_encoding(self):
-        self.assertRaises(SubtitleError, lambda: Subtitles("resources\\utf16.srt"))
-        Subtitles("resources\\utf16.srt", encoding="utf16")
+        self.assertRaises(SubtitleError, lambda: Subtitles("resources/utf16.srt"))
+        Subtitles("resources/utf16.srt", encoding="utf16")
 
     # tests __str__
     def test_str_magic_method(self):
-        s = Subtitles("resources\\subs1.srt")
-        self.assertEqual(str(s), "<Subtitles(path=resources\\subs1.srt)>")
+        s = Subtitles("resources/subs1.srt")
+        self.assertEqual(str(s), "<Subtitles(path=resources/subs1.srt)>")
 
     # tests appropriate error messages when opening subtitles
     def test_open_subtitles(self):
@@ -113,11 +117,11 @@ class TestSubtitles(unittest.TestCase):
         self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
 
         with self.assertRaises(FileNotFoundError):
-            Subtitles("resources\\badpath")
+            Subtitles("resources/badpath")
 
         with self.assertRaises(FileNotFoundError) as context:
-            Subtitles("resources\\badpath", track_index=0)
-        self.assertEqual(str(context.exception), "[Errno 2] No such file or directory: 'resources\\badpath'")
+            Subtitles("resources/badpath", track_index=0)
+        self.assertEqual(str(context.exception), "[Errno 2] No such file or directory: 'resources/badpath'")
 
         with self.assertRaises(FileNotFoundError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ")
@@ -131,7 +135,7 @@ class TestSubtitles(unittest.TestCase):
     # tests that subtitles are properly read and displayed
     def test_subtitles(self):
         # running video in x6 to speed up test
-        v = Video("resources\\trailer1.mp4", subs=Subtitles("resources\\subs1.srt"), speed=6)
+        v = Video("resources/trailer1.mp4", subs=Subtitles("resources/subs1.srt"), speed=6)
 
         def check_subs():
             v.update()

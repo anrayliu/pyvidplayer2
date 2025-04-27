@@ -2,6 +2,8 @@
 This is an example of the built in GUI for videos
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 import pygame
 from pyvidplayer2 import VideoPlayer, Video
@@ -42,3 +44,5 @@ while True:
     player.draw(win)
     
     pygame.display.update()
+
+# alternatively, use VideoPlayer.preview()

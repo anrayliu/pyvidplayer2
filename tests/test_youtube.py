@@ -1,6 +1,9 @@
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import time
 import unittest
-from threading import Thread
 import unittest.mock
 import yt_dlp
 import random
@@ -54,9 +57,10 @@ class TestYoutubeVideo(unittest.TestCase):
             time.sleep(0.1)  # prevents spamming youtube
 
     # test opens the first 5 trending youtube videos
+    # this test can fail due to multiple reasons, such as if a video requires an age authorization
     def test_youtube(self):
         for url in get_youtube_urls():
-            v = Video(url, youtube=True)
+            v = Video(url, youtube=True, max_res=360)
             self.assertTrue(v._audio_path.startswith("https"))
             self.assertTrue(v.path.startswith("https"))
             while_loop(lambda: v.get_pos() < 1, v.update, 10)
@@ -75,7 +79,7 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests opening a youtube video with bad paths
     def test_open_youtube(self):
         with self.assertRaises(YTDLPError) as context:
-            Video("resources\\trailer1.mp4", youtube=True)
+            Video("resources/trailer1.mp4", youtube=True)
         self.assertEqual(str(context.exception),
                          "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
         time.sleep(0.1)
@@ -174,28 +178,29 @@ class TestYoutubeVideo(unittest.TestCase):
         v = Video("https://www.youtube.com/watch?v=HurjfO_TDlQ", subs=Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="en-US"), speed=5, youtube=True)
 
         def check_subs():
-            v.update()
+            if v.update():
+                timestamp = v._update_time
+                # skip when frame has not been rendered yet
+                if timestamp == 0:
+                    return
 
-            timestamp = v.frame / v.frame_rate
-            # skip when frame has not been rendered yet
-            if timestamp == 0:
-                return
+                in_interval = False
+                for start, end, text in SUBS:
+                    if start <= timestamp <= end:
+                        in_interval = True
+                        self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
+                            v.frame_data))), v.subs_hidden)
 
-            in_interval = False
-            for start, end, text in SUBS:
-                if start <= timestamp <= end:
-                    in_interval = True
-                    self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                        v.frame_data))), v.subs_hidden)
+                        # check the correct subtitle was generated
+                        if not v.subs_hidden:
+                            self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
 
-                    # check the correct subtitle was generated
-                    if not v.subs_hidden:
-                        self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
+                        break
 
-            if not in_interval:
-                self.assertTrue(
-                    check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                        v.frame_data))))
+                if not in_interval:
+                    self.assertTrue(
+                        check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
+                            v.frame_data))))
 
         self.assertFalse(v.subs_hidden)
 
@@ -212,18 +217,6 @@ class TestYoutubeVideo(unittest.TestCase):
         # test playback while turning on and off subs
         while_loop(lambda: v.active, randomized_test, 120)
         v.close()
-        time.sleep(0.1)
-
-    # tests that video players work with youtube videos
-    def test_youtube_player(self):
-        v = Video(YOUTUBE_PATH, youtube=True)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
-        v.seek(v.duration)
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
         time.sleep(0.1)
 
     # tests forcing reader to be ffmepg

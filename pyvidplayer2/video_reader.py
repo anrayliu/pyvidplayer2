@@ -26,7 +26,18 @@ class VideoReader:
         try:
             # this method counts the number of packets as a substitute for frames, which is much too slow
             #p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
-            p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -count_packets -select_streams v:0 -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
+
+            command = [
+                "ffprobe",
+                "-i", "-" if as_bytes else path,
+                "-show_streams",
+                "-count_packets",
+                "-select_streams", "v:0",
+                "-loglevel", FFMPEG_LOGLVL,
+                "-print_format", "json"
+            ]
+
+            p = subprocess.Popen(command, stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
 

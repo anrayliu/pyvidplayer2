@@ -3,6 +3,8 @@ This is the same example from the original pyvidplayer
 The video class still does everything it did, but with many more features
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 import pygame
 from pyvidplayer2 import Video

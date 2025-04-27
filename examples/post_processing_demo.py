@@ -2,6 +2,8 @@
 This example gives a side by side comparison between a few available post process effects
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 import pygame
 from pyvidplayer2 import Video, PostProcessing

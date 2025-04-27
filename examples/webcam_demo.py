@@ -2,6 +2,9 @@
 This is an example showing off webcam streaming
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 import pygame
 from pyvidplayer2 import Webcam
 

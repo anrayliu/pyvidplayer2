@@ -7,6 +7,8 @@ This particular example needs around 1.3gb
 Reversing longer videos can temporarily brick your computer if there isn't enough memory
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from pyvidplayer2 import Video
 

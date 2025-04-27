@@ -3,6 +3,8 @@ Copy and pasted from the pyqt6 demo, but changed names to pyside6
 Pyqt6 and pyside6 have very similar interfaces
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtCore import QTimer

@@ -2,6 +2,8 @@
 This example shows how you can control the playback speed of videos
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 from pyvidplayer2 import Video
 

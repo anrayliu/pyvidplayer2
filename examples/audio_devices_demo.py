@@ -3,6 +3,9 @@ This demo shows how the audio output device can be specified for each video
 pip install sounddevice before using
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 from pyvidplayer2 import Video 
 import sounddevice
 
@@ -26,7 +29,7 @@ print(sounddevice.query_devices())
 
 
 # replace None with the index of the chosen device (first number listed by sd)
-# e.g Video("resources\\trailer1.mp4", audio_index=0).preview()
+# e.g Video("resources/trailer1.mp4", audio_index=0).preview()
 
-with Video("resources\\trailer1.mp4", audio_index=None) as v:
+with Video("resources/trailer1.mp4", audio_index=None) as v:
     v.preview()

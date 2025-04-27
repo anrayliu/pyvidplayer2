@@ -17,6 +17,7 @@ All the features from the original library have been ported over, with the excep
 - Low CPU usage
 - No audio/video sync issues
 - Unlocked frame rate
+- Supports GIFs!
 - Can play a huge variety of video formats
 - Play variable frame rate videos (VFR)
 - Adjust playback speed
@@ -25,7 +26,7 @@ All the features from the original library have been ported over, with the excep
 - Play multiple videos in parallel
 - Add multiple subtitles to a video
 - Built in GUI and queue system
-- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, and Raylib
+- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, and wxPython
 - Post process effects
 - Webcam feed
 - Stream videos from Youtube
@@ -34,6 +35,7 @@ All the features from the original library have been ported over, with the excep
 - Specify which audio devices to use
 - Frame-by-frame iteration
 - Choose audio different audio tracks
+- Seamless video looping
 
 # Installation
 
@@ -63,9 +65,9 @@ The following NEW packages will be installed:
 ```
 
 ## MacOS
-FFMPEG and FFPROBE can easily be installed with homebrew.
+FFmpeg can easily be installed with homebrew. Portaudio is also required to prevent missing portaudio.h errors.
 ```
-brew install ffmpeg
+brew install ffmpeg portaudio
 ```
 
 # Dependencies
@@ -76,6 +78,7 @@ FFmpeg and FFprobe (not Python packages)
 ```
 
 ## Optional Packages
+At least one graphics library and one audio library is required.
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
 pygame          (graphics and audio library, comes installed)
@@ -84,11 +87,13 @@ pysubs2         (for subtitles, comes installed)
 yt_dlp          (for streaming Youtube videos)
 decord          (for videos in bytes, best option)
 imageio         (for videos in bytes)
+pyav            (required for imageio)
 pyglet          (graphics library)
 PySide6         (graphics library)
 PyQt6           (graphics library)
-tkinter         (graphics library, installed through Python and not pip)
+tkinter         (graphics library, installed through Python, not pip)
 raylib          (graphics library)
+wxPython        (graphics library)
 ```
 
 # Quickstart
@@ -203,6 +208,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `original_size: (int, int)` - Tuple containing the width and height of each original frame. Unaffected by resizing.
  - `current_size: (int, int)` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
  - `aspect_ratio: float` - Width divided by height of original size.
+ - `audio_channels: int` - Number of audio channels in current audio track. May change when other tracks are set with `set_audio_track`.
  - `chunk_size: float` - Same as given argument. May change if `youtube` is `True` (see `youtube` above).
  - `max_chunks: int` - Same as given argument.
  - `max_threads: int` - Same as given argument. May change if `youtube` is `True` (see `youtube` above).
@@ -245,7 +251,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `toggle_pause() -> None` - Pauses if the video is playing, and resumes if the video is paused.
  - `pause() -> None`
  - `resume() -> None`
- - `set_audio_path(index: int)` - Sets the audio track used (see `audio_track` above).
+ - `set_audio_track(index: int)` - Sets the audio track used (see `audio_track` above). This will re-probe the video for number of audio channels.
  - `toggle_mute() -> None`
  - `mute() -> None`
  - `unmute() -> None`
@@ -262,6 +268,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `hide_subs() -> None` - Disables subtitles.
  - `set_subs(subs: Subtitles | [Subtitles]) -> None` - Set the subtitles to use. Works the same as providing subtitles through the initialization parameter.
  - `probe() -> None` - Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count or frame rate are read through the file headers, which is sometimes incorrect. For more accuracy, call this method to start a probe and update the video information.
+ - `get_metadata() -> dict` - Outputs a dictionary with attributes about the file metadata, including frame_count, frame_rate, etc. Can be combined with `pprint` to quickly see a general overview of a video file.
 
 ## Supported Graphics Libraries
  - Pygame or Pygame CE (`Video`) <- default and best supported
@@ -270,6 +277,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - PySide6 (`VideoPySide`)
  - PyQT6 (`VideoPyQT`)
  - RayLib (`VideoRayLib`)
+ - WxPython (`VideoWx`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`, `Webcam`, and `VideoPlayer` only work with Pygame installed. Preview methods for other graphics libraries also do not accept any arguments.
 
@@ -317,6 +325,7 @@ VideoPlayers are GUI containers for videos. They are useful for scaling a video 
  - `zoom_out() -> None` - Reverts `zoom_to_fill()`.
  - `toggle_zoom() -> None` - Switches between zoomed in and zoomed out.
  - `queue(input: pyvidplayer2.VideoPygame | str) -> None` - Accepts a path to a video or a Video object and adds it to the queue. Passing a path will not load the video until it becomes the active video. Passing a Video object will cause it to silently load its first audio chunk, so changing videos will be as seamless as possible.
+ - `enqueue(input: pyvidplayer2.VideoPygame | str) -> None` - Same exact method as `queue`, but with a more conventionally correct name. I'm keeping `queue` only for backwards compatibility. 
  - `get_queue(): list[pyvidplayer2.VideoPygame]` - Returns list of queued video objects.
  - `resize(size: (int, int)) -> None` - Resizes the video player. The contained video will automatically re-adjust to fit the player.
  - `move(pos: (int, int), relative: bool = False) -> None` - Moves the VideoPlayer. If `relative` is `True`, the given coordinates will be added onto the current coordinates. Otherwise, the current coordinates will be set to the given coordinates.
@@ -425,6 +434,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 - `AudioDeviceError(Pyvidplayer2Error)` - Thrown for exceptions related to PyAudio output devices.
 - `SubtitleError(Pyvidplayer2Error)` - Thrown for exceptions related to subtitles.
 - `VideoStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to general video probing and playback.
+- `AudioStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to audio tracks.
 - `FFmpegNotFoundError(Pyvidplayer2Error)` - Thrown when FFmpeg is missing.
 - `OpenCVError(Pyvidplayer2Error)` - Thrown for exceptions related to OpenCV processes.
 - `YTDLPError(Pyvidplayer2Error)` - Thrown for exceptions related to YTDLP processes.

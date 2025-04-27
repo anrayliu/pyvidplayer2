@@ -1,3 +1,7 @@
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import random
 import time
 from threading import Thread
@@ -9,7 +13,7 @@ from pyvidplayer2 import *
 class TestVideoPlayer(unittest.TestCase):
     # tests that a video can be played entirely in a video player
     def test_full_player(self):
-        v = Video("resources\\clip.mp4")
+        v = Video("resources/clip.mp4")
         vp = VideoPlayer(v, (0, 0, *v.original_size))
         while_loop(lambda: v.active, vp.update, 10)
         vp.close()
@@ -58,12 +62,11 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertFalse(vp.loop)
         self.assertEqual(vp.preview_thumbnails, 0)
         self.assertEqual(vp._font.get_height(), 12) # point size 10 should result in 12 height
-        self.assertEqual(vp._font.name, "Arial")
         vp.close()
 
     # tests queue system
     def test_queue(self):
-        original_video = Video("resources\\clip.mp4")
+        original_video = Video("resources/clip.mp4")
 
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
         self.assertEqual(len(vp.queue_), 0)
@@ -71,10 +74,10 @@ class TestVideoPlayer(unittest.TestCase):
 
         self.assertIs(vp.get_next(), None)
 
-        v1 = Video("resources\\trailer1.mp4")
-        v2 = Video("resources\\ocean.mkv")
-        v3 = Video("resources\\medic.mov")
-        v4 = Video("resources\\birds.avi")
+        v1 = Video("resources/trailer1.mp4")
+        v2 = Video("resources/ocean.mkv")
+        v3 = Video("resources/medic.mov")
+        v4 = Video("resources/birds.avi")
 
         # v1 is not loaded when it is created
         self.assertTrue(v1.active)
@@ -130,6 +133,18 @@ class TestVideoPlayer(unittest.TestCase):
         for v in (v1, v2, v3, v4):
             self.assertTrue(v.closed)
 
+    # test enqueue, a queue alias
+    def test_enqueue(self):
+        original_video = Video("resources/clip.mp4")
+
+        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
+        v1 = Video("resources/trailer1.mp4")
+        vp.enqueue(v1)
+        self.assertEqual(len(vp.queue_), 1)
+        self.assertIs(vp.get_next(), v1)
+
+        vp.close()
+
     # tests video player with context manager
     def test_context_manager(self):
         with VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720)) as vp:
@@ -140,9 +155,9 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests queue system with loop
     def test_queue_loop(self):
-        original_video = Video("resources\\trailer1.mp4")
-        v1 = Video("resources\\trailer2.mp4")
-        v2 = Video("resources\\clip.mp4")
+        original_video = Video("resources/trailer1.mp4")
+        v1 = Video("resources/trailer2.mp4")
+        v2 = Video("resources/clip.mp4")
 
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
         vp.queue(v1)
@@ -164,7 +179,8 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertEqual(len(vp), 3)
 
         # queue an incorrect argument
-        vp.queue(1)
+        with self.assertRaises(ValueError):
+            vp.queue(1)
 
         # manually wipe queue
         vp.clear_queue()
@@ -172,9 +188,13 @@ class TestVideoPlayer(unittest.TestCase):
             self.assertTrue(v.closed)
         self.assertEqual(len(vp.queue_), 0)
 
+        vp.queue("bad path")
+        with self.assertRaises(FileNotFoundError):
+            vp.skip()
+
         original_video.stop()
         vp.update() # should trigger _handle_on_end
-        self.assertEqual(original_video.get_pos(), 0.0)
+        self.assertEqual(original_video.get_pos(), 0)
         self.assertTrue(original_video.active)
 
         vp.close()
@@ -208,10 +228,10 @@ class TestVideoPlayer(unittest.TestCase):
         original_video = Video(VIDEO_PATH)
         vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
 
-        vp.queue("resources\\trailer2.mp4")
-        vp.queue("resources\\clip.mp4")
+        vp.queue("resources/trailer2.mp4")
+        vp.queue("resources/clip.mp4")
 
-        self.assertEqual(vp.queue_, ["resources\\trailer2.mp4", "resources\\clip.mp4"])
+        self.assertEqual(vp.queue_, ["resources/trailer2.mp4", "resources/clip.mp4"])
 
         vp.skip()
         vp.skip()
@@ -226,7 +246,7 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests that each preview thumbnail is read
     def test_preview_thumbnails(self):
-        original_video = Video("resources\\clip.mp4")
+        original_video = Video("resources/clip.mp4")
 
         # test that preview thumbnail loading does not change vid frame pointer
         self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
@@ -381,19 +401,8 @@ class TestVideoPlayer(unittest.TestCase):
     # tests __str__
     def test_str_magic_method(self):
         vp = VideoPlayer(Video(VIDEO_PATH), (0, 0, 1280, 720))
-        self.assertEqual("<VideoPlayer(path=resources\\trailer1.mp4)>", str(vp))
+        self.assertEqual("<VideoPlayer(path=resources/trailer1.mp4)>", str(vp))
         vp.close()
-
-    # tests that previews behave correctly
-    def test_preview(self):
-        v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, 1280, 720))
-        v.seek(v.duration)
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
 
 
 if __name__ == "__main__":

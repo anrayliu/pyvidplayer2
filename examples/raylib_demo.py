@@ -2,11 +2,14 @@
 This is a quick example of integrating a video into a raylib project
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 import pyray
 from pyvidplayer2 import VideoRaylib
 
 # 1. create video
-video = VideoRaylib("resources\\trailer1.mp4")
+video = VideoRaylib("resources/trailer1.mp4")
 
 # disables logs
 pyray.set_trace_log_level(pyray.TraceLogLevel.LOG_NONE)

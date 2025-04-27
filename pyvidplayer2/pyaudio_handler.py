@@ -135,6 +135,7 @@ class PyaudioHandler:
 
     def load(self, bytes_):
         self.unload()
+
         try:
             self.wave = wave.open(BytesIO(bytes_), "rb")
         except EOFError:
@@ -159,11 +160,13 @@ class PyaudioHandler:
                     # stream_callback=self.callback,
                 )
 
-            except:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}.\"".format(self.audio_devices[self.device_index]["name"]))
+            except Exception as e:
+                raise AudioDeviceError("Failed to open audio stream with device \"{}\": {}".format(self.audio_devices[self.device_index]["name"], e))
                 
         self.loaded = True
 
+    # only get_num_channels from mixer handler is used for now
+    # pyaudio channels are handled by video class
     def get_num_channels(self):
         return self.audio_devices[self.device_index]["maxOutputChannels"]
 

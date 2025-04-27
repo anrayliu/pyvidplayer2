@@ -2,6 +2,9 @@
 This example shows how videos can be queued and skipped through with the VideoPlayer object
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
+
 import pygame
 from pyvidplayer2 import VideoPlayer, Video
 
@@ -18,7 +21,7 @@ vid = VideoPlayer(Video(r"resources\clip.mp4"), (0, 0, 1280, 720), loop=True)
 vid.queue(Video(r"resources\ocean.mkv"))
 vid.queue(Video(r"resources\birds.avi"))
 # can also queue video paths to prevent resources from loading before needed
-vid.queue("resources\\trailer2.mp4")
+vid.queue("resources/trailer2.mp4")
 
 # you can also access the list of queued videos with the following
 # note that this list does not include the currently loaded video in the player

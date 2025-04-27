@@ -20,9 +20,27 @@ setup(
                     "pygame",
                     "pysubs2",
                     "PyAudio"],
+    extras_require={
+        "all": [
+            "numpy",
+            "opencv-python",
+            "pygame",
+            "PyAudio",
+            "pysubs2",
+            "yt-dlp",
+            "decord",
+            "imageio",
+            "pyav",
+            "pyglet",
+            "PySide6",
+            "PyQt6",
+            "raylib",
+            "wxPython"
+        ],
+    },
     url="https://github.com/anrayliu/pyvidplayer2",
     platforms=["windows", "linux", "macos"],
-    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "raylib", "youtube", "stream"],
+    keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "raylib", "wxpython", "youtube", "stream"],
     python_requires=">=3.9",
     classifiers = [
         "Development Status :: 4 - Beta",

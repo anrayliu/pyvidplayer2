@@ -2,6 +2,8 @@
 This is a quick example of integrating a video into a pyglet project
 '''
 
+# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+
 
 import pyglet 
 from pyvidplayer2 import VideoPyglet

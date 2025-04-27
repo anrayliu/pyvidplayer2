@@ -169,3 +169,6 @@ tests/resources
 yt/
 devnote.txt
 .idea
+.venv/
+.DS_Store
+.vscode/

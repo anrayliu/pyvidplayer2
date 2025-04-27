@@ -79,6 +79,7 @@ FFmpeg and FFprobe (not Python packages)
 
 ## Optional Packages
 At least one graphics library and one audio library is required.
+Use `pip install pyvidplayer2[all]` to install everything.
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
 pygame          (graphics and audio library, comes installed)

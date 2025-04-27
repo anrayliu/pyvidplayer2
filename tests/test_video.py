@@ -1,10 +1,12 @@
-import sys
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import time
 import unittest
 import unittest.mock
 import os
 import random
-from threading import Thread
 import numpy as np
 from sounddevice import query_devices
 import pyvidplayer2
@@ -965,7 +967,7 @@ class TestVideo(unittest.TestCase):
         # different opencv backends will lead to a different error msg
         with self.assertRaises(pyvidplayer2.Pyvidplayer2Error) as context:
             Video("resources/nov.mp4").close()
-        self.assertEqual(str(context.exception), "No video tracks found.")
+        self.assertTrue(str(context.exception) in ("No video tracks found.", "Failed to open video."))
 
     # tests the calculations of frame rate stats in vfr mode
     def test_variable_frame_rates(self):
@@ -1498,9 +1500,9 @@ class TestVideo(unittest.TestCase):
             v.close()
 
     # test that each frame is rendered
-    # doesn't work on high speeds because frames will be skipped
+    # can fail if cpu stutters, resulting in dropped frames
     def test_all_frames_reached(self):
-        v = Video("resources//clip.mp4")
+        v = Video("resources//myGif.gif", speed=0.25)
         frames = 0
         while v.active:
             if v.update():

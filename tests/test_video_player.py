@@ -1,5 +1,8 @@
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import random
-import pygame
 import time
 from threading import Thread
 from test_video import VIDEO_PATH, while_loop, timed_loop, check_same_frames

@@ -1,6 +1,9 @@
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import time
 import unittest
-from threading import Thread
 import unittest.mock
 import yt_dlp
 import random
@@ -54,8 +57,7 @@ class TestYoutubeVideo(unittest.TestCase):
             time.sleep(0.1)  # prevents spamming youtube
 
     # test opens the first 5 trending youtube videos
-    # can sometimes fail when the trending videos have an age restriction, preventing yt-dlp from outright
-    # opening it
+    # this test can fail due to multiple reasons, such as if a video requires an age authorization
     def test_youtube(self):
         for url in get_youtube_urls():
             v = Video(url, youtube=True, max_res=360)

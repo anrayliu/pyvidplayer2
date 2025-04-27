@@ -1,3 +1,7 @@
+# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+# use pip install pyvidplayer2[all] to install all dependencies
+
+
 import unittest
 import random
 from pyvidplayer2 import *

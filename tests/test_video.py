@@ -967,7 +967,7 @@ class TestVideo(unittest.TestCase):
         # different opencv backends will lead to a different error msg
         with self.assertRaises(pyvidplayer2.Pyvidplayer2Error) as context:
             Video("resources/nov.mp4").close()
-        self.assertTrue(str(context.exception) in ("No video tracks found.", "Failed to open video."))
+        self.assertTrue(str(context.exception) in ("No video tracks found.", "Failed to open file."))
 
     # tests the calculations of frame rate stats in vfr mode
     def test_variable_frame_rates(self):

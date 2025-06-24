@@ -9,7 +9,8 @@
 name: Upload Python Package
 
 on:
-  workflow_dispatch:
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -28,8 +29,8 @@ jobs:
       - name: Build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
-          python -m pip install wheel setuptools
           python -m pip install -r requirements_all.txt
+          python -m pip install wheel setuptools
           python -m setup.py sdist bdist_wheel
 
       - name: Upload distributions

@@ -1,0 +1,14 @@
+numpy
+opencv_python
+pygame
+PyAudio
+pysubs2
+yt_dlp
+decord
+imageio
+av
+pyglet
+PySide6
+PyQt6
+raylib
+wxPython

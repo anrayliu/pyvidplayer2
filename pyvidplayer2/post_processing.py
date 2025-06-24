@@ -44,3 +44,9 @@ class PostProcessing:
 
         def fliplr(data: np.ndarray) -> np.ndarray:
             return np.fliplr(data)
+
+        def rotate90(data: np.ndarray) -> np.ndarray:
+            return np.rot90(data, k=3)
+
+        def rotate270(data: np.ndarray) -> np.ndarray:
+            return np.rot90(data, k=1)

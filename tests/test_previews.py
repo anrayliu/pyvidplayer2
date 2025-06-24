@@ -18,7 +18,7 @@ class TestPreviews(unittest.TestCase):
     # tests that looping is seamless
     # also tests that video does indeed loop by timing out otherwise
     def test_seamless_loop(self):
-        v = Video("../resources/loop.mp4")
+        v = Video("resources/loop.mp4")
         vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
 
         self.assertTrue(v._buffer_first_chunk)

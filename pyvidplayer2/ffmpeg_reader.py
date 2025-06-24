@@ -18,6 +18,7 @@ class FFMPEGReader(VideoReader):
         try:
             command = [
                 "ffmpeg",
+                # "-c:v", "h264_cuvid",
                 "-i", path,
                 "-loglevel", FFMPEG_LOGLVL,
                 "-map", "0:v:0",
@@ -60,6 +61,7 @@ class FFMPEGReader(VideoReader):
         command = [
             "ffmpeg",
             "-ss", self._convert_seconds(index / self.frame_rate),
+            # "-c:v", "h264_cuvid",
             "-i", self._path,
             "-loglevel", FFMPEG_LOGLVL,
             "-map", "0:v:0",

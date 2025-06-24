@@ -30,7 +30,7 @@ setup(
             "yt-dlp",
             "decord",
             "imageio",
-            "pyav",
+            "av",
             "pyglet",
             "PySide6",
             "PyQt6",

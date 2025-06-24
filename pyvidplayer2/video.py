@@ -185,7 +185,7 @@ class Video:
         self.no_audio = no_audio or self._test_no_audio()
 
         self._missing_ffmpeg = False  # for throwing errors
-        self._generated_frame = False # for when used as a generator
+        self._generated_frame = False  # for when used as a generator
         self._preloaded = False
         self._update_time = 0.0 # for testing
 
@@ -739,7 +739,7 @@ class Video:
     def play(self) -> None:
         self.active = True
         if self._generated_frame:
-            self._generated_frame = False 
+            self._generated_frame = False
             self.seek_frame(self.frame)
 
     def stop(self) -> None:
@@ -873,8 +873,7 @@ class Video:
             sub._seek(self._starting_time)
 
     def seek_frame(self, index: int, relative: bool = False) -> None:
-        # seeking accurate to 1/100 of a second 
-
+        # seeking accurate to 1/100 of a second
         index = (self.frame + index) if relative else index
         index = min(max(index, 0), self.frame_count - 1)
 
@@ -893,12 +892,30 @@ class Video:
         self._chunks_claimed = 0
         self._chunks_played = 0
         self._audio.unload()
-
         self._vid.seek(index)
+
         self.frame = index
 
         for sub in self.subs:
             sub._seek(self._starting_time)
+
+    def buffer_current(self) -> bool:
+        if self._vid.frame > 0 and (self.frame_data is None or self.frame_surf is None):
+            p = self.get_pos()
+            self._vid.seek(self._vid.frame - 1)
+            has_frame, data = self._vid.read()
+            if has_frame:   # should theoretically never be false
+                if self.original_size != self.current_size:
+                    data = self._resize_frame(data, self.current_size, self.interp, not CV)
+                data = self.post_func(data)
+
+                self.frame_data = data
+                self.frame_surf = self._create_frame(data)
+
+                if self.subs and not self.subs_hidden:
+                    self._write_subs(p)
+                return True
+        return False
 
     # type hints declared by inherited subclasses
 

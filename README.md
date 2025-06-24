@@ -270,6 +270,8 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `set_subs(subs: Subtitles | [Subtitles]) -> None` - Set the subtitles to use. Works the same as providing subtitles through the initialization parameter.
  - `probe() -> None` - Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count or frame rate are read through the file headers, which is sometimes incorrect. For more accuracy, call this method to start a probe and update the video information.
  - `get_metadata() -> dict` - Outputs a dictionary with attributes about the file metadata, including frame_count, frame_rate, etc. Can be combined with `pprint` to quickly see a general overview of a video file.
+ - `buffer_current() -> bool` - Whenever `frame_surf` or `frame_data` are `None`, use this method to populate them. This is useful because seeking does not update `frame_data` or `frame_surf`. Keep in mind that `video.frame` represents the frame
+that WILL be rendered. Therefore, if `video.frame == 0`, that means the first frame has yet to be rendered, and `buffer_current` will not work. Returns `True` or `False` depending on if data was successfully buffered.
 
 ## Supported Graphics Libraries
  - Pygame or Pygame CE (`Video`) <- default and best supported
@@ -428,6 +430,8 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
  - `cel_shading` - Thickens borders for a comic book style filter.
  - `fliplr` - Flips the video across y axis.
  - `flipup` - Flips the video across x axis.
+ - `rotate90` - Rotates the video by 90 degrees.
+ - `rotate270` - Essentially just rotate90 but in the other direction.
 
 # Errors 
 

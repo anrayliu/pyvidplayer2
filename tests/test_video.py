@@ -1510,6 +1510,63 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(frames, v.frame_count)
         v.close()
 
+    # test accuracy of frame seeking
+    def test_accurate_frame_seeking(self):
+        v = Video("resources//5frames.mp4")
+        frames = []
+        for i in range(v.frame_count):
+            frames.append(next(v))
+
+        v.restart()
+        for i in range(v.frame_count):
+            v.seek_frame(i)
+            v.frame_data = None
+            while_loop(lambda: v.frame_data is None, v.update, 10)
+            self.assertTrue(check_same_frames(frames[i], v.frame_data))
+
+        v.close()
+
+    # test buffer current before first frame has been rendered
+    def test_bad_buffer_current(self):
+        v = Video(VIDEO_PATH)
+        success = v.buffer_current()
+        self.assertFalse(success)
+        v.close() # no errors, smooth operation
+
+    # tests that buffer current works properly
+    def test_buffer_current(self):
+        v = Video(VIDEO_PATH)
+        v.seek_frame(100)
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
+
+        vid_frame = v.frame
+        reader_frame = v._vid.frame
+
+        success = v.buffer_current()
+        self.assertTrue(success)
+
+        self.assertIsNotNone(v.frame_data)
+        self.assertIsNotNone(v.frame_surf)
+
+        self.assertTrue(v.frame, vid_frame)
+        self.assertTrue(v._vid.frame, reader_frame)
+
+        v.close()
+
+    # test buffer current indeed fetches the right frame
+    def test_buffer_current_accuracy(self):
+        v = Video("resources//5frames.mp4")
+        frames = []
+        for i in range(v.frame_count):
+            frames.append(next(v))
+        f = random.randrange(1, v.frame_count)
+        v.seek_frame(f)
+        v.buffer_current()
+        self.assertTrue(check_same_frames(v.frame_data, frames[f - 1]))
+
+        v.close()
+
 
 if __name__ == "__main__":
     unittest.main()

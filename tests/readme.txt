@@ -1,4 +1,4 @@
-Full unit tests for pyvidplayer2 v0.9.26
+Full unit tests for pyvidplayer2 v0.9.27
 
 Requires the resources folder which contains all the test videos
 Download the videos here: https://github.com/anrayliu/pyvidplayer2-test-resources

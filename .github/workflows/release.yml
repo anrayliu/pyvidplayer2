@@ -28,8 +28,9 @@ jobs:
       - name: Build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
+          python -m pip install wheel
           python -m pip install -r requirements_all.txt
-          python -m pip install wheel setuptools
+          python -m pip install setuptools
           python -m setup.py sdist bdist_wheel
 
       - name: Upload distributions

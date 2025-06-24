@@ -31,7 +31,7 @@ jobs:
           python -m pip install wheel
           python -m pip install -r requirements_all.txt
           python -m pip install setuptools
-          python -m setup.py sdist bdist_wheel
+          python -m setup sdist bdist_wheel
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4

@@ -37,6 +37,9 @@ setup(
             "raylib",
             "wxPython"
         ],
+        "bare": [
+            "numpy"
+        ]
     },
     url="https://github.com/anrayliu/pyvidplayer2",
     platforms=["windows", "linux", "macos"],

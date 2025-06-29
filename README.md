@@ -1,8 +1,15 @@
-[![downloads](https://static.pepy.tech/badge/pyvidplayer2)](http://pepy.tech/project/pyvidplayer2)
+# PyVidPlayer2
 
+[![PyPI Version](https://img.shields.io/pypi/v/pyvidplayer2?logo=pypi&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/pyvidplayer2?logo=pypi&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
+[![PyPI Monthly Downloads](https://img.shields.io/pypi/dw/pyvidplayer2?logo=pypi&logoColor=white)](https://pypistats.org/packages/pyvidplayer2)
+[![GitHub Stars](https://img.shields.io/github/stars/anrayliu/pyvidplayer2?style=round-square&logo=github)](https://github.com/anrayliu/pyvidplayer2/stargazers)  
+[![License](https://img.shields.io/github/license/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/blob/main/LICENSE)
+[![Status](https://img.shields.io/pypi/status/pyvidplayer2)](https://pypi.org/project/pyvidplayer2/)
+[![Python Version](https://img.shields.io/pypi/pyversions/pyvidplayer2?logo=python&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
+[![Last Commit](https://img.shields.io/github/last-commit/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/commits/main)
+[![Open Issues](https://img.shields.io/github/issues-raw/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/issues)
 # pyvidplayer2 (please report all bugs!)
-Languages: English | [中文](https://github.com/anrayliu/pyvidplayer2/blob/main/README.cn.md)
-
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in
 pretty much every way, and finally allows an easy way to play videos in Python. 

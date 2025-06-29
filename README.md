@@ -9,6 +9,8 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/pyvidplayer2?logo=python&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
 [![Last Commit](https://img.shields.io/github/last-commit/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/commits/main)
 [![Open Issues](https://img.shields.io/github/issues-raw/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/issues)
+[![Made with ❤️](https://img.shields.io/badge/Made_with-❤️-blue?style=round-square)](https://github.com/anrayliu/pyvidplayer2)
+
 # pyvidplayer2 (please report all bugs!)
 
 Introducing pyvidplayer2, the successor to pyvidplayer. It's better in

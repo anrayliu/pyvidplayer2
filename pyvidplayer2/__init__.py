@@ -32,13 +32,6 @@ else:
     from .video_raylib import VideoRaylib
 
 try:
-    import PyQt6
-except ImportError:
-    pass
-else:
-    from .video_pyqt import VideoPyQT
-
-try:
     import wx
 except ImportError:
     pass

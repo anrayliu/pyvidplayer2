@@ -44,7 +44,7 @@ setup(
     url="https://github.com/anrayliu/pyvidplayer2",
     platforms=["windows", "linux", "macos"],
     keywords=["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "raylib", "wxpython", "youtube", "stream"],
-    python_requires=">=3.9",
+    python_requires=">=3.8",
     classifiers = [
         "Development Status :: 4 - Beta",
 
@@ -55,9 +55,11 @@ setup(
 
         "License :: OSI Approved :: MIT License",
 
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12"
+        "Programming Language :: Python :: 3.13"
     ]
 )

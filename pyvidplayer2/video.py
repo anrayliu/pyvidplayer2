@@ -1,6 +1,8 @@
 import subprocess
 import os
-import json 
+import json
+from abc import abstractmethod
+
 import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
@@ -927,11 +929,14 @@ class Video:
     
     # inherited methods
 
+    @abstractmethod
     def _create_frame(self):
         pass
 
+    @abstractmethod
     def _render_frame(self):
         pass
 
+    @abstractmethod
     def preview(self):
         pass

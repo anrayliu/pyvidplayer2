@@ -2,7 +2,6 @@ import subprocess
 import os
 import json
 from abc import abstractmethod
-
 import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
@@ -247,6 +246,9 @@ class Video:
             raise StopIteration("No more frames to read.")
 
     def _get_best_reader(self, youtube, as_bytes, reader):
+        """
+        Decides the best reader to use based on what's installed
+        """
         if youtube:
             if reader == READER_AUTO or reader == READER_OPENCV:
                 if CV:
@@ -294,6 +296,11 @@ class Video:
             return [] if subs is None else subs
     
     def _get_vfrs(self, pts):
+        """
+        Return minimum frame rate, maximum frame rate, and average frame rate from a video.
+        Only useful for VFR videos
+        """
+
         # calculates differences in frametime, except the first and last frames are ignored because
         # they can be anomalous
         difs = [pts[i + 1] - pts[i] for i in range(1, len(pts) - 2)]
@@ -307,6 +314,10 @@ class Video:
         return min_fr, max_fr, avg_fr
 
     def _get_all_pts(self):
+        """
+        Returns the presentation timestamps for each frame
+        """
+
         try:
             command = [
                 "ffprobe",
@@ -332,6 +343,9 @@ class Video:
 
     # mainly for testing purposes
     def _force_ffmpeg_reader(self):
+        """
+        Force switches reader to READER_FFMPEG
+        """
         if not isinstance(self._vid, FFMPEGReader):
             new_reader = FFMPEGReader(self.path, False)
             new_reader.frame_count = self._vid.frame_count
@@ -369,6 +383,9 @@ class Video:
                 self.ext = ".webm"
 
     def _preload_frames(self):
+        """
+        Decodes every frame and stores them in video._preloaded attribute
+        """
         self._preloaded = True
 
         self._preloaded_frames.clear()
@@ -384,6 +401,10 @@ class Video:
         self._vid.seek(self.frame)
 
     def _get_real_frame_count(self):
+        """
+        Returns an accurate frame count by reading every frame
+        """
+
         self._vid.seek(0)
         counter = 0
         has_frame = True
@@ -411,15 +432,20 @@ class Video:
         return f"{h}:{m}:{s}.{d}"
     
     # not used
+    # used to auto detect youtube videos
     def _test_youtube(self):
         return YTDLP and next((ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"), None) is not None
     
     # not used, not always accurate
+    # used to auto detect vfr videos
     def _test_vfr(self):
         min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
         return (max_ - min_) > 0.1
 
     def _test_no_audio(self):
+        """
+        Returns True if video has no audio
+        """
         command = [
             "ffmpeg",
             "-i", self._audio_path,
@@ -429,8 +455,6 @@ class Video:
             "-loglevel", FFMPEG_LOGLVL,
             "-"
         ]
-
-        audio = b''
 
         try:
             p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE if self.as_bytes else None)
@@ -641,6 +665,12 @@ class Video:
     # interp parameter only used for ffmpeg resampling
     
     def _resize_frame(self, data: np.ndarray, size: Tuple[int, int], interp, use_ffmpeg=False):
+        """
+        Given a numpy image, returns a new resized numpy image.
+        If not using ffmpeg, pass in cv2 interpolation constants (e.g INTER_NEAREST)
+        If using ffmepg, consult their documentation for interpolation flags.
+        """
+
         if not use_ffmpeg:
             return cv2.resize(data, dsize=size, interpolation=interp)
 
@@ -671,6 +701,11 @@ class Video:
         return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
 
     def probe(self) -> None:
+        """
+        Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count
+        and frame rate are read through the file headers, which is sometimes incorrect.
+        For more accuracy, call this method to start a probe and update video metadata attributes.
+        """
         self._vid._probe(self.path, self.as_bytes)
         self.frame_count = self._vid.frame_count
         self.frame_rate = self._vid.frame_rate
@@ -680,6 +715,10 @@ class Video:
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
     def update(self) -> bool:
+        """
+        Allows video to perform required operations. The draw method already calls this method, so it's usually not
+        used. Returns True if a new frame is ready to be displayed.
+        """
         return self._update()
 
     @property
@@ -687,6 +726,10 @@ class Video:
         return self.get_volume()
 
     def set_interp(self, interp: Union[str, int]) -> None:
+        """
+        Changes the interpolation technique that OpenCV uses.
+        Works the same as the interp parameter. Does nothing if OpenCV is not installed.
+        """
         if interp in ("nearest", 0):
             self.interp = 0 #cv2.INTER_NEAREST
         elif interp in ("linear", 1):
@@ -701,9 +744,16 @@ class Video:
             raise ValueError("Interpolation technique not recognized.")
 
     def set_post_func(self, func: Callable[[np.ndarray], np.ndarray]) -> None:
+        """
+        Changes the postprocessing function. Works the same as the post_func parameter.
+        """
         self.post_func = func
 
     def get_metadata(self):
+        """
+        Outputs a dictionary with attributes about the file metadata, including frame_count, frame_rate, etc.
+        Can be combined with pprint to quickly see a general overview of a video file.
+        """
         return {
             "path": self.path,
             "name": self.name,
@@ -725,26 +775,44 @@ class Video:
         }
 
     def mute(self) -> None:
+        """
+        Mutes the video. Does not change volume.
+        """
         self.muted = True
         self._audio.mute()
 
     def unmute(self) -> None:
+        """
+        Unmutes the video. Does not change volume.
+        """
         self.muted = False
         self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
+        """
+        Does nothing because this method is deprecated. Use the speed parameter during Video creation instead.
+        """
         raise DeprecationWarning("set_speed is deprecated. Use the speed parameter instead.")
 
     def get_speed(self) -> float:
+        """
+        Get method for video speed. Remnant from older version.
+        """
         return self.speed
 
     def play(self) -> None:
+        """
+        Sets video.active to True.
+        """
         self.active = True
         if self._generated_frame:
             self._generated_frame = False
             self.seek_frame(self.frame)
 
     def stop(self) -> None:
+        """
+        Sets video.active to False.
+        """
         self.seek(0, relative=False)
         self.active = False
         # removing this to prevent flickering during loops
@@ -753,18 +821,30 @@ class Video:
         self.paused = False
 
     def resize(self, size: Tuple[int, int]) -> None:
+        """
+        Sets the current size of the video. This will also resize the current frame, so no need
+        to buffer a new frame.
+        """
         self.current_size = size
         if self.frame_data is not None:
             self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
             self.frame_surf = self._create_frame(self.frame_data)
 
     def change_resolution(self, height: int) -> None:
+        """
+        Given a height, the video will scale its dimensions while maintaining aspect ratio.
+        Will scale width to an even number. Otherwise same as resize method.
+        """
         w = int(height * self.aspect_ratio)
         if w % 2 == 1:
             w += 1
         self.resize((w, height))
 
     def close(self) -> None:
+        """
+        Releases resources. Always recommended to call when done. Attempting to use video after it has been closed
+        may cause unexpected behaviour.
+        """
         self._preloaded_frames.clear()
         self.stop()
         self._vid.release()
@@ -774,6 +854,9 @@ class Video:
         self.closed = True
 
     def restart(self) -> None:
+        """
+        Rewinds video to the beginning. Does not change video.active, and does not refresh current frame information.
+        """
         self.seek(0, relative=False)
 
         if self._buffered_chunk is not None:
@@ -783,22 +866,42 @@ class Video:
         self.play()
 
     def set_volume(self, vol: float) -> None:
+        """
+        Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
+        """
         self._audio.set_volume(vol)
 
     def get_volume(self) -> float:
+        """
+        Get method for video volume. Remnant from older version.
+        """
         return self._audio.get_volume()
 
     def get_paused(self) -> bool:
+        """
+        Get method for video pause state. Remnant from older version.
+        """
+
         # here because the original pyvidplayer had get_paused
         return self.paused
 
     def toggle_pause(self) -> None:
+        """
+        Pauses if the video is playing, and resumes if the video is paused.
+        """
         self.resume() if self.paused else self.pause()
 
     def toggle_mute(self) -> None:
+        """
+        Mutes if the video is unmuted, and unmutes if the video is muted.
+        """
         self.unmute() if self.muted else self.mute()
 
     def set_audio_track(self, index: int) -> None:
+        """
+        Sets the audio track used. Index 0 corresponds to the first audio track, index 1 is the second, etc.
+        This will re-probe the video for audio channels.
+        """
         if self.youtube:
             return
 
@@ -832,19 +935,35 @@ class Video:
         self.seek(self.get_pos(), relative=False) # reloads current audio chunks
 
     def pause(self) -> None:
+        """
+        Pauses the video. Does not change Video active attribute.
+        """
         if self.active:
             self.paused = True
             self._audio.pause()
 
     def resume(self) -> None:
+        """
+        Unpauses the video. Does not change Video active attribute.
+        """
         if self.active:
             self.paused = False
             self._audio.unpause()
 
     def get_pos(self) -> float:
+        """
+        Returns the current video timestamp in seconds (float).
+        """
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True) -> None:
+        """
+        Changes the current position in the video. If relative is True, the given time will be added or subtracted to 
+        the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in 
+        seconds, with no precision limit. Note that frames and audio within the video will not yet be updated after 
+        calling seek. Call buffer_current to load the new frames. If the given value is larger than the video duration, 
+        the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
+        """
         # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
@@ -875,6 +994,11 @@ class Video:
             sub._seek(self._starting_time)
 
     def seek_frame(self, index: int, relative: bool = False) -> None:
+        """
+        Same as seek method but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to 
+        the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total 
+        frames, the video will be seeked to the last frame.
+        """
         # seeking accurate to 1/100 of a second
         index = (self.frame + index) if relative else index
         index = min(max(index, 0), self.frame_count - 1)
@@ -902,6 +1026,12 @@ class Video:
             sub._seek(self._starting_time)
 
     def buffer_current(self) -> bool:
+        """
+        Whenever frame_surf or frame_data are None, use this method to populate them. This is useful because 
+        seeking does not update frame_data or frame_surf. Keep in mind that video.frame represents the frame
+        that WILL be rendered. Therefore, if video.frame == 0, that means the first frame has yet to be rendered, 
+        and buffer_current will not work. Returns True or False depending on if data was successfully buffered.
+        """
         if self._vid.frame > 0 and (self.frame_data is None or self.frame_surf is None):
             p = self.get_pos()
             self._vid.seek(self._vid.frame - 1)
@@ -922,6 +1052,13 @@ class Video:
     # type hints declared by inherited subclasses
 
     def draw(self, surf, pos, force_draw):
+        """
+        Draws the current video frame onto the given surface, at the given position.
+        If force_draw is True, a surface will be drawn every time this is called.
+        Otherwise, only new frames will be drawn.
+        This reduces CPU usage but will cause flickering if anything is drawn under or above the video.
+        This method also returns whether a frame was drawn.
+        """
         if (self._update() or force_draw) and self.frame_surf is not None:
             self._render_frame(surf, pos)
             return True
@@ -939,4 +1076,9 @@ class Video:
 
     @abstractmethod
     def preview(self):
+        """
+        Opens a window and plays the video. This method will hang until the video finishes. max_fps enforces how many
+        times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number
+        of new frames being rendered every second.
+        """
         pass

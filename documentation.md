@@ -74,7 +74,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `resize(size: (int, int)) -> None`
  - `change_resolution(height: int) -> None` - Given a height, the video will scale it's dimensions while maintaining aspect ratio. Will scale width to an even number.
  - `close() -> None` - Releases resources. Always recommended to call when done.
- - `restart() -> None`
+ - `restart() -> None` - Rewinds video to the beginning. Does not change video.active, and does not refresh current frame information.
  - `get_speed() -> float | int`
  - `set_volume(volume: float) -> None` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
  - `get_volume() -> float`
@@ -98,7 +98,7 @@ Main object used to play videos. Videos can be read from disk, memory or streame
  - `show_subs() -> None` - Enables subtitles.
  - `hide_subs() -> None` - Disables subtitles.
  - `set_subs(subs: Subtitles | [Subtitles]) -> None` - Set the subtitles to use. Works the same as providing subtitles through the initialization parameter.
- - `probe() -> None` - Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count or frame rate are read through the file headers, which is sometimes incorrect. For more accuracy, call this method to start a probe and update the video information.
+ - `probe() -> None` - Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count and frame rate are read through the file headers, which is sometimes incorrect. For more accuracy, call this method to start a probe and update video metadata attributes.
  - `get_metadata() -> dict` - Outputs a dictionary with attributes about the file metadata, including frame_count, frame_rate, etc. Can be combined with `pprint` to quickly see a general overview of a video file.
  - `buffer_current() -> bool` - Whenever `frame_surf` or `frame_data` are `None`, use this method to populate them. This is useful because seeking does not update `frame_data` or `frame_surf`. Keep in mind that `video.frame` represents the frame
 that WILL be rendered. Therefore, if `video.frame == 0`, that means the first frame has yet to be rendered, and `buffer_current` will not work. Returns `True` or `False` depending on if data was successfully buffered.
@@ -236,7 +236,7 @@ Object used for displaying a webcam feed. Only supported for Pygame.
  - `play() -> None`
  - `stop() -> None`
  - `resize(size: (int, int)) -> None` - Simply sets dimensions that captured frames will be resized to.
- - `resize_capture(size: (int, int)) -> bool` -  Changes the resolution at which frames are captured from the webcam. Returns `True` if a resolution was found that matched the given size exactly. Otherwise, `False` will be returned and the closest matching resolution will be used.
+ - `resize_capture(size: (int, int)) -> bool` - Changes the resolution at which frames are captured from the webcam. Returns `True` if a resolution was found that matched the given size exactly. Otherwise, `False` will be returned and the closest matching resolution will be used.
  - `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect ratio. Will scale width to an even number.
  - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the `interp` parameter (see `interp` above). Does nothing if OpenCV is not installed.
   - `set_post_func(func: callable(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works the same as the `post_func` parameter (see `post_func` above). 

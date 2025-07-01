@@ -165,9 +165,15 @@ class Subtitles:
         surf.blit(self.surf, (surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
         
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
+        """
+        Accepts a pygame font object to use to render subtitles. Same as font parameter.
+        """
         self.font = font
         if not isinstance(self.font, pygame.font.Font):
             raise ValueError("Font must be a pygame.font.Font or pygame.font.SysFont object.")
 
     def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
+        """
+        Gets the pygame font object used to render subtitles.
+        """
         return self.font

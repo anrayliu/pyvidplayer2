@@ -113,7 +113,9 @@ class TestYoutubeVideo(unittest.TestCase):
 
     # tests for errors for unsupported youtube links
     def test_bad_youtube_links(self):
-        for url in ("https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA", "https://www.youtube.com/", "https://www.youtube.com/shorts"):
+        for url in (
+        "https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
+        "https://www.youtube.com/", "https://www.youtube.com/shorts"):
             with self.assertRaises(YTDLPError):
                 Video(url, youtube=True).close()
             time.sleep(0.1)
@@ -155,7 +157,9 @@ class TestYoutubeVideo(unittest.TestCase):
         Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, track_index=0, pref_lang="en-US")
         time.sleep(0.1)
 
-        for url in ("https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA", "https://www.youtube.com/"):
+        for url in (
+        "https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
+        "https://www.youtube.com/"):
             with self.assertRaises(SubtitleError) as context:
                 Subtitles(url, youtube=True)
             self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
@@ -175,7 +179,9 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests that subtitles are properly read and displayed
     def test_subtitles(self):
         # running video in x5 to speed up test
-        v = Video("https://www.youtube.com/watch?v=HurjfO_TDlQ", subs=Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="en-US"), speed=5, youtube=True)
+        v = Video("https://www.youtube.com/watch?v=HurjfO_TDlQ",
+                  subs=Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="en-US"),
+                  speed=5, youtube=True)
 
         def check_subs():
             if v.update():
@@ -188,19 +194,22 @@ class TestYoutubeVideo(unittest.TestCase):
                 for start, end, text in SUBS:
                     if start <= timestamp <= end:
                         in_interval = True
-                        self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                            v.frame_data))), v.subs_hidden)
+                        self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf),
+                                                           pygame.surfarray.array3d(v._create_frame(
+                                                               v.frame_data))), v.subs_hidden)
 
                         # check the correct subtitle was generated
                         if not v.subs_hidden:
-                            self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
+                            self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)),
+                                                              pygame.surfarray.array3d(v.subs[0].surf)))
 
                         break
 
                 if not in_interval:
                     self.assertTrue(
-                        check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                            v.frame_data))))
+                        check_same_frames(pygame.surfarray.array3d(v.frame_surf),
+                                          pygame.surfarray.array3d(v._create_frame(
+                                              v.frame_data))))
 
         self.assertFalse(v.subs_hidden)
 
@@ -239,8 +248,8 @@ class TestYoutubeVideo(unittest.TestCase):
 
         # test for exceptions here
         # youtube = True, as_bytes = False, reader = READER_AUTO
-        v._get_best_reader( True, False, READER_AUTO)
-        v._get_best_reader( True, False, READER_OPENCV)
+        v._get_best_reader(True, False, READER_AUTO)
+        v._get_best_reader(True, False, READER_OPENCV)
 
         with self.assertRaises(ValueError):
             v._get_best_reader(True, False, READER_FFMPEG)

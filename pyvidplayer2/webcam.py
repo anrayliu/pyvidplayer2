@@ -1,7 +1,7 @@
 import cv2
 import pygame
 import time
-import numpy as np 
+import numpy as np
 from typing import Callable, Union, Tuple
 from .post_processing import PostProcessing
 from .error import *
@@ -12,7 +12,9 @@ class Webcam:
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
 
-    def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none, interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0, capture_size: Tuple[int, int] = (0, 0)) -> None:
+    def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
+                 interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0,
+                 capture_size: Tuple[int, int] = (0, 0)) -> None:
         self._vid = cv2.VideoCapture(cam_id)
 
         if not self._vid.isOpened():
@@ -20,7 +22,8 @@ class Webcam:
 
         self.original_size = (0, 0)
         if capture_size == (0, 0):
-            self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            self.original_size = (
+            int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         else:
             self.resize_capture(capture_size)
 
@@ -29,7 +32,7 @@ class Webcam:
 
         self.frame_data = None
         self.frame_surf = None
-        
+
         self.active = False
         self.closed = False
 
@@ -54,7 +57,7 @@ class Webcam:
     def _update(self):
         if self.active:
 
-            if time.time() - self._last_tick >  1 / self.fps:
+            if time.time() - self._last_tick > 1 / self.fps:
                 self._last_tick = time.time()
 
                 has_frame, data = self._vid.read()
@@ -134,7 +137,8 @@ class Webcam:
         """
         self._vid.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
         self._vid.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
-        self.original_size = (int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        self.original_size = (
+        int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         return self.original_size == size
 
     def change_resolution(self, height: int) -> None:
@@ -177,10 +181,10 @@ class Webcam:
 
     def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), self.current_size, "BGR")
-    
+
     def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)
-    
+
     def preview(self, max_fps: int = 60) -> None:
         """
         Opens a window and plays the webcam. This method will hang until the window is closed.

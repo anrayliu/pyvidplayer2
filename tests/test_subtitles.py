@@ -7,7 +7,6 @@ import random
 from pyvidplayer2 import *
 from test_video import while_loop, timed_loop, check_same_frames
 
-
 SUBS = (
     (0.875, 1.71, "Oh, my God!"),
     (5.171, 5.88, "Hang on!"),
@@ -59,11 +58,11 @@ class TestSubtitles(unittest.TestCase):
     def test_additional_tests(self):
         s1 = Subtitles("resources/subs1.srt", colour="blue", highlight="red",
                        font=pygame.font.SysFont("arial", 35), offset=70, delay=-1)
-        s2 = Subtitles("resources/subs2.srt", colour=pygame.Color("pink"), highlight=(129, 12, 31, 128),
-                       font=pygame.font.SysFont("arial", 20))
-        s3 = Subtitles("resources/subs2.srt", colour=(123, 13, 52, 128), highlight=(4, 131, 141, 200),
-                       font=pygame.font.SysFont("arial", 40), delay=1)
-        s4 = Subtitles("resources/subs1.srt", delay=10000)
+        Subtitles("resources/subs2.srt", colour=pygame.Color("pink"), highlight=(129, 12, 31, 128),
+                  font=pygame.font.SysFont("arial", 20))
+        Subtitles("resources/subs2.srt", colour=(123, 13, 52, 128), highlight=(4, 131, 141, 200),
+                  font=pygame.font.SysFont("arial", 40), delay=1)
+        Subtitles("resources/subs1.srt", delay=10000)
         font = pygame.font.SysFont("arial", 10)
         self.assertRaises(ValueError, lambda: s1.set_font(pygame.font.Font))
         s1.set_font(font)
@@ -73,11 +72,6 @@ class TestSubtitles(unittest.TestCase):
     def test_subtitle_encoding(self):
         self.assertRaises(SubtitleError, lambda: Subtitles("resources/utf16.srt"))
         Subtitles("resources/utf16.srt", encoding="utf16")
-
-    # tests __str__
-    def test_str_magic_method(self):
-        s = Subtitles("resources/subs1.srt")
-        self.assertEqual(str(s), "<Subtitles(path=resources/subs1.srt)>")
 
     # tests appropriate error messages when opening subtitles
     def test_open_subtitles(self):
@@ -92,7 +86,8 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/fake.txt")
-        self.assertEqual(str(context.exception), "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
+        self.assertEqual(str(context.exception),
+                         "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/fake.txt", track_index=0)
@@ -100,7 +95,8 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/wSubs.mp4")
-        self.assertEqual(str(context.exception), "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
+        self.assertEqual(str(context.exception),
+                         "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
         Subtitles("resources/wSubs.mp4", track_index=0)
 
@@ -110,7 +106,8 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/trailer1.mp4")
-        self.assertEqual(str(context.exception), "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
+        self.assertEqual(str(context.exception),
+                         "Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/trailer1.mp4", track_index=1)
@@ -125,12 +122,13 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(FileNotFoundError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ")
-        self.assertEqual(str(context.exception), "[Errno 2] No such file or directory: 'https://www.youtube.com/watch?v=HurjfO_TDlQ'")
+        self.assertEqual(str(context.exception),
+                         "[Errno 2] No such file or directory: 'https://www.youtube.com/watch?v=HurjfO_TDlQ'")
 
         with self.assertRaises(FileNotFoundError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", track_index=0)
-        self.assertEqual(str(context.exception), "[Errno 2] No such file or directory: 'https://www.youtube.com/watch?v=HurjfO_TDlQ'")
-
+        self.assertEqual(str(context.exception),
+                         "[Errno 2] No such file or directory: 'https://www.youtube.com/watch?v=HurjfO_TDlQ'")
 
     # tests that subtitles are properly read and displayed
     def test_subtitles(self):
@@ -149,12 +147,14 @@ class TestSubtitles(unittest.TestCase):
             for start, end, text in SUBS:
                 if start <= timestamp <= end:
                     in_interval = True
-                    self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf), pygame.surfarray.array3d(v._create_frame(
-                        v.frame_data))), v.subs_hidden)
+                    self.assertEqual(check_same_frames(pygame.surfarray.array3d(v.frame_surf),
+                                                       pygame.surfarray.array3d(v._create_frame(
+                                                           v.frame_data))), v.subs_hidden)
 
                     # check the correct subtitle was generated
                     if not v.subs_hidden:
-                        self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)), pygame.surfarray.array3d(v.subs[0].surf)))
+                        self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)),
+                                                          pygame.surfarray.array3d(v.subs[0].surf)))
 
             if not in_interval:
                 self.assertTrue(

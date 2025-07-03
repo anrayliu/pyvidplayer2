@@ -9,22 +9,27 @@ class VideoPygame(Video):
     """
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
-    
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1, subs: "pyvidplayer2.Subtitles" = None, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False, no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 720,
-                 as_bytes: bool = False, audio_track: int = 0, vfr: bool = False, pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse, no_audio, speed, youtube, max_res,
+
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
+                 subs: "pyvidplayer2.Subtitles" = None,
+                 post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
+                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 720,
+                 as_bytes: bool = False, audio_track: int = 0, vfr: bool = False, pref_lang: str = "en",
+                 audio_index: int = None, reader: int = READER_AUTO) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio,
+                       reverse, no_audio, speed, youtube, max_res,
                        as_bytes, audio_track, vfr, pref_lang, audio_index, reader)
 
     def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), (data.shape[1], data.shape[0]), self._vid._colour_format)
-    
+
     def _render_frame(self, surf, pos):
         surf.blit(self.frame_surf, pos)
 
     def draw(self, surf: pygame.Surface, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, surf, pos, force_draw)
-    
+
     def preview(self, show_fps: bool = False, max_fps: int = 60) -> None:
         win = pygame.display.set_mode(self.current_size)
         clock = pygame.time.Clock()
@@ -40,9 +45,9 @@ class VideoPygame(Video):
                     self.stop()
             dt = clock.tick(max_fps)
             if show_fps:
-                timer += dt 
+                timer += dt
                 if timer >= 1000:
-                    fps = frames 
+                    fps = frames
                     timer = 0
                     frames = 0
             if self.draw(win, (0, 0), force_draw=False):

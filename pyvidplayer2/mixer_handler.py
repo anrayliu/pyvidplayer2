@@ -31,7 +31,7 @@ class MixerHandler:
     def set_volume(self, vol):
         self.volume = vol
         pygame.mixer.music.set_volume(min(1.0, max(0.0, vol)))
-        
+
     def get_volume(self):
         return self.volume
 
@@ -50,9 +50,9 @@ class MixerHandler:
             pygame.mixer.music.unpause()
 
     def mute(self):
-        self.muted = True 
+        self.muted = True
         pygame.mixer.music.set_volume(0)
 
     def unmute(self):
-        self.muted = False 
+        self.muted = False
         self.set_volume(self.volume)

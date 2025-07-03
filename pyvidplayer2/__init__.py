@@ -1,9 +1,7 @@
 from pyvidplayer2._version import __version__
 
-
-VERSION = __version__ # for older versions of pyvidplayer2
+VERSION = __version__  # for older versions of pyvidplayer2
 FFMPEG_LOGLVL = "quiet"
-
 
 from subprocess import run
 from .video import READER_FFMPEG, READER_DECORD, READER_OPENCV, READER_IMAGEIO, READER_AUTO
@@ -49,16 +47,16 @@ else:
     from .video_player import VideoPlayer
 
     try:
-        import cv2 
+        import cv2
     except ImportError:
-        pass 
+        pass
     else:
         from .webcam import Webcam
 
     try:
         import pysubs2
     except ImportError:
-        pass 
+        pass
     else:
         from .subtitles import Subtitles
 
@@ -70,7 +68,7 @@ else:
     from .video_pyglet import VideoPyglet
 
 
-#cv2.setLogLevel(0) # silent
+# cv2.setLogLevel(0) # silent
 
 def get_version_info():
     try:

@@ -61,7 +61,7 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertFalse(vp.interactable)
         self.assertFalse(vp.loop)
         self.assertEqual(vp.preview_thumbnails, 0)
-        self.assertEqual(vp._font.get_height(), 12) # point size 10 should result in 12 height
+        self.assertEqual(vp._font.get_height(), 12)  # point size 10 should result in 12 height
         vp.close()
 
     # tests queue system
@@ -113,8 +113,8 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertEqual(len(vp.queue_), 2)
         self.assertTrue(v1.closed)
 
-        vp.skip() # should be on v3 after skip
-        vp.skip() # should be on v4 after skip
+        vp.skip()  # should be on v3 after skip
+        vp.skip()  # should be on v4 after skip
 
         self.assertIs(vp.video, v4)
         self.assertEqual(len(vp), 1)
@@ -193,7 +193,7 @@ class TestVideoPlayer(unittest.TestCase):
             vp.skip()
 
         original_video.stop()
-        vp.update() # should trigger _handle_on_end
+        vp.update()  # should trigger _handle_on_end
         self.assertEqual(original_video.get_pos(), 0)
         self.assertTrue(original_video.active)
 
@@ -264,7 +264,8 @@ class TestVideoPlayer(unittest.TestCase):
 
         # ensures that when preloaded, the preview thumbnails are taken straight from the preloaded frames
         original_video._preload_frames()
-        t = Thread(target=lambda: VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=300))
+        t = Thread(
+            target=lambda: VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=300))
         t.start()
         time.sleep(10)
         self.assertFalse(t.is_alive())

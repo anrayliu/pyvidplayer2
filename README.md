@@ -6,6 +6,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/anrayliu/pyvidplayer2?style=round-square&logo=github)](https://github.com/anrayliu/pyvidplayer2/stargazers)  
 [![License](https://img.shields.io/github/license/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/blob/main/LICENSE)
 [![Status](https://img.shields.io/pypi/status/pyvidplayer2)](https://pypi.org/project/pyvidplayer2/)
+![Coverage](https://img.shields.io/badge/Coverage-96%25-red)
 [![Python Version](https://img.shields.io/pypi/pyversions/pyvidplayer2?logo=python&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
 [![Last Commit](https://img.shields.io/github/last-commit/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/commits/main)
 [![Open Issues](https://img.shields.io/github/issues-raw/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/issues)

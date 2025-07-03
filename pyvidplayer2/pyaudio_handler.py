@@ -59,7 +59,7 @@ class PyaudioHandler:
         ]
         self.device_index = self.choose_device()
 
-        self._buffer = None # used for testing purposes
+        self._buffer = None  # used for testing purposes
 
     def _set_device_index(self, index):
         try:
@@ -113,7 +113,7 @@ class PyaudioHandler:
         for i in range(self.p.get_device_count()):
             info = self.p.get_device_info_by_index(i)
             self.audio_devices.append(copy.deepcopy(info))
-            
+
             # warnings.warn("Device {}: {}".format(i, info['name']))
 
     def find_device_by_name(self, name):
@@ -127,7 +127,7 @@ class PyaudioHandler:
             if info["name"] == name:
                 if info['maxOutputChannels'] > 0:
                     return i
-                #else:
+                # else:
                 #    warnings.warn(
                 #        "Warning: preferred device '{}' is invalid"
                 #        " (has no output)".format(info['name']))
@@ -161,8 +161,9 @@ class PyaudioHandler:
                 )
 
             except Exception as e:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}\": {}".format(self.audio_devices[self.device_index]["name"], e))
-                
+                raise AudioDeviceError("Failed to open audio stream with device \"{}\": {}".format(
+                    self.audio_devices[self.device_index]["name"], e))
+
         self.loaded = True
 
     # only get_num_channels from mixer handler is used for now
@@ -199,7 +200,7 @@ class PyaudioHandler:
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK_SIZE = 128 #increasing this will reduce get_pos precision
+        CHUNK_SIZE = 128  # increasing this will reduce get_pos precision
 
         while not self.stop_thread:
             if self.paused:

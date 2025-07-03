@@ -24,19 +24,22 @@ def find_device(*lambdas):
 
     raise RuntimeError("Could not find specified sound device.")
 
+
 def get_videos():
     paths = []
     for file in os.listdir("resources"):
         for ext in ("mp4", "avi", "webm", "mov", "mkv"):
-            if file.endswith(ext) and not file.endswith("nov.mp4"): # causes a lot of issues with tests
+            if file.endswith(ext) and not file.endswith("nov.mp4"):  # causes a lot of issues with tests
                 paths.append(os.path.join("resources", file))
     return paths
+
 
 def timed_loop(seconds, func, dt=0.1):
     t = time.time() + seconds
     while time.time() < t:
         time.sleep(dt)
         func()
+
 
 def while_loop(condition_func, func, timeout, dt=0.1):
     t = time.time()
@@ -45,6 +48,7 @@ def while_loop(condition_func, func, timeout, dt=0.1):
         func()
         if time.time() - t > timeout:
             raise RuntimeError("Loop timed out.")
+
 
 def check_same_frames(f1, f2):
     return np.array_equal(f1, f2)
@@ -66,7 +70,9 @@ class TestVideo(unittest.TestCase):
         new_frame = next(v2)
         self.assertTrue(check_same_frames(original_frame, new_frame))
 
-        for func in (lambda d: np.fliplr(d), PostProcessing.blur, PostProcessing.sharpen, PostProcessing.greyscale, PostProcessing.noise, PostProcessing.letterbox, PostProcessing.cel_shading, PostProcessing.flipup, PostProcessing.fliplr):
+        for func in (lambda d: np.fliplr(d), PostProcessing.blur, PostProcessing.sharpen, PostProcessing.greyscale,
+                     PostProcessing.noise, PostProcessing.letterbox, PostProcessing.cel_shading, PostProcessing.flipup,
+                     PostProcessing.fliplr):
             v2.set_post_func(func)
             self.assertFalse(check_same_frames(next(v1), next(v2)))
 
@@ -103,6 +109,25 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
         self.assertEqual(type(v._vid).__name__, "DecordReader")
         v.close()
+
+        for file in PATHS:
+            v = Video(file)
+            data = v.get_metadata()
+            self.assertEqual(data["path"], v.path)
+            self.assertEqual(data["name"], v.name)
+            self.assertEqual(data["ext"], v.ext)
+            self.assertEqual(data["frame_rate"], v.frame_rate)
+            self.assertEqual(data["vfr"], v.vfr)
+            self.assertEqual(data["max_fr"], v.max_fr)
+            self.assertEqual(data["min_fr"], v.min_fr)
+            self.assertEqual(data["avg_fr"], v.avg_fr)
+            self.assertEqual(data["frame_count"], v.frame_count)
+            self.assertEqual(data["duration"], v.duration)
+            self.assertEqual(data["original_size"], v.original_size)
+            self.assertEqual(data["aspect_ratio"], v.aspect_ratio)
+            self.assertEqual(data["audio_channels"], v.audio_channels)
+            self.assertEqual(data["no_audio"], v.no_audio)
+            v.close()
 
     # tests that each chunk setting is working properly
     def test_chunk_settings(self):
@@ -230,7 +255,7 @@ class TestVideo(unittest.TestCase):
                 continue
 
             v = Video(file)
-            v.probe() # get accurate frame count
+            v.probe()  # get accurate frame count
 
             # testing relative time seek
             v.seek(1.5, relative=False)
@@ -301,14 +326,14 @@ class TestVideo(unittest.TestCase):
     # test __str__
     def test_str_magic_method(self):
         videos = {
-                    "<VideoPygame(path=resources/trailer1.mp4)>": Video(VIDEO_PATH),
-                    "<VideoTkinter(path=resources/trailer1.mp4)>": VideoTkinter(VIDEO_PATH),
-                    "<VideoPyglet(path=resources/trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
-                    "<VideoPyQT(path=resources/trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
-                    "<VideoRaylib(path=resources/trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
-                    "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH),
-                    "<VideoWx(path=resources/trailer1.mp4)>" : VideoWx(VIDEO_PATH)
-                }
+            "<VideoPygame(path=resources/trailer1.mp4)>": Video(VIDEO_PATH),
+            "<VideoTkinter(path=resources/trailer1.mp4)>": VideoTkinter(VIDEO_PATH),
+            "<VideoPyglet(path=resources/trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
+            "<VideoPyQT(path=resources/trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
+            "<VideoRaylib(path=resources/trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
+            "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH),
+            "<VideoWx(path=resources/trailer1.mp4)>": VideoWx(VIDEO_PATH)
+        }
 
         for name, v in videos.items():
             self.assertEqual(name, str(v))
@@ -379,7 +404,7 @@ class TestVideo(unittest.TestCase):
         self.assertIsNot(v.frame_surf, None)
 
         self.assertFalse(v.paused)
-        v.stop() # test for exception
+        v.stop()  # test for exception
         v.close()
 
     # tests that set_speed is deprecated
@@ -414,7 +439,7 @@ class TestVideo(unittest.TestCase):
         for file in PATHS:
             v = Video(file)
             if v.name in ("av1",):
-                continue # file is corrupt
+                continue  # file is corrupt
 
             # check that header information was not completely wrong
             self.assertGreater(v.frame_count, 0)
@@ -504,7 +529,7 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v.closed)
         self.assertFalse(v._audio.loaded)
         self.assertTrue(v._vid.released)
-        v.close() # check for exception
+        v.close()  # check for exception
 
     # test common resolutions
     def test_change_resolution(self):
@@ -574,7 +599,7 @@ class TestVideo(unittest.TestCase):
                 timer += dt
                 if timer >= 1000:
                     seconds_elapsed += 1
-                    if frames > 80:    # 80% of the maximum frame rate
+                    if frames > 80:  # 80% of the maximum frame rate
                         passed = True
                         break
                     timer = 0
@@ -589,7 +614,8 @@ class TestVideo(unittest.TestCase):
     @unittest.skip
     def test_many_video_tracks(self):
         v = Video("resources/birds.avi")
-        vids = [Video("resources/manyv.mp4", reader=reader) for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
+        vids = [Video("resources/manyv.mp4", reader=reader) for reader in
+                (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
         for i in range(10):
             frame = next(v)
             for vid in vids:
@@ -606,8 +632,8 @@ class TestVideo(unittest.TestCase):
 
     # test setting audio index for video with no audio tracks
     def test_set_track_no_audio(self):
-        v = Video("resources/16bit.mp4") # should open fine
-        with self.assertRaises(AudioStreamError): # now should crash
+        v = Video("resources/16bit.mp4")  # should open fine
+        with self.assertRaises(AudioStreamError):  # now should crash
             v.set_audio_track(0)
         v.close()
 
@@ -712,7 +738,9 @@ class TestVideo(unittest.TestCase):
     def test_no_audio_detection(self):
         for file in PATHS:
             v = Video(file)
-            self.assertEqual(v.no_audio, v.name in ("60fps", "hdr", "test", "av1", "16bit", "1channel", "5frames", "loop", "loop2"), f"{file} failed unit test")
+            self.assertEqual(v.no_audio,
+                             v.name in ("60fps", "hdr", "test", "av1", "16bit", "1channel", "5frames", "loop", "loop2"),
+                             f"{file} failed unit test")
             v.close()
 
     # tests cv2 and ffmepg resamplers work as intended
@@ -727,22 +755,23 @@ class TestVideo(unittest.TestCase):
         ffmpeg_resampled = v._resize_frame(original_frame, NEW_SIZE, "bicubic", True)
         self.assertFalse(check_same_frames(cv_resampled, ffmpeg_resampled))
 
-        SIZES = ((426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
+        SIZES = (
+        (426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
 
         # test cv resamplers
         for size in SIZES:
             for flag in (cv2.INTER_LINEAR, cv2.INTER_NEAREST, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_AREA):
                 new_frame = v._resize_frame(original_frame, size, flag, False)
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
-                if size == v.original_size:     # check that no resizing occurred
-                   self.assertTrue(check_same_frames(original_frame, new_frame))
+                if size == v.original_size:  # check that no resizing occurred
+                    self.assertTrue(check_same_frames(original_frame, new_frame))
 
         # test ffmpeg resamplers
         for size in SIZES:
             for flag in ("bilinear", "bicubic", "neighbor", "area", "lanczos", "fast_bilinear", "gauss", "spline"):
                 new_frame = v._resize_frame(original_frame, size, flag, True)
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
-                if size == v.original_size:     # check that no resizing occurred
+                if size == v.original_size:  # check that no resizing occurred
                     self.assertTrue(check_same_frames(original_frame, new_frame))
 
         # test no cv
@@ -758,6 +787,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.frame_surf.get_size(), NEW_SIZE)
 
         v.close()
+
     # test chunks_len method
     def test_chunks_length(self):
         v = Video(VIDEO_PATH)
@@ -871,16 +901,17 @@ class TestVideo(unittest.TestCase):
 
     # tests that each video can be opened in vfr mode
     def test_open_vfr(self):
-         for file in PATHS:
-             v = Video(file, vfr=True)
-             self.assertGreater(len(v.timestamps), 0)
-             self.assertTrue(v.vfr, f"{file} failed unit test")
-             v.close()
+        for file in PATHS:
+            v = Video(file, vfr=True)
+            self.assertGreater(len(v.timestamps), 0)
+            self.assertTrue(v.vfr, f"{file} failed unit test")
+            v.close()
 
     # tests that frames appear at the correct timestamps for vfr videos
     def test_vfr(self):
         v = Video("resources/vfr.mp4", vfr=True)
         v._preload_frames()
+
         def update():
             n = v.update()
             timestamp = v._update_time
@@ -895,6 +926,7 @@ class TestVideo(unittest.TestCase):
                         self.assertTrue(timestamp < v.duration)
                     else:
                         self.assertTrue(timestamp < v.timestamps[v.frame])
+
         while_loop(lambda: v.active, update, 30)
         v.close()
 
@@ -952,7 +984,8 @@ class TestVideo(unittest.TestCase):
     def test_preloaded_playback(self):
         v = Video("resources/clip.mp4")
         v._preload_frames()
-        while_loop(lambda: v.frame < 50, lambda: (v.update(), self.assertEqual(v._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)), 3)
+        while_loop(lambda: v.frame < 50,
+                   lambda: (v.update(), self.assertEqual(v._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)), 3)
         v.close()
 
     # tests that an error is raised when bytes is empty
@@ -1012,7 +1045,9 @@ class TestVideo(unittest.TestCase):
                 # randomize surface
                 surf.fill("blue")
                 for i in range(5):
-                    pygame.draw.circle(surf, "red", (random.randrange(0, v.original_size[0]), random.randrange(0, v.original_size[1])), random.randint(1, 5))
+                    pygame.draw.circle(surf, "red", (
+                    random.randrange(0, v.original_size[0]), random.randrange(0, v.original_size[1])),
+                                       random.randint(1, 5))
                 array = pygame.surfarray.array3d(surf)
 
                 drawn = v.draw(surf, (0, 0), force_draw=force_draw)
@@ -1029,18 +1064,18 @@ class TestVideo(unittest.TestCase):
             v.close()
             self.assertEqual(flag, force_draw)
 
-
-
     # tests that the last frame can be achieved
     # performs test by counting rendered frames
     def test_last_frame(self):
         PATH = "resources/5frames.mp4"
         for v in (Video(PATH, vfr=True), Video(PATH), Video(PATH, reverse=True)):
             frames = 0
+
             def update():
                 nonlocal frames
                 if v.update():
                     frames += 1
+
             while_loop(lambda: v.active, update, 8)
             self.assertEqual(frames, 5)
             v.close()
@@ -1068,7 +1103,7 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(v.audio_track, 0)
             with self.assertRaises(AudioStreamError):
                 v.set_audio_track(3)
-            with self.assertRaises(VideoStreamError): # causes an ffmpeg error instead of a null result
+            with self.assertRaises(VideoStreamError):  # causes an ffmpeg error instead of a null result
                 v.set_audio_track(-1)
             with self.assertRaises(AudioStreamError):
                 v.set_audio_track(100)
@@ -1104,7 +1139,7 @@ class TestVideo(unittest.TestCase):
 
         self.assertEqual(v.current_size, ORIGINAL_SIZE)
         v.resize(NEW_SIZE)
-        self.assertEqual(v.current_size,NEW_SIZE)
+        self.assertEqual(v.current_size, NEW_SIZE)
         self.assertEqual(v.original_size, ORIGINAL_SIZE)
 
         # checks that the original aspect ratio was maintained
@@ -1125,8 +1160,6 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.frame_surf.get_size(), ORIGINAL_SIZE)
 
         v.close()
-
-
 
     # tests that frame_surf and frame_data are working properly
     def test_frame_information(self):
@@ -1224,32 +1257,11 @@ class TestVideo(unittest.TestCase):
     def test_get_timestamps(self):
         v = Video(VIDEO_PATH, vfr=True)
         self.assertEqual(v.timestamps[:10], [0.0, 0.041708, 0.083417, 0.125125, 0.166833, 0.208542, 0.25025, 0.291958,
-                                        0.333667, 0.375375])
+                                             0.333667, 0.375375])
         self.assertEqual(v.timestamps[-10:], [66.858458, 66.900167,
-                                        66.941875, 66.983583, 67.025292, 67.067, 67.108708, 67.150417, 67.192125,
-                                        67.233833])
+                                              66.941875, 66.983583, 67.025292, 67.067, 67.108708, 67.150417, 67.192125,
+                                              67.233833])
         v.close()
-
-    # tests the metadata method
-    def test_metadata(self):
-        for file in PATHS:
-            v = Video(file)
-            data = v.get_metadata()
-            self.assertEqual(data["path"], v.path)
-            self.assertEqual(data["name"], v.name)
-            self.assertEqual(data["ext"], v.ext)
-            self.assertEqual(data["frame_rate"], v.frame_rate)
-            self.assertEqual(data["vfr"], v.vfr)
-            self.assertEqual(data["max_fr"], v.max_fr)
-            self.assertEqual(data["min_fr"], v.min_fr)
-            self.assertEqual(data["avg_fr"], v.avg_fr)
-            self.assertEqual(data["frame_count"], v.frame_count)
-            self.assertEqual(data["duration"], v.duration)
-            self.assertEqual(data["original_size"], v.original_size)
-            self.assertEqual(data["aspect_ratio"], v.aspect_ratio)
-            self.assertEqual(data["audio_channels"], v.audio_channels)
-            self.assertEqual(data["no_audio"], v.no_audio)
-            v.close()
 
     # test __str__ from bytes
     def test_bytes_str(self):
@@ -1304,7 +1316,7 @@ class TestVideo(unittest.TestCase):
         for i in range(5):
             rgb_frame = decord_reader.read()[1]
             bgr_frame = ffmpeg_reader.read()[1]
-            self.assertTrue(check_same_frames(rgb_frame[...,::-1], bgr_frame))
+            self.assertTrue(check_same_frames(rgb_frame[..., ::-1], bgr_frame))
 
         # test seeking is the same
         cv_reader.seek(0)
@@ -1323,7 +1335,7 @@ class TestVideo(unittest.TestCase):
         for i in range(5):
             rgb_frame = decord_reader.read()[1]
             bgr_frame = ffmpeg_reader.read()[1]
-            self.assertTrue(check_same_frames(rgb_frame[...,::-1], bgr_frame))
+            self.assertTrue(check_same_frames(rgb_frame[..., ::-1], bgr_frame))
 
         # tests has_frame is the same
         cv_reader.seek(v1.frame_count - 1)
@@ -1379,21 +1391,25 @@ class TestVideo(unittest.TestCase):
         # test each graphics library with exact number of arguments
 
         # test correct args
-        v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO)
+        v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
+                  0, False, "en", None, READER_AUTO)
         v.close()
         for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
-            v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                      0, False, "en", None, READER_AUTO)
+            v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
+                           False,
+                           0, False, "en", None, READER_AUTO)
             v.close()
 
         # test extra args
         with self.assertRaises(TypeError):
-            Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False, 0, False, "en", None, READER_AUTO, "extra_arg")
+            Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
+                  0, False, "en", None, READER_AUTO, "extra_arg")
 
         for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             with self.assertRaises(TypeError):
-                videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                          0, False, "en", None, READER_AUTO, "extra_arg")
+                videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
+                           False,
+                           0, False, "en", None, READER_AUTO, "extra_arg")
 
     # tests that each backend can be forced
     def test_force_readers(self):
@@ -1474,7 +1490,8 @@ class TestVideo(unittest.TestCase):
                 with unittest.mock.patch("pyvidplayer2.video.IIO", 0):
                     with self.assertRaises(ValueError) as context:
                         Video(bytes_, as_bytes=True)
-                    self.assertEqual(str(context.exception), "Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
+                    self.assertEqual(str(context.exception),
+                                     "Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
 
                     with unittest.mock.patch("pyvidplayer2.video.DECORD", 1):
                         v = Video(bytes_, as_bytes=True)
@@ -1531,7 +1548,7 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH)
         success = v.buffer_current()
         self.assertFalse(success)
-        v.close() # no errors, smooth operation
+        v.close()  # no errors, smooth operation
 
     # tests that buffer current works properly
     def test_buffer_current(self):

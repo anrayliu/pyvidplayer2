@@ -1,6 +1,4 @@
-'''
-Object that mimics cv2.VideoCapture to read frames
-'''
+# Object that mimics cv2.VideoCapture to read frames
 
 import numpy as np
 import subprocess
@@ -51,7 +49,8 @@ class FFMPEGReader(VideoReader):
             has = True
             self.frame += 1
 
-        return has, np.frombuffer(b, np.uint8).reshape((self.original_size[1], self.original_size[0], 3)) if has else None
+        return (has,
+                np.frombuffer(b, np.uint8).reshape((self.original_size[1], self.original_size[0], 3)) if has else None)
 
     def seek(self, index):
         self.frame = index
@@ -73,7 +72,7 @@ class FFMPEGReader(VideoReader):
         ]
 
         self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
-        
+
     def release(self):
         self._process.kill()
         VideoReader.release(self)

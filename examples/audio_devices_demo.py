@@ -5,9 +5,8 @@ pip install sounddevice before using
 
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
-
-from pyvidplayer2 import Video 
 import sounddevice
+from pyvidplayer2 import Video
 
 # FOR PYGAME
 # Changing the output device is not related to pyvidplayer2
@@ -26,7 +25,6 @@ import sounddevice
 
 
 print(sounddevice.query_devices())
-
 
 # replace None with the index of the chosen device (first number listed by sd)
 # e.g Video("resources/trailer1.mp4", audio_index=0).preview()

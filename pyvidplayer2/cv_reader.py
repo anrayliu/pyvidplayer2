@@ -16,7 +16,8 @@ class CVReader(VideoReader):
         if not probe:
             self.frame_count = int(self._vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             self.frame_rate = self._vidcap.get(cv2.CAP_PROP_FPS)
-            self.original_size = (int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            self.original_size = (int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                                  int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
             self.duration = self.frame_count / self.frame_rate
 
             # webm videos have negative frame counts
@@ -25,7 +26,7 @@ class CVReader(VideoReader):
 
     def isOpened(self):
         return self._vidcap.isOpened()
-    
+
     def seek(self, index):
         self._vidcap.set(cv2.CAP_PROP_POS_FRAMES, index)
         self.frame = int(self._vidcap.get(cv2.CAP_PROP_POS_FRAMES))

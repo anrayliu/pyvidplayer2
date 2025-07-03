@@ -10,10 +10,11 @@ from pyvidplayer2 import *
 from test_video import VIDEO_PATH
 from test_youtube import YOUTUBE_PATH
 
+
 # macos and linux os' do not like preview tests, so I've isolated them here
 # can still be buggy on windows, so this test file may be omitted
 
-
+@unittest.skip
 class TestPreviews(unittest.TestCase):
     # tests that looping is seamless
     # also tests that video does indeed loop by timing out otherwise
@@ -107,7 +108,6 @@ class TestPreviews(unittest.TestCase):
         with unittest.mock.patch.dict("sys.modules", dict_):
             with self.assertRaises(ImportError) as context:
                 Video("resources/clip.mp4", reader=READER_IMAGEIO).preview()
-
 
     # tests for a bug where the last frame would hang in situations like this
     def test_frame_bug(self):

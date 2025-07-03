@@ -12,7 +12,6 @@ class VideoRaylib(Video):
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
 
-
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
@@ -27,8 +26,8 @@ class VideoRaylib(Video):
         if self.frame_surf is not None:
             pyray.unload_texture(self.frame_surf)
         buffer = io.BytesIO()
-        Image.fromarray(data[...,::-1]).save(buffer, format="BMP")
-        img = pyray.load_image_from_memory(".bmp", buffer.getvalue(), len(buffer.getvalue()))
+        Image.fromarray(data[..., ::-1]).save(buffer, format="BMP")
+        img = pyray.load_image_from_memory(".bmp", str(buffer.getvalue()), len(buffer.getvalue()))
         texture = pyray.load_texture_from_image(img)
         pyray.unload_image(img)
         return texture
@@ -40,7 +39,7 @@ class VideoRaylib(Video):
         return Video.draw(self, None, pos, force_draw)
 
     def preview(self, max_fps: int = 60) -> None:
-        pyray.init_window(*self.original_size,f"raylib - {self.name}")
+        pyray.init_window(self.original_size[0], self.original_size[1], f"raylib - {self.name}")
         pyray.set_target_fps(max_fps)
         self.play()
         while not pyray.window_should_close() and self.active:

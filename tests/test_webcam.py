@@ -146,7 +146,8 @@ class TestWebcam(unittest.TestCase):
 
         w = Webcam()
 
-        SIZES = ((426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
+        SIZES = (
+        (426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
 
         for size in SIZES:
             for flag in (cv2.INTER_LINEAR, cv2.INTER_NEAREST, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_AREA):
@@ -156,6 +157,7 @@ class TestWebcam(unittest.TestCase):
 
         v.close()
         w.close()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -20,10 +20,11 @@ class Subtitles:
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
 
-    def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int]] = "white", highlight: Tuple[int, int, int, int] = (0, 0, 0, 128), 
+    def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int, int]] = "white",
+                 highlight: Union[str, pygame.Color, Tuple[int, int, int, int]] = (0, 0, 0, 128),
                  font: Union[pygame.font.SysFont, pygame.font.Font] = None, encoding: str = "utf-8", offset: int = 50,
                  delay: float = 0, youtube: bool = False, pref_lang: str = "en", track_index: int = None) -> None:
-        
+
         self.path = path
         self.track_index = track_index
         self.encoding = encoding
@@ -37,7 +38,8 @@ class Subtitles:
                 self.buffer = self._extract_youtube_subs()
             else:
 
-                raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. YTDLP can be installed via pip.")
+                raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. "
+                                          "YTDLP can be installed via pip.")
         else:
             if not os.path.exists(self.path):
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
@@ -60,11 +62,10 @@ class Subtitles:
         self.delay = delay
 
         self.colour = colour
-        self.highlight = highlight 
+        self.highlight = highlight
 
         self.font = None
         self.set_font(pygame.font.SysFont("arial", 30) if font is None else font)
-
 
     def __str__(self):
         return f"<Subtitles(path={self.path})>"
@@ -75,7 +76,8 @@ class Subtitles:
                 return iter(pysubs2.SSAFile.from_string(self.buffer))
             return iter(pysubs2.load(self.path, encoding=self.encoding))
         except (pysubs2.exceptions.FormatAutodetectionError, UnicodeDecodeError):
-            raise SubtitleError("Could not load subtitles. Unknown format or corrupt file. Check that the proper encoding format is set.")
+            raise SubtitleError("Could not load subtitles. Unknown format or corrupt file. "
+                                "Check that the proper encoding format is set.")
 
     def _to_surf(self, text):
         h = self.font.get_height()
@@ -109,7 +111,7 @@ class Subtitles:
 
     def _extract_youtube_subs(self):
         cfg = {
-            "quiet":True,
+            "quiet": True,
             "skip_download": True,
             "writeautomaticsub": True,
             "subtitleslangs": [self.pref_lang],
@@ -144,7 +146,9 @@ class Subtitles:
         else:
             self.start = s.start / 1000 + self.delay
             self.end = s.end / 1000 + self.delay
-            self.text = (re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "", s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext).replace("[&nbsp;__&nbsp;]", "[__]") if self._auto_cap else s.plaintext).strip()
+            self.text = (re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "",
+                                s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext).replace(
+                "[&nbsp;__&nbsp;]", "[__]") if self._auto_cap else s.plaintext).strip()
             if self.text != "":
                 self.surf = self._to_surf(self.text)
             return True
@@ -162,8 +166,9 @@ class Subtitles:
                 break
 
     def _write_subs(self, surf):
-        surf.blit(self.surf, (surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
-        
+        surf.blit(self.surf, (
+        surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
+
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
         """
         Accepts a pygame font object to use to render subtitles. Same as font parameter.

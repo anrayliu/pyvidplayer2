@@ -23,6 +23,13 @@ else:
     from .video_pyside import VideoPySide
 
 try:
+    import PyQt6
+except ImportError:
+    pass
+else:
+    from .video_pyqt import VideoPyQT
+
+try:
     import pyray
 except ImportError:
     pass

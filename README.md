@@ -1,8 +1,9 @@
 # pyvidplayer2 (please report all bugs)
 
 [![PyPI Version](https://img.shields.io/pypi/v/pyvidplayer2?logo=pypi&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/pyvidplayer2?logo=pypi&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
-[![PyPI Monthly Downloads](https://img.shields.io/pypi/dw/pyvidplayer2?logo=pypi&logoColor=white)](https://pypistats.org/packages/pyvidplayer2)
+[![PyPI Downloads](https://static.pepy.tech/badge/pyvidplayer2)](https://pepy.tech/projects/pyvidplayer2)
+[![PyPI Monthly Downloads](https://static.pepy.tech/badge/pyvidplayer2/month)](https://pepy.tech/projects/pyvidplayer2)
+[![PyPI Weekly Downloads](https://static.pepy.tech/badge/pyvidplayer2/week)](https://pepy.tech/projects/pyvidplayer2)
 [![GitHub Stars](https://img.shields.io/github/stars/anrayliu/pyvidplayer2?style=round-square&logo=github)](https://github.com/anrayliu/pyvidplayer2/stargazers)  
 [![License](https://img.shields.io/github/license/anrayliu/pyvidplayer2)](https://github.com/anrayliu/pyvidplayer2/blob/main/LICENSE)
 [![Status](https://img.shields.io/pypi/status/pyvidplayer2)](https://pypi.org/project/pyvidplayer2/)

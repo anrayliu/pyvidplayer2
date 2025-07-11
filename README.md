@@ -1,4 +1,4 @@
-# pyvidplayer2 (please report all bugs)
+![logo](logo.png)
 
 [![PyPI Version](https://img.shields.io/pypi/v/pyvidplayer2?logo=pypi&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
 [![PyPI Downloads](https://static.pepy.tech/badge/pyvidplayer2)](https://pepy.tech/projects/pyvidplayer2)

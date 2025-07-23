@@ -337,8 +337,8 @@ class Video:
             p = subprocess.Popen(command, stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError(
-                "Could not find FFPROBE (should be bundled with FFMPEG). "
-                "Make sure FFPROBE is installed and accessible via PATH.")
+                "Could not find FFprobe (should be bundled with FFmpeg). "
+                "Make sure FFprobe is installed and accessible via PATH.")
 
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 
@@ -931,8 +931,8 @@ class Video:
                 stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError(
-                "Could not find FFPROBE (should be bundled with FFMPEG). "
-                "Make sure FFPROBE is installed and accessible via PATH.")
+                "Could not find FFprobe (should be bundled with FFmpeg). "
+                "Make sure FFprobe is installed and accessible via PATH.")
 
         info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
 

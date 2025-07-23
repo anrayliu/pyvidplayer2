@@ -40,7 +40,7 @@ class VideoReader:
             p = subprocess.Popen(command, stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError(
-                "Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+                "Could not find FFprobe (should be bundled with FFmpeg). Make sure FFprobe is installed and accessible via PATH.")
 
         info = json.loads(p.communicate(input=path if as_bytes else None)[0])
 
@@ -65,7 +65,7 @@ class VideoReader:
                 stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FileNotFoundError(
-                "Could not find FFPROBE (should be bundled with FFMPEG). Make sure FFPROBE is installed and accessible via PATH.")
+                "Could not find FFprobe (should be bundled with FFmpeg). Make sure FFprobe is installed and accessible via PATH.")
 
         info = json.loads(p.communicate(input=path if as_bytes else None)[0])["format"]
         self.duration = float(info["duration"])

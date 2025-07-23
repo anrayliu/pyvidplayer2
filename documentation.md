@@ -1,6 +1,6 @@
 # Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=720, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None, reader=pyvidplayer2.READER_AUTO)
 
-Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFMPEG
+Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFmpeg
 to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the
 appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio (see `use_pygame_audio`
 below). Pygame or Pygame CE are the only graphics libraries to support subtitles. `ytdlp` is required to stream videos
@@ -423,5 +423,5 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 print(pyvidplayer2.get_version_info())
 ```
 
-Returns a dictionary with the version of pyvidplayer2, FFMPEG, and Pygame. Version can also be accessed directly
+Returns a dictionary with the version of pyvidplayer2, FFmpeg, and Pygame. Version can also be accessed directly
 with `pyvidplayer2.__version__` or `pyvidplayer2.VERSION`.

@@ -22,7 +22,7 @@ win = pygame.display.set_mode(webcam.current_size, pygame.NOFRAME)
 pygame.display.set_caption("webcam app demo")
 clock = pygame.time.Clock()
 
-dragging = False 
+dragging = False
 temp_pos = (0, 0)
 window_rect = pygame.Rect(win32api.GetSystemMetrics(0) - win.get_width(), win32api.GetSystemMetrics(1) - win.get_height() - 48, *win.get_size())
 shell = Dispatch("WScript.Shell") # required workaround for a windows bug
@@ -41,20 +41,20 @@ while True:
             pygame.quit()
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            dragging = True 
+            dragging = True
             temp_pos = pygame.mouse.get_pos()
         elif event.type == pygame.MOUSEMOTION:
             mouse_movement = event.pos
 
     if dragging:
         if not pygame.mouse.get_pressed()[0]:
-            dragging = False 
+            dragging = False
         elif mouse_movement != (0, 0):
-                window_rect.x += mouse_movement[0] - temp_pos[0]
-                window_rect.y += mouse_movement[1] - temp_pos[1]
-            
-                # moves window while keeping topmost
-                win32gui.SetWindowPos(HWND, win32con.HWND_TOPMOST, *window_rect, win32con.SWP_NOSIZE)
+            window_rect.x += mouse_movement[0] - temp_pos[0]
+            window_rect.y += mouse_movement[1] - temp_pos[1]
+
+            # moves window while keeping topmost
+            win32gui.SetWindowPos(HWND, win32con.HWND_TOPMOST, *window_rect, win32con.SWP_NOSIZE)
 
     # keeps the webcam focused when hovered over for seamless dragging
     try:
@@ -70,9 +70,9 @@ while True:
             win32gui.SetForegroundWindow(HWND)
         except:
             pass
-    
+
     clock.tick(60)
-    
+
     webcam.draw(win, (0, 0), force_draw=False)
-    
+
     pygame.display.update()

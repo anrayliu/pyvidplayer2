@@ -5,8 +5,8 @@ This is an example showing how to add subtitles to a video
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
-from pyvidplayer2 import Subtitles, Video
 from pygame import Font
+from pyvidplayer2 import Subtitles, Video
 
 
 # regular subtitles playback

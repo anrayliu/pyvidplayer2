@@ -21,9 +21,9 @@ while True:
             webcam.close()
             pygame.quit()
             exit()
-    
+
     clock.tick(60)
-    
+
     webcam.draw(win, (0, 0), force_draw=False)
-    
+
     pygame.display.update()

@@ -31,9 +31,9 @@ while True:
             vid2.close()
             pygame.quit()
             exit()
-    
+
     pygame.time.wait(16)
-        
+
     vid1.draw(win, (0, 0))
     vid2.draw(win, (640, 0))
 

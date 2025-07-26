@@ -26,10 +26,10 @@ while True:
             exit()
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
-    
+
     #your program frame rate does not affect video playback
     clock.tick(60)
-    
+
     if key == "r":
         vid.restart()           #rewind video to beginning
     elif key == "p":
@@ -42,12 +42,12 @@ while True:
         vid.set_volume(1.0)     #max volume
     elif key == "down":
         vid.set_volume(0.0)     #min volume
-        
+
     # 2. draw the video to the given surface, at the given position
 
     # with force_draw=False, only new frames will be drawn, saving
     # resources by not drawing already existing frames
 
     vid.draw(win, (0, 0), force_draw=False)
-    
+
     pygame.display.update()

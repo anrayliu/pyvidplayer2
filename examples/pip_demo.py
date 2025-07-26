@@ -41,7 +41,7 @@ while True:
         if event.type == pygame.QUIT:
             vid.close()
             pygame.quit()
-            quit() 
+            quit()
 
     clock.tick(60)
 
@@ -50,7 +50,7 @@ while True:
     try:
         touching = pygame.Rect(GetWindowRect(hwnd)).collidepoint(GetCursorPos())
     except: # windows is buggy
-        touching = False 
+        touching = False
 
     if touching and GetForegroundWindow() != hwnd:
 
@@ -60,7 +60,7 @@ while True:
         try:
             SetForegroundWindow(hwnd)
         except: # catches weird errors
-            pass    
+            pass
 
     # handles video playback
 

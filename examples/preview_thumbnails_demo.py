@@ -36,10 +36,10 @@ while True:
             player.close()
             pygame.quit()
             exit()
-    
+
     pygame.time.wait(16)
-    
+
     player.update(events)
     player.draw(win)
-    
+
     pygame.display.update()

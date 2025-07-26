@@ -26,9 +26,9 @@ while True:
             exit()
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             player.video.restart()
-    
+
     pygame.time.wait(16)
-    
+
     player.update(events)
     player.draw(win)
 

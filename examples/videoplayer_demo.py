@@ -35,14 +35,14 @@ while True:
             player.resize(win.get_size())
 
     pygame.time.wait(16)
-    
+
     win.fill("white")
 
     # 2. update video player with events list
     player.update(events)
     # 3. draw video player
     player.draw(win)
-    
+
     pygame.display.update()
 
 # alternatively, use VideoPlayer.preview()

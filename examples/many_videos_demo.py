@@ -13,7 +13,7 @@ pygame.display.set_caption("many videos demo")
 
 # simultaneous playback is only possible when using PyAudio for audio
 
-videos = [VideoPlayer(Video(r"resources\billiejean.mp4"), (0, 0, 426, 240),),
+videos = [VideoPlayer(Video(r"resources\billiejean.mp4"), (0, 0, 426, 240)),
           VideoPlayer(Video(r"resources\trailer1.mp4"), (426, 0, 256, 144)),
           VideoPlayer(Video(r"resources\medic.mov"), (682, 0, 256, 144)),
           VideoPlayer(Video(r"resources\trailer2.mp4"), (426, 144, 640, 360)),
@@ -30,11 +30,11 @@ while True:
             exit()
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
-    
+
     pygame.time.wait(16)
-    
+
     win.fill("white")
-    
+
     [video.update() for video in videos]
     [video.draw(win) for video in videos]
 

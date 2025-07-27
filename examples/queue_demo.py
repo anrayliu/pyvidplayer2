@@ -37,10 +37,10 @@ while True:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             # skips a video in the queue
             vid.skip()
-    
+
     pygame.time.wait(16)
-    
+
     vid.update(events)
     vid.draw(win)
-    
+
     pygame.display.update()

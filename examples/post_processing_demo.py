@@ -27,7 +27,9 @@ videos = [Video(PATH, post_process=PostProcessing.sharpen),
           Video(PATH, post_process=PostProcessing.blur)]
 
 font = pygame.font.SysFont("arial", 30)
-surfs = [font.render("Sharpen", True, "white"), font.render("Normal", True, "white"), font.render("Blur", True, "white")]
+surfs = [font.render("Sharpen", True, "white"),
+         font.render("Normal", True, "white"),
+         font.render("Blur", True, "white")]
 
 
 while True:
@@ -39,9 +41,9 @@ while True:
             exit()
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
-    
+
     pygame.time.wait(16)
-        
+
     for i, surf in enumerate(surfs):
         x = 320 * i
         videos[i].draw(win, (x, 0))

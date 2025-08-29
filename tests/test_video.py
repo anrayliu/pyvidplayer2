@@ -1248,7 +1248,7 @@ class TestVideo(unittest.TestCase):
 
     # tests different ways to accessing version
     def test_version(self):
-        VER = "0.9.27"
+        VER = "0.9.28"
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)
         self.assertEqual(VER, get_version_info()["pyvidplayer2"])

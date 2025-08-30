@@ -8,29 +8,37 @@ from .error import *
 
 
 class FFMPEGReader(VideoReader):
-    def __init__(self, path, probe=True):
+    def __init__(self, path, probe=True, cuda_device=None):
         VideoReader.__init__(self, path, probe)
+
+        self.cuda_device = cuda_device
 
         self._colour_format = "BGR"
 
+        self._path = path
+
         try:
-            command = [
-                "ffmpeg",
-                # "-c:v", "h264_cuvid",
-                "-i", path,
-                "-loglevel", FFMPEG_LOGLVL,
-                "-map", "0:v:0",
-                "-f", "rawvideo",
-                "-vf", "format=bgr24",
-                "-sn",
-                "-an",
-                "-"
-            ]
+            command = self._get_command()
+
             self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
-        self._path = path
+    def _get_command(self, index=None):
+        return [
+            "ffmpeg",
+            *(["-hwaccel", "cuda"] if self.cuda_device is not None else []),  # nvidia hardware acceleration
+            *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device is not None else []), # select device
+            *(["-ss", self._convert_seconds(index / self.frame_rate)] if index is not None else []),
+            "-i", self._path,
+            "-loglevel", FFMPEG_LOGLVL,
+            "-map", "0:v:0",
+            "-f", "rawvideo",
+            "-vf", "format=bgr24",
+            "-sn",
+            "-an",
+            "-"
+        ]
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
@@ -57,21 +65,7 @@ class FFMPEGReader(VideoReader):
         self._process.kill()
         # uses input seeking for very fast reading
 
-        command = [
-            "ffmpeg",
-            "-ss", self._convert_seconds(index / self.frame_rate),
-            # "-c:v", "h264_cuvid",
-            "-i", self._path,
-            "-loglevel", FFMPEG_LOGLVL,
-            "-map", "0:v:0",
-            "-f", "rawvideo",
-            "-vf", "format=bgr24",
-            "-sn",
-            "-an",
-            "-"
-        ]
-
-        self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
+        self._process = subprocess.Popen(self._get_command(index=index), stdout=subprocess.PIPE)
 
     def release(self):
         self._process.kill()

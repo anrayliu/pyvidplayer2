@@ -8,7 +8,7 @@ from .error import *
 
 
 class FFMPEGReader(VideoReader):
-    def __init__(self, path, probe=True, cuda_device=None):
+    def __init__(self, path, probe=True, cuda_device=-1):
         VideoReader.__init__(self, path, probe)
 
         self.cuda_device = cuda_device
@@ -27,8 +27,8 @@ class FFMPEGReader(VideoReader):
     def _get_command(self, index=None):
         return [
             "ffmpeg",
-            *(["-hwaccel", "cuda"] if self.cuda_device is not None else []),  # nvidia hardware acceleration
-            *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device is not None else []), # select device
+            *(["-hwaccel", "cuda"] if self.cuda_device >= 0 else []),  # nvidia hardware acceleration
+            *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device >= 0 else []), # select device
             *(["-ss", self._convert_seconds(index / self.frame_rate)] if index is not None else []),
             "-i", self._path,
             "-loglevel", FFMPEG_LOGLVL,

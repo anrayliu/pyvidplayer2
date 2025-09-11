@@ -1392,24 +1392,24 @@ class TestVideo(unittest.TestCase):
 
         # test correct args
         v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                  0, False, "en", None, READER_AUTO)
+                  0, False, "en", None, READER_AUTO, -1)
         v.close()
         for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,
-                           0, False, "en", None, READER_AUTO)
+                           0, False, "en", None, READER_AUTO, -1)
             v.close()
 
         # test extra args
         with self.assertRaises(TypeError):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                  0, False, "en", None, READER_AUTO, "extra_arg")
+                  0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
         for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,
-                           0, False, "en", None, READER_AUTO, "extra_arg")
+                           0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
     # tests that each backend can be forced
     def test_force_readers(self):

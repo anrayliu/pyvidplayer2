@@ -31,6 +31,7 @@ function is now redundant.
 - Low CPU usage
 - No audio/video sync issues
 - Unlocked frame rate
+- Nvidia hardware acceleration (AMD coming soon)
 - Supports GIFs!
 - Can play a huge variety of video formats
 - Play variable frame rate videos (VFR)

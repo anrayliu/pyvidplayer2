@@ -56,10 +56,14 @@ class TestYoutubeVideo(unittest.TestCase):
             v.close()
             time.sleep(0.1)  # prevents spamming youtube
 
-    # test opens the first 5 trending youtube videos
-    # this test can fail due to multiple reasons, such as if a video requires an age authorization
+    # test opens 5 long youtube videos
     def test_youtube(self):
-        for url in get_youtube_urls():
+        urls = ["https://www.youtube.com/watch?v=rfscVS0vtbw",
+                "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=1115s",
+                "https://www.youtube.com/watch?v=HXV3zeQKqGY",
+                "https://www.youtube.com/watch?v=KJgsSFOSQv0&t=1270s",
+                "https://www.youtube.com/watch?v=vLnPwxZdW4Y"]
+        for url in urls:
             v = Video(url, youtube=True, max_res=360)
             self.assertTrue(v._audio_path.startswith("https"))
             self.assertTrue(v.path.startswith("https"))

@@ -1584,6 +1584,26 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # tests that cuda device is properly configured
+    def test_cuda_device(self):
+        # open video without ffmpeg reader to test for exceptions
+        v = Video(VIDEO_PATH, cuda_device=1)
+        v.close()
+
+        v = Video(VIDEO_PATH, cuda_device=0, reader=READER_FFMPEG)
+
+        self.assertEqual(v._vid.cuda_device, 0)
+
+        # test that frame decoding uses cuda
+        self.assertTrue("cuda" in v._vid._get_command())
+
+        v.close()
+
+        v = Video(VIDEO_PATH, reader=READER_FFMPEG)
+        self.assertEqual(v._vid.cuda_device, -1)
+        self.assertFalse("cuda" in v._vid._get_command())
+
+        v.close()
 
 if __name__ == "__main__":
     unittest.main()

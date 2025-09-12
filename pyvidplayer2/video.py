@@ -97,7 +97,8 @@ class Video:
                 # sets path and audio path for cv2 and ffmpeg
                 # also sets name and ext
                 self._set_stream_url(path, max_res)
-                self._vid = reader(self.path, cuda_device=cuda_device) if reader == FFMPEGReader else reader(self.path)
+                # cannot use ffmpeg reader and therefore cuda device here
+                self._vid = reader(self.path)
             else:
                 raise ModuleNotFoundError(
                     "Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
@@ -109,7 +110,8 @@ class Video:
                 max_threads = 1
 
         elif as_bytes:
-            self._vid = reader(self.path, cuda_device=cuda_device) if reader == FFMPEGReader else reader(self.path)
+            # cannot use ffmpeg reader and therefore cuda device here
+            self._vid = reader(self.path)
             self._audio_path = "-"  # read from pipe
 
         else:

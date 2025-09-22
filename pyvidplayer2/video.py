@@ -74,7 +74,7 @@ READER_DECORD = 4
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse,
                  no_audio, speed,
-                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader):
+                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device):
 
         self._audio_path = path  # used for audio only when streaming
         self.path = path
@@ -87,6 +87,9 @@ class Video:
 
         self.pref_lang = pref_lang
 
+        # default -1 for no cuda hw acceleration
+        self.cuda_device = cuda_device
+
         # determines correct backend here
         reader = self._get_best_reader(youtube, as_bytes, reader)
         if youtube:
@@ -94,6 +97,7 @@ class Video:
                 # sets path and audio path for cv2 and ffmpeg
                 # also sets name and ext
                 self._set_stream_url(path, max_res)
+                # cannot use ffmpeg reader and therefore cuda device here
                 self._vid = reader(self.path)
             else:
                 raise ModuleNotFoundError(
@@ -106,6 +110,7 @@ class Video:
                 max_threads = 1
 
         elif as_bytes:
+            # cannot use ffmpeg reader and therefore cuda device here
             self._vid = reader(self.path)
             self._audio_path = "-"  # read from pipe
 
@@ -113,7 +118,7 @@ class Video:
             if not os.path.exists(self.path):
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
 
-            self._vid = reader(self.path)
+            self._vid = reader(self.path, cuda_device=cuda_device) if reader == FFMPEGReader else reader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
 
         if not self._vid.isOpened() and CV:

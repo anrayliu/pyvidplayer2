@@ -1,4 +1,4 @@
-# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=720, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None, reader=pyvidplayer2.READER_AUTO)
+# Video(path, chunk_size=10, max_threads=1, max_chunks=1, subs=None, post_process=PostProcessing.none, interp="linear", use_pygame_audio=False, reverse=False, no_audio=False, speed=1, youtube=False, max_res=720, as_bytes=False, audio_track=0, vfr=False, pref_lang="en", audio_index=None, reader=pyvidplayer2.READER_AUTO, cuda_device=-1)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from Youtube. The object uses FFmpeg
 to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the
@@ -63,6 +63,11 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   `pyvidplayer2.READER_FFMPEG`. Note that their respective packages must be installed to use. Also, the colour format
   varies between readers. `READER_OPENCV` and `READER_FFMPEG` use BGR while `READER_IMAGEIO` and `READER_DECORD` use
   RGB (see `colour_format` below). This is a simply a fundamental difference in the native libraries.
+- `cuda_device: int` - Specifies which Nvidia GPU to use for hardware acceleration. First GPU device is `0`, second is `1`,
+  etc. Default is `-1`, which disables hardware acceleration. Note: this may not result in significant performance gains
+  because all the currently supported graphics libraries must convert video frames with CPU for software rendering. However,
+  in certain situations, such as video seeking where the bottleneck is video decoding instead of rendering, this can
+  increase performance. AMD GPU support to come in the future.
 
 ## Attributes
 
@@ -122,6 +127,7 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   unexpected behaviour.
 - `colour_format: str` - Whatever colour format the current backend is reading in. OpenCV and FFmpeg use BGR, while
   Decord and ImageIO use RGB.
+- `cuda_device: int` - Same as given argument.
 
 ## Methods
 

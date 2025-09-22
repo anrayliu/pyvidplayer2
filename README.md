@@ -25,6 +25,7 @@ function is now redundant.
 - Low CPU usage
 - No audio/video sync issues
 - Unlocked frame rate
+- Nvidia hardware acceleration (AMD coming soon)
 - Supports GIFs!
 - Can play a huge variety of video formats
 - Play variable frame rate videos (VFR)
@@ -257,7 +258,12 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   `pyvidplayer2.READER_FFMPEG`. Note that their respective packages must be installed to use. Also, the colour format
   varies between readers. `READER_OPENCV` and `READER_FFMPEG` use BGR while `READER_IMAGEIO` and `READER_DECORD` use
   RGB (see `colour_format` below). This is a simply a fundamental difference in the native libraries.
-
+- `cuda_device: int` - Specifies which Nvidia GPU to use for hardware acceleration. First GPU device is `0`, second is `1`,
+  etc. Default is `-1`, which disables hardware acceleration. Note: this may not result in significant performance gains
+  because all the currently supported graphics libraries must convert video frames with CPU for software rendering. However,
+  in certain situations, such as video seeking where the bottleneck is video decoding instead of rendering, this can
+  increase performance. AMD GPU support to come in the future.
+- 
 ## Attributes
 
 - `path: str | bytes` - Same as given argument.
@@ -316,6 +322,7 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   unexpected behaviour.
 - `colour_format: str` - Whatever colour format the current backend is reading in. OpenCV and FFmpeg use BGR, while
   Decord and ImageIO use RGB.
+- `cuda_device: int` - Same as given argument.
 
 ## Methods
 

@@ -17,10 +17,10 @@ class VideoPySide(Video):
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
                  no_audio: bool = False, speed: float = 1, youtube: bool = False,
                  max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO) -> None:
+                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
 
     def _create_frame(self, data):
         # only BGR and RGB formats in readers right now

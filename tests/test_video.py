@@ -1248,7 +1248,7 @@ class TestVideo(unittest.TestCase):
 
     # tests different ways to accessing version
     def test_version(self):
-        VER = "0.9.27"
+        VER = "0.9.28"
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)
         self.assertEqual(VER, get_version_info()["pyvidplayer2"])
@@ -1392,24 +1392,24 @@ class TestVideo(unittest.TestCase):
 
         # test correct args
         v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                  0, False, "en", None, READER_AUTO)
+                  0, False, "en", None, READER_AUTO, -1)
         v.close()
         for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,
-                           0, False, "en", None, READER_AUTO)
+                           0, False, "en", None, READER_AUTO, -1)
             v.close()
 
         # test extra args
         with self.assertRaises(TypeError):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                  0, False, "en", None, READER_AUTO, "extra_arg")
+                  0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
         for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,
-                           0, False, "en", None, READER_AUTO, "extra_arg")
+                           0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
     # tests that each backend can be forced
     def test_force_readers(self):
@@ -1584,6 +1584,26 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # tests that cuda device is properly configured
+    def test_cuda_device(self):
+        # open video without ffmpeg reader to test for exceptions
+        v = Video(VIDEO_PATH, cuda_device=1)
+        v.close()
+
+        v = Video(VIDEO_PATH, cuda_device=0, reader=READER_FFMPEG)
+
+        self.assertEqual(v._vid.cuda_device, 0)
+
+        # test that frame decoding uses cuda
+        self.assertTrue("cuda" in v._vid._get_command())
+
+        v.close()
+
+        v = Video(VIDEO_PATH, reader=READER_FFMPEG)
+        self.assertEqual(v._vid.cuda_device, -1)
+        self.assertFalse("cuda" in v._vid._get_command())
+
+        v.close()
 
 if __name__ == "__main__":
     unittest.main()

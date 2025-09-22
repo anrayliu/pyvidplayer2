@@ -16,10 +16,10 @@ class VideoPygame(Video):
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
                  no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 720,
                  as_bytes: bool = False, audio_track: int = 0, vfr: bool = False, pref_lang: str = "en",
-                 audio_index: int = None, reader: int = READER_AUTO) -> None:
+                 audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
 
     def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), (data.shape[1], data.shape[0]), self._vid._colour_format)

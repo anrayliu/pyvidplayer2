@@ -1,6 +1,6 @@
 numpy
 opencv_python
-pygame
+pygame-ce
 PyAudio
 pysubs2
 yt_dlp

@@ -1,5 +1,5 @@
 numpy
 opencv_python
-pygame
+pygame-ce
 pysubs2
 PyAudio

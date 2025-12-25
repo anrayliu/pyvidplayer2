@@ -15,7 +15,7 @@ requires-python = ">=3.8"
 dependencies = [
     "numpy",
     "opencv-python",
-    "pygame",
+    "pygame-ce",
     "pysubs2",
     "PyAudio"
 ]
@@ -33,14 +33,15 @@ classifiers = [
 "Programming Language :: Python :: 3.10",
 "Programming Language :: Python :: 3.11",
 "Programming Language :: Python :: 3.12",
-"Programming Language :: Python :: 3.13"
+"Programming Language :: Python :: 3.13",
+"Programming Language :: Python :: 3.14"
 ]
 
 [project.optional-dependencies]
 all = [
         "numpy",
         "opencv-python",
-        "pygame",
+        "pygame-ce",
         "PyAudio",
         "pysubs2",
         "yt-dlp",

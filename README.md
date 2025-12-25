@@ -104,7 +104,7 @@ Use `pip install pyvidplayer2[all]` to install everything.
 
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
-pygame          (graphics and audio library, comes installed)
+pygame-ce       (graphics and audio library, comes installed)
 PyAudio         (better audio library, comes installed)
 pysubs2         (for subtitles, comes installed)
 yt_dlp          (for streaming Youtube videos)

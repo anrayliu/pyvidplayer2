@@ -10,4 +10,4 @@ If you want to contribute something that's not there, open a feature request iss
 - [ ] If it's a new feature, has an [example](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) been added?
 - [ ] Do *most* of the [unit tests](https://github.com/anrayliu/pyvidplayer2/blob/main/tests/readme.txt) pass? Some can be inconsistent, so if there's a comment about that, it shouldn't be a big deal.
 
-Any bit helps!
+Every bit helps!

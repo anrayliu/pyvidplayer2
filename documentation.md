@@ -1,4 +1,4 @@
-# *class* Video
+# *class* Video(path: str, **kwargs)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from YouTube. The object uses FFmpeg
 to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the
@@ -224,7 +224,7 @@ with Video("example.mp4") as vid:
     vid.preview()
 ```
 
-# *class* VideoPlayer
+# *class* VideoPlayer(video: pyvidplayer2.VideoPygame, rect: Tuple[int, int, int, int], **kwargs)
 
 VideoPlayers are GUI containers for videos. They are useful for scaling a video to fit an area or looping videos. Only
 supported for Pygame.
@@ -282,7 +282,7 @@ supported for Pygame.
 - `get_video() -> pyvidplayer2.VideoPygame` - Returns currently playing video.
 - `preview(max_fps: int = 60)` - Similar to `Video.preview()`. Gives a quick and easy demo of the class.
 
-# *class* Subtitles
+# *class* Subtitles(path: str, **kwargs)
 
 Object used for handling subtitles. Pass this into a `Video` object. Only supported for Pygame.
 
@@ -330,7 +330,7 @@ Object used for handling subtitles. Pass this into a `Video` object. Only suppor
 - `set_font(font: pygame.font.Font | pygame.font.SysFont) -> None` - Same as `font` parameter.
 - `get_font() -> pygame.font.Font | pygame.font.SysFont`
 
-# *class* Webcam
+# *class* Webcam(**kwargs)
 
 Object used for displaying a webcam feed. Only supported for Pygame.
 

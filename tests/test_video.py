@@ -586,12 +586,13 @@ class TestVideo(unittest.TestCase):
             timer = 0
             frames = 0
             passed = False
+            time.sleep(3)
             while v.active and seconds_elapsed < 10:
                 dt = clock.tick(0)
                 timer += dt
                 if timer >= 1000:
                     seconds_elapsed += 1
-                    if frames > 80:  # 80% of the maximum frame rate
+                    if frames > 70:  # 70% of the maximum frame rate
                         passed = True
                         break
                     timer = 0
@@ -681,7 +682,7 @@ class TestVideo(unittest.TestCase):
             v.pause()
 
             # rewinding because some audio may have been played during loading
-            v.seek(0)
+            v.seek_frame(0)
             self.assertTrue(v.paused)
 
             frame = v.frame

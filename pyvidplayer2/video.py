@@ -973,8 +973,7 @@ class Video:
         """
         Returns the current video timestamp in seconds (float).
         """
-        return self._starting_time + max(0,
-                                         self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
+        return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True) -> None:
         """

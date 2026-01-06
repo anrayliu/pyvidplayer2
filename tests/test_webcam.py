@@ -52,10 +52,11 @@ class TestWebcam(unittest.TestCase):
         self.assertEqual(w.original_size, (640, 480))
         self.assertEqual(w.current_size, (1920, 1080))
         self.assertEqual(w.frame_data.shape, (1080, 1920, 3))
-        w.change_resolution(480)
+        new_w = w.change_resolution(480)
         self.assertEqual(w.original_size, (640, 480))
         self.assertEqual(w.current_size, (640, 480))
         self.assertEqual(w.frame_data.shape, (480, 640, 3))
+        self.assertEqual(new_w, 640)
         w.close()
 
     # tests webcam position accuracy

@@ -56,6 +56,7 @@ class TestVideoPlayer(unittest.TestCase):
         vp = VideoPlayer(v, (0, 0, *v.original_size))
         self.assertIs(vp.video, v)
         self.assertIs(vp.get_video(), v)
+        self.assertEqual(vp.font_size, 10)
         self.assertEqual(vp.vid_rect, pygame.Rect(0, 0, v.original_size[0], v.original_size[1]))
         self.assertEqual(vp.frame_rect, pygame.Rect(0, 0, v.original_size[0], v.original_size[1]))
         self.assertFalse(vp.interactable)

@@ -1,5 +1,5 @@
-import pygame
 from io import BytesIO
+import pygame
 
 
 class MixerHandler:

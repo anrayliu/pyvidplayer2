@@ -1,10 +1,10 @@
 import io
+from typing import Callable, Union, Tuple
 import pyray
 import numpy as np
-from typing import Callable, Union, Tuple
+from PIL import Image
 from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
-from PIL import Image
 
 
 class VideoRaylib(Video):

@@ -1,7 +1,6 @@
 # Object that mimics cv2.VideoCapture to read frames
-
-import numpy as np
 import subprocess
+import numpy as np
 from . import FFMPEG_LOGLVL
 from .video_reader import VideoReader
 from .error import *

@@ -1,6 +1,6 @@
-import pygame
 import math
 from typing import Tuple, Union, List
+import pygame
 from . import Video
 from .error import *
 from .video_pygame import VideoPygame

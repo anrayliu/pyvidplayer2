@@ -2,9 +2,9 @@ import subprocess
 import os
 import json
 from abc import abstractmethod
-import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
+import numpy as np
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
 from . import FFMPEG_LOGLVL

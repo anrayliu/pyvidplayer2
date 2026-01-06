@@ -1,6 +1,6 @@
+from typing import Callable, Union, Tuple
 import tkinter as tk
 import numpy as np
-from typing import Callable, Union, Tuple
 from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
 

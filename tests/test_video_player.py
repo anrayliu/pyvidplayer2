@@ -4,9 +4,9 @@
 
 import random
 import time
+import unittest
 from threading import Thread
 from test_video import VIDEO_PATH, while_loop, timed_loop, check_same_frames
-import unittest
 from pyvidplayer2 import *
 
 

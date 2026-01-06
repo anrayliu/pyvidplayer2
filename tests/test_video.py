@@ -537,27 +537,20 @@ class TestVideo(unittest.TestCase):
         # ensures no actual resampling is taking place
         self.assertIs(v.frame_surf, None)
 
-        SIZE = v.current_size
-        v.change_resolution(144)
-        self.assertEqual(v.current_size, (256, 144))
-        v.change_resolution(240)
-        self.assertEqual(v.current_size, (426, 240))
-        v.change_resolution(360)
-        self.assertEqual(v.current_size, (640, 360))
-        v.change_resolution(480)
-        self.assertEqual(v.current_size, (854, 480))
-
-        v.change_resolution(720)
-        self.assertEqual(v.current_size, (1280, 720))
-        v.change_resolution(1080)
-        self.assertEqual(v.current_size, (1920, 1080))
-        v.change_resolution(1440)
-        self.assertEqual(v.current_size, (2560, 1440))
-        v.change_resolution(2160)
-        self.assertEqual(v.current_size, (3840, 2160))
-        v.change_resolution(4320)
-        self.assertEqual(v.current_size, (7680, 4320))
-        v.resize(SIZE)
+        for size in (
+            (256, 144),
+            (426, 240),
+            (640, 360),
+            (854, 480),
+            (1280, 720),
+            (1920, 1080),
+            (2560, 1440),
+            (3840, 2160),
+            (7680, 4320)
+        ):
+            w = v.change_resolution(size[1])
+            self.assertEqual(size[0], w)
+            self.assertEqual(v.current_size, size)
 
         v.close()
 

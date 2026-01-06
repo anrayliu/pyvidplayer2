@@ -846,7 +846,7 @@ class Video:
             self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
             self.frame_surf = self._create_frame(self.frame_data)
 
-    def change_resolution(self, height: int) -> None:
+    def change_resolution(self, height: int) -> int:
         """
         Given a height, the video will scale its dimensions while maintaining aspect ratio.
         Will scale width to an even number. Otherwise same as resize method.
@@ -855,6 +855,8 @@ class Video:
         if w % 2 == 1:
             w += 1
         self.resize((w, height))
+
+        return w
 
     def close(self) -> None:
         """

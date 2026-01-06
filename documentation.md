@@ -196,7 +196,7 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
 - PySide6 (`VideoPySide`)
 - PyQT6 (`VideoPyQT`)
 - RayLib (`VideoRayLib`)
-- WxPython (`VideoWx`)
+- WxPython (`VideoWx`) <- support for wxPython has been dropped
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their
 respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`,

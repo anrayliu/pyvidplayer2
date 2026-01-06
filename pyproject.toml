@@ -19,7 +19,7 @@ dependencies = [
     "pysubs2",
     "PyAudio"
 ]
-keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "wxpython"]
+keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet"]
 classifiers = [
   "Development Status :: 4 - Beta",
 
@@ -51,8 +51,7 @@ all = [
         "pyglet",
         "PySide6",
         "PyQt6",
-        "raylib",
-        "wxPython"
+        "raylib"
     ]
 
 [tool.setuptools.dynamic]

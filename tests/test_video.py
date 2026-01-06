@@ -331,8 +331,7 @@ class TestVideo(unittest.TestCase):
             "<VideoPyglet(path=resources/trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
             "<VideoPyQT(path=resources/trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
             "<VideoRaylib(path=resources/trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
-            "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH),
-            "<VideoWx(path=resources/trailer1.mp4)>": VideoWx(VIDEO_PATH)
+            "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH)
         }
 
         for name, v in videos.items():
@@ -1394,7 +1393,7 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                   0, False, "en", None, READER_AUTO, -1)
         v.close()
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide):
             v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,
                            0, False, "en", None, READER_AUTO, -1)
@@ -1405,7 +1404,7 @@ class TestVideo(unittest.TestCase):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                   0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,

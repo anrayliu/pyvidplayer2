@@ -94,7 +94,7 @@ class TestPreviews(unittest.TestCase):
 
     # tests that previews start from where the video position is, and that they close the video afterwards
     def test_previews(self):
-        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx):
+        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide):
             v = lib(VIDEO_PATH)
             v.seek(v.duration)
             v.preview()

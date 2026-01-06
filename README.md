@@ -35,7 +35,7 @@ function is now redundant.
 - Play multiple videos in parallel
 - Add multiple subtitles to a video
 - Built in GUI and queue system
-- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, and wxPython
+- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, and Raylib
 - Post process effects
 - Webcam feed
 - Stream videos from Youtube
@@ -116,7 +116,6 @@ PySide6         (graphics library)
 PyQt6           (graphics library)
 tkinter         (graphics library, installed through Python, not pip)
 raylib          (graphics library)
-wxPython        (graphics library)
 ```
 
 # Quickstart

@@ -11,4 +11,3 @@ pyglet
 PySide6
 PyQt6
 raylib
-wxPython

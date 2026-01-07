@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,7 +10,7 @@ readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
     {name = "Anray Liu", email = "anrayliu@gmail.com"}
 ]
-license = "MIT"
+license = { file = "LICENSE" }
 requires-python = ">=3.8"
 dependencies = [
     "numpy",
@@ -20,6 +20,9 @@ dependencies = [
     "PyAudio"
 ]
 keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet"]
+maintainers = [
+    { name = "Anray Liu", email = "anrayliu@gmail.com" }
+]
 classifiers = [
   "Development Status :: 4 - Beta",
 
@@ -39,11 +42,6 @@ classifiers = [
 
 [project.optional-dependencies]
 all = [
-        "numpy",
-        "opencv-python",
-        "pygame-ce",
-        "PyAudio",
-        "pysubs2",
         "yt-dlp",
         "decord",
         "imageio",
@@ -53,6 +51,9 @@ all = [
         "PyQt6",
         "raylib"
     ]
+
+[tool.setuptools]
+packages = ["pyvidplayer2"]
 
 [tool.setuptools.dynamic]
 version = {attr = "pyvidplayer2._version.__version__"}

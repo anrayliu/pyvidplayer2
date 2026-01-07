@@ -5,8 +5,8 @@
 import time
 import unittest
 import unittest.mock
-import yt_dlp
 import random
+import yt_dlp
 from test_subtitles import SUBS
 from test_video import while_loop, timed_loop, check_same_frames
 from pyvidplayer2 import *

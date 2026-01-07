@@ -1,6 +1,6 @@
-import pygame
 import math
 from typing import Tuple, Union, List
+import pygame
 from . import Video
 from .error import *
 from .video_pygame import VideoPygame
@@ -32,6 +32,8 @@ class VideoPlayer:
         self._progress_bar = pygame.Rect(0, 0, 0, 0)
         self._smooth_bar = 0  # used for making the progress bar look smooth when seeking
         self._font = pygame.font.SysFont("arial", font_size)
+
+        self.font_size = font_size
 
         self._buffer_rect = pygame.Rect(0, 0, 0, 0)
         self._buffer_angle = 0

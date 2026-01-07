@@ -1,8 +1,8 @@
+import time
+from typing import Callable, Union, Tuple
 import cv2
 import pygame
-import time
 import numpy as np
-from typing import Callable, Union, Tuple
 from .post_processing import PostProcessing
 from .error import *
 
@@ -141,7 +141,7 @@ class Webcam:
         int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         return self.original_size == size
 
-    def change_resolution(self, height: int) -> None:
+    def change_resolution(self, height: int) -> int:
         """
         Given a height, webcam will scale its dimensions while maintaining aspect ratio.
         Will scale width to an even number. Otherwise same as resize method.
@@ -150,6 +150,8 @@ class Webcam:
         if w % 2 == 1:
             w += 1
         self.resize((w, height))
+
+        return w
 
     def close(self) -> None:
         """

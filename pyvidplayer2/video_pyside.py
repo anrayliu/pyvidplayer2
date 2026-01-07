@@ -1,5 +1,5 @@
-import numpy as np
 from typing import Callable, Union, Tuple
+import numpy as np
 from PySide6.QtGui import QImage, QPixmap, QPainter
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtCore import QTimer

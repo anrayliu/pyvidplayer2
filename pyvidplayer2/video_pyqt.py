@@ -1,10 +1,10 @@
-import numpy as np
-from .video import Video, READER_AUTO
 from typing import Callable, Union, Tuple
+import numpy as np
 from PyQt6.QtGui import QImage, QPixmap, QPainter
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt6.QtCore import QTimer
 from .post_processing import PostProcessing
+from .video import Video, READER_AUTO
 
 
 class VideoPyQT(Video):

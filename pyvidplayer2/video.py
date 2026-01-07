@@ -2,9 +2,9 @@ import subprocess
 import os
 import json
 from abc import abstractmethod
-import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
+import numpy as np
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
 from . import FFMPEG_LOGLVL
@@ -846,7 +846,7 @@ class Video:
             self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
             self.frame_surf = self._create_frame(self.frame_data)
 
-    def change_resolution(self, height: int) -> None:
+    def change_resolution(self, height: int) -> int:
         """
         Given a height, the video will scale its dimensions while maintaining aspect ratio.
         Will scale width to an even number. Otherwise same as resize method.
@@ -855,6 +855,8 @@ class Video:
         if w % 2 == 1:
             w += 1
         self.resize((w, height))
+
+        return w
 
     def close(self) -> None:
         """
@@ -971,8 +973,7 @@ class Video:
         """
         Returns the current video timestamp in seconds (float).
         """
-        return self._starting_time + max(0,
-                                         self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
+        return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True) -> None:
         """

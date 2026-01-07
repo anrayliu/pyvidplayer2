@@ -1,5 +1,5 @@
-from .error import *
 import cv2
+from .error import *
 from .video_reader import VideoReader
 
 

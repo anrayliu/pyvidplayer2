@@ -1,5 +1,6 @@
 '''
 This is a quick example of integrating a video into a wxpython project
+Note: wxPython support has been dropped from v0.9.30 and onwards
 '''
 
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources

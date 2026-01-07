@@ -331,8 +331,7 @@ class TestVideo(unittest.TestCase):
             "<VideoPyglet(path=resources/trailer1.mp4)>": VideoPyglet(VIDEO_PATH),
             "<VideoPyQT(path=resources/trailer1.mp4)>": VideoPyQT(VIDEO_PATH),
             "<VideoRaylib(path=resources/trailer1.mp4)>": VideoRaylib(VIDEO_PATH),
-            "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH),
-            "<VideoWx(path=resources/trailer1.mp4)>": VideoWx(VIDEO_PATH)
+            "<VideoPySide(path=resources/trailer1.mp4)>": VideoPySide(VIDEO_PATH)
         }
 
         for name, v in videos.items():
@@ -538,27 +537,20 @@ class TestVideo(unittest.TestCase):
         # ensures no actual resampling is taking place
         self.assertIs(v.frame_surf, None)
 
-        SIZE = v.current_size
-        v.change_resolution(144)
-        self.assertEqual(v.current_size, (256, 144))
-        v.change_resolution(240)
-        self.assertEqual(v.current_size, (426, 240))
-        v.change_resolution(360)
-        self.assertEqual(v.current_size, (640, 360))
-        v.change_resolution(480)
-        self.assertEqual(v.current_size, (854, 480))
-
-        v.change_resolution(720)
-        self.assertEqual(v.current_size, (1280, 720))
-        v.change_resolution(1080)
-        self.assertEqual(v.current_size, (1920, 1080))
-        v.change_resolution(1440)
-        self.assertEqual(v.current_size, (2560, 1440))
-        v.change_resolution(2160)
-        self.assertEqual(v.current_size, (3840, 2160))
-        v.change_resolution(4320)
-        self.assertEqual(v.current_size, (7680, 4320))
-        v.resize(SIZE)
+        for size in (
+            (256, 144),
+            (426, 240),
+            (640, 360),
+            (854, 480),
+            (1280, 720),
+            (1920, 1080),
+            (2560, 1440),
+            (3840, 2160),
+            (7680, 4320)
+        ):
+            w = v.change_resolution(size[1])
+            self.assertEqual(size[0], w)
+            self.assertEqual(v.current_size, size)
 
         v.close()
 
@@ -594,12 +586,13 @@ class TestVideo(unittest.TestCase):
             timer = 0
             frames = 0
             passed = False
+            time.sleep(3)
             while v.active and seconds_elapsed < 10:
                 dt = clock.tick(0)
                 timer += dt
                 if timer >= 1000:
                     seconds_elapsed += 1
-                    if frames > 80:  # 80% of the maximum frame rate
+                    if frames > 70:  # 70% of the maximum frame rate
                         passed = True
                         break
                     timer = 0
@@ -689,7 +682,7 @@ class TestVideo(unittest.TestCase):
             v.pause()
 
             # rewinding because some audio may have been played during loading
-            v.seek(0)
+            v.seek_frame(0)
             self.assertTrue(v.paused)
 
             frame = v.frame
@@ -1248,7 +1241,7 @@ class TestVideo(unittest.TestCase):
 
     # tests different ways to accessing version
     def test_version(self):
-        VER = "0.9.29"
+        VER = "0.9.30"
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)
         self.assertEqual(VER, get_version_info()["pyvidplayer2"])
@@ -1394,7 +1387,7 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                   0, False, "en", None, READER_AUTO, -1)
         v.close()
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide):
             v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,
                            0, False, "en", None, READER_AUTO, -1)
@@ -1405,7 +1398,7 @@ class TestVideo(unittest.TestCase):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
                   0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
+        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
                            False,

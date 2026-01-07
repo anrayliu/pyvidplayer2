@@ -1,7 +1,6 @@
 # Object that mimics cv2.VideoCapture to read frames
-
-import numpy as np
 import subprocess
+import numpy as np
 from . import FFMPEG_LOGLVL
 from .video_reader import VideoReader
 from .error import *
@@ -62,7 +61,7 @@ class FFMPEGReader(VideoReader):
 
     def seek(self, index):
         self.frame = index
-        self._process.kill()
+        self._process.terminate()
         # uses input seeking for very fast reading
 
         self._process = subprocess.Popen(self._get_command(index=index), stdout=subprocess.PIPE)

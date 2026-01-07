@@ -61,7 +61,7 @@ class FFMPEGReader(VideoReader):
 
     def seek(self, index):
         self.frame = index
-        self._process.kill()
+        self._process.terminate()
         # uses input seeking for very fast reading
 
         self._process = subprocess.Popen(self._get_command(index=index), stdout=subprocess.PIPE)

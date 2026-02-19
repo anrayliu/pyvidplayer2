@@ -4,8 +4,8 @@ Requires the resources folder which contains all the test videos
 Download the videos here: https://github.com/anrayliu/pyvidplayer2-test-resources
 Requires all optional dependencies: `pip install pyvidplayer2[all]`
 
-If the installation isn't working, you can remove problematic packages from 
-`requirements.txt` and install locally with `pip install .`
+If the installation isn't working, you can remove problematic packages 
+and install locally with `pip install .`
 
 Also requires the package `sounddevice`
 

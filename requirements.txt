@@ -1,5 +1,0 @@
-numpy
-opencv_python
-pygame-ce
-pysubs2
-PyAudio

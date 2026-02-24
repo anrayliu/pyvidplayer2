@@ -1,3 +1,9 @@
+# Contains most of the core logic for video playback
+# This project started when I was a lot less experienced,
+# and over the years, it's greatly surpassed my initial scope.
+# As such, the code quality can be lacking - it's an 
+# active challenge to make better refactors
+
 import subprocess
 import os
 import json
@@ -62,6 +68,7 @@ except ImportError:
     SUBS = 0
 else:
     SUBS = 1
+
 
 # for specifying different reader backends
 READER_AUTO = 0

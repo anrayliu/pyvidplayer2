@@ -529,6 +529,14 @@ class Video:
                 filters += ["-af", f"atempo={self.speed}"]
                 # filters += ["-af", f"rubberband=tempo={self.speed}"]
 
+            # audio is a lot quieter with pygame mixer backend
+            # counteract this by boosting volume during extraction
+            if self.use_pygame_audio:
+                if filters:
+                    filters[-1] += ",volume=5.0"
+                else:
+                    filters += ["-af", "volume=5.0"]
+
             command = command[:7] + filters + command[7:]
 
         try:

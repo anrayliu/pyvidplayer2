@@ -62,15 +62,15 @@ FFprobe may also be needed for certain features - this should come bundled with 
 ## Linux
 
 Before running `pip install pyvidplayer2`, you must first install the required development packages.
+Contributions for installation instructions for other distros are welcome.
 
-- Ubuntu/Debian example: `sudo apt install build-essential python3-dev portaudio19-dev libjack-jackd2-dev`
+- Ubuntu/Debian: `sudo apt install build-essential python3-dev portaudio19-dev libjack-jackd2-dev`
     - The Python and PortAudio development packages prevent missing Python.h and missing portaudio.h errors,
       respectively.
     - Installing `libjack-jackd2-dev` manually prevents `portaudio19-dev` from downgrading to libjack0 and removing wine
       etc (<https://bugs.launchpad.net/ubuntu/+source/portaudio19/+bug/132002>).
     - In some circumstances, such as if you are using the kxstudio repo with Linux Mint, incompatible packages may be
       removed (See <https://github.com/anrayliu/pyvidplayer2/issues/36> for the latest updates on this issue):
-
 ```
 The following additional packages will be installed:
   libjack-dev libjack0 libportaudiocpp0
@@ -81,6 +81,7 @@ The following packages will be REMOVED:
 The following NEW packages will be installed:
   libjack-dev libjack0 libportaudiocpp0 portaudio19-dev
 ```
+- Fedora/RHEL: `sudo dnf install python3-devel portaudio-devel`
 
 ## MacOS
 

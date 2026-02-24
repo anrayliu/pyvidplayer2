@@ -10,7 +10,9 @@ import json
 from abc import abstractmethod
 from typing import Union, Callable, Tuple
 from threading import Thread
+
 import numpy as np
+
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
 from . import FFMPEG_LOGLVL

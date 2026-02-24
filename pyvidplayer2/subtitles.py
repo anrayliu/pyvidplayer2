@@ -2,8 +2,10 @@ import subprocess
 import re
 import os
 from typing import Union, Tuple
+
 import pygame
 import pysubs2
+
 from . import FFMPEG_LOGLVL
 from .error import *
 

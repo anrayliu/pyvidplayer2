@@ -4,8 +4,10 @@ import math
 import time
 from threading import Thread
 from io import BytesIO
+
 import pyaudio
 import numpy as np
+
 from .error import *
 
 

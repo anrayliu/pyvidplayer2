@@ -4,6 +4,7 @@ VERSION = __version__  # for older versions of pyvidplayer2
 FFMPEG_LOGLVL = "quiet"
 
 from subprocess import run
+
 from .video import READER_FFMPEG, READER_DECORD, READER_OPENCV, READER_IMAGEIO, READER_AUTO
 from .error import *
 from .post_processing import PostProcessing

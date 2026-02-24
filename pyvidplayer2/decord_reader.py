@@ -1,5 +1,7 @@
 from io import BytesIO
+
 import decord
+
 from .video_reader import VideoReader
 from .error import *
 

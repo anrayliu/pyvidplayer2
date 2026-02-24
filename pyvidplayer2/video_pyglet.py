@@ -1,6 +1,8 @@
 from typing import Union, Callable, Tuple
+
 import numpy as np
 import pyglet
+
 from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
 

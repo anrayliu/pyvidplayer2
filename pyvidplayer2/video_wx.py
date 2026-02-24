@@ -1,6 +1,8 @@
 from typing import Callable, Union, Tuple
+
 import wx
 import numpy as np
+
 from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
 

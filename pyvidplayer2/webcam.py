@@ -1,8 +1,10 @@
 import time
 from typing import Callable, Union, Tuple
+
 import cv2
 import pygame
 import numpy as np
+
 from .post_processing import PostProcessing
 from .error import *
 

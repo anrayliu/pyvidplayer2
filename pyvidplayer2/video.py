@@ -498,6 +498,8 @@ class Video:
     def _threaded_load(self, index):
         i = index  # assigned to variable so another thread does not change it
 
+        # save a spot in the list to prevent other threads from messing up the order
+        # append is atomic
         self._chunks.append(None)
 
         s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / (

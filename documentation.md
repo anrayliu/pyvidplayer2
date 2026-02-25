@@ -133,8 +133,8 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
 - `stop() -> None` - Restarts video and sets `active` to `False`.
 - `resize(size: (int, int)) -> None` - Sets the new frame size for video. Also resizes current `frame_data` and
   `frame_surf`.
-- `change_resolution(height: int) -> None` - Given a height, the video will scale its dimensions while maintaining
-  aspect ratio. Will scale width to an even number.
+- `change_resolution(height: int) -> int` - Given a height, the video will scale its dimensions while maintaining
+  aspect ratio. Will scale width to an even number and return it.
 - `close() -> None` - Releases resources. Always recommended to call when done. Attempting to use video object after
   closing it may lead to unexpected behaviour.
 - `restart() -> None` - Rewinds video to the beginning. Does not change `active` attribute and does not refresh current
@@ -254,6 +254,7 @@ supported for Pygame.
   while maintaining aspect ratio. Black bars will appear in any unused space.
 - `queue_: list[pyvidplayer2.VideoPygame | str]` - Videos to play after the current one finishes.
 - `closed: bool` - True after `close()` is called.
+- `font_size: int` - Same as given argument.
 
 ## Methods
 
@@ -371,8 +372,8 @@ Object used for displaying a webcam feed. Only supported for Pygame.
 - `resize_capture(size: (int, int)) -> bool` - Changes the resolution at which frames are captured from the webcam.
   Returns `True` if a resolution was found that matched the given size exactly. Otherwise, `False` will be returned and
   the closest matching resolution will be used.
-- `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect
-  ratio. Will scale width to an even number.
+- `change_resolution(height: int) -> int` - Given a height, the video will scale its width while maintaining aspect
+  ratio. Will scale width to an even number and return it.
 - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the
   `interp` parameter. Does nothing if OpenCV is not installed.
 - `set_post_func(func: callable(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works

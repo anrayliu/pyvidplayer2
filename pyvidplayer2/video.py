@@ -529,8 +529,7 @@ class Video:
                 "-vn",
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
-                "-ac", str(self._audio.get_num_channels()) if self.use_pygame_audio else str(
-                    min(self.audio_channels, self._audio.get_num_channels())),
+                "-ac", str(min(self.audio_channels, self._audio.get_num_channels())),
                 "-f", "wav",
                 "-loglevel", FFMPEG_LOGLVL,
                 "-"
@@ -546,14 +545,6 @@ class Video:
             elif self.speed != 1:
                 filters += ["-af", f"atempo={self.speed}"]
                 # filters += ["-af", f"rubberband=tempo={self.speed}"]
-
-            # audio is a lot quieter with pygame mixer backend
-            # counteract this by boosting volume during extraction
-            if self.use_pygame_audio:
-                if filters:
-                    filters[-1] += ",volume=5.0"
-                else:
-                    filters += ["-af", "volume=5.0"]
 
             command = command[:7] + filters + command[7:]
 
@@ -814,7 +805,6 @@ class Video:
 
             "audio_channels": self.audio_channels,
             "no_audio": self.no_audio
-
         }
 
     def mute(self) -> None:

@@ -15,7 +15,7 @@ class MixerHandler:
         return pygame.mixer.music.get_busy()
 
     def load(self, bytes_):
-        pygame.mixer.music.load(BytesIO(bytes_))
+        pygame.mixer.music.load(BytesIO(bytes_), "wav")
         self.loaded = True
 
     def get_num_channels(self):

@@ -6,7 +6,7 @@ Must install pygame, tkinter, pyglet, and pyqt6, pyside, and raylib for this exa
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
-from pyvidplayer2 import Video, VideoTkinter, VideoPyglet, VideoPyQT, VideoPySide, VideoRaylib
+from pyvidplayer2 import Video, VideoTkinter, VideoPyglet, VideoPyQT, VideoPySide, VideoRaylib, VideoWx
 
 PATH = r"resources\trailer1.mp4"
 
@@ -21,3 +21,4 @@ VideoPyglet(PATH).preview()
 VideoPyQT(PATH).preview()
 VideoPySide(PATH).preview()
 VideoRaylib(PATH).preview()
+VideoWx(PATH).preview()

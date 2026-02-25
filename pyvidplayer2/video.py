@@ -235,13 +235,13 @@ class Video:
     def __str__(self) -> str:
         return f"<{type(self).__name__}(path={self.path if not (self.as_bytes or self.youtube) else ''})>"
 
-    def __enter__(self) -> Video:
+    def __enter__(self) -> "pyvidplayer2.Video":
         return self
 
     def __exit__(self, type_, value, traceback) -> None:
         self.close()
 
-    def __iter__(self) -> Video:
+    def __iter__(self) -> "pyvidplayer2.Video":
         self.stop()
         return self
 

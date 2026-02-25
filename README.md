@@ -101,7 +101,6 @@ FFmpeg and FFprobe (not Python packages)
 ## Optional Packages
 
 At least one graphics library and one audio library is required.
-Use `pip install pyvidplayer2[all]` to install everything.
 
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
@@ -115,10 +114,13 @@ av              (required for imageio)
 pyglet          (graphics library)
 PySide6         (graphics library)
 PyQt6           (graphics library)
-tkinter         (graphics library, installed through Python, not pip)
+tkinter         (graphics library, installed with system packages or Python installer, not pip)
 raylib          (graphics library)
 wxPython        (graphics library)
 ```
+
+Use `pip install pyvidplayer2[all]` to install all packages required for running the unit tests.
+Not required or recommended for normal users.
 
 # Quickstart
 

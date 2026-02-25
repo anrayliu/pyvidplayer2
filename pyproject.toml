@@ -41,6 +41,8 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+# only needed for running unit tests
+# regular users should not install all of these, as it'll add a lot of bloat
 all = [
         "yt-dlp",
         "decord",
@@ -50,7 +52,8 @@ all = [
         "PySide6",
         "PyQt6",
         "raylib",
-        "wxPython"
+        "wxPython",
+        "sounddevice"
     ]
 
 [tool.setuptools]

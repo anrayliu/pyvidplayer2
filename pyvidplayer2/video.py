@@ -494,6 +494,9 @@ class Video:
             return
 
         return audio == b''
+    
+    def _get_num_channels_to_process(self):
+        return self.audio_channels if self.use_pygame_audio else min(self.audio_channels, self._audio.get_num_channels())
 
     def _threaded_load(self, index):
         i = index  # assigned to variable so another thread does not change it
@@ -529,7 +532,12 @@ class Video:
                 "-vn",
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
-                "-ac", str(min(self.audio_channels, self._audio.get_num_channels())),
+
+                # pyaudio can get number of channels output device has, allowing
+                # ffmpeg to remix audio to match
+                # pygame does not have this feature
+                
+                "-ac", str(self._get_num_channels_to_process()),
                 "-f", "wav",
                 "-loglevel", FFMPEG_LOGLVL,
                 "-"

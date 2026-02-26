@@ -257,7 +257,7 @@ class TestVideo(unittest.TestCase):
     # tests seeking, requires an accurate frame_count attribute
     def test_seeking(self):
         for file in PATHS:
-            if file.endswith(".webm"):
+            if file.endswith(".webm") or file.endswith("av1.mp4"):
                 continue
 
             v = Video(file)

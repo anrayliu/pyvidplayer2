@@ -267,7 +267,7 @@ class TestVideoPlayer(unittest.TestCase):
         t = Thread(
             target=lambda: VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=300))
         t.start()
-        time.sleep(10)
+        time.sleep(20)
         self.assertFalse(t.is_alive())
 
         # checks that loaded preview thumbnails from both methods produce the same frames

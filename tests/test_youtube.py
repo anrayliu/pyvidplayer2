@@ -55,8 +55,17 @@ class TestYoutubeVideo(unittest.TestCase):
             v.close()
             time.sleep(0.1)  # prevents spamming youtube
 
-    # test opens 5 long youtube videos
+    # test standard youtube playback
     def test_youtube(self):
+        v = Video(YOUTUBE_PATH, youtube=True)
+        self.assertTrue(v._audio_path.startswith("https"))
+        self.assertTrue(v.path.startswith("https"))
+        while_loop(lambda: v.get_pos() < 1, v.update, 10)
+        v.close()
+        time.sleep(0.1)
+
+    # test opens 5 long youtube videos
+    def test_long_videos(self):
         urls = ["https://www.youtube.com/watch?v=rfscVS0vtbw",
                 "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=1115s",
                 "https://www.youtube.com/watch?v=HXV3zeQKqGY",

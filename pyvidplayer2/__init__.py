@@ -5,6 +5,13 @@ FFMPEG_LOGLVL = "quiet"
 
 from subprocess import run
 
+# bug on linux: importing pygame before decord results
+# in display.set_mode deadlocking
+try:
+    import decord
+except ImportError:
+    pass
+
 from .video import READER_FFMPEG, READER_DECORD, READER_OPENCV, READER_IMAGEIO, READER_AUTO
 from .error import *
 from .post_processing import PostProcessing

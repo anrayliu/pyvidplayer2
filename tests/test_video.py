@@ -630,6 +630,22 @@ class TestVideo(unittest.TestCase):
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
 
+    # test if av1 encoded videos are playable
+    def test_av1_playback(self):
+        # decord cannot decode av1-encoded videos
+        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO):
+            v = Video("resources/av1.mp4", reader=reader)
+            while_loop(lambda: v.frame_surf is None, v.update, 5)
+            v.close()
+
+    # test if webm videos are playable
+    def test_webm_playback(self):
+        # decord cannot grab metadata for webm videos
+        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO):
+            v = Video("resources/hdr.webm", reader=reader)
+            while_loop(lambda: v.frame_surf is None, v.update, 5)
+            v.close()
+
     # test setting audio index for video with no audio tracks
     def test_set_track_no_audio(self):
         v = Video("resources/16bit.mp4")  # should open fine

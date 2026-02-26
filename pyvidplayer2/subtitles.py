@@ -47,12 +47,9 @@ class Subtitles:
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
 
             if track_index is not None:
-                if not os.path.exists(self.path):
-                    raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
-
                 self.buffer = self._extract_internal_subs()
                 if self.buffer == "":
-                    raise SubtitleError("Could not find selected subtitle track in video.")
+                    raise SubtitleError("Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         self._subs = self._load()
 

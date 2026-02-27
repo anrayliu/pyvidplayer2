@@ -1,8 +1,8 @@
-# *class* Video
+# *class* Video(path: str, **kwargs)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from YouTube. The object uses FFmpeg
 to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the
-appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio. Pygame or Pygame CE are the only graphics libraries to support subtitles. `ytdlp` is required to stream videos
+appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio. Pygame or Pygame CE are the only graphics libraries to support subtitles. `yt-dlp` is required to stream videos
 from YouTube. Decord is required to play videos from memory. This particular object uses Pygame for graphics, but see
 bottom for other supported libraries. Actual class name is `VideoPygame`.
 
@@ -38,9 +38,8 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   for a 24 fps video, the video will have to be updated at least, but ideally more than 48 times a
   second to achieve true x2 speed. For more information, see the `update` method below.
 - `youtube: bool = False` - Specifies whether to stream a YouTube video. Path must be a valid YouTube video URL. YouTube shorts
-  and livestreams are not supported. The python packages `yt_dlp` and `opencv-python` are required for this feature.
-  They can be installed through pip. Setting this to `True` will force `chunk_size` to be at least 60 and `max_threads`
-  to be 1.
+  and livestreams are not supported. Setting this to `True` will force `chunk_size` to be at least 60 and `max_threads`
+  to be 1. Requires a few external dependencies, see this [example](https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py) for more information.
 - `max_res: int = 720` - Only used when streaming YouTube videos. Sets the highest possible resolution when choosing video
   quality. 4320p is the highest YouTube supports. Note that actual video quality is not guaranteed to match `max_res`.
 - `as_bytes: bool = False` - Specifies whether `path` is a video in byte form. The python package `decord` is required for this
@@ -133,8 +132,8 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
 - `stop() -> None` - Restarts video and sets `active` to `False`.
 - `resize(size: (int, int)) -> None` - Sets the new frame size for video. Also resizes current `frame_data` and
   `frame_surf`.
-- `change_resolution(height: int) -> None` - Given a height, the video will scale its dimensions while maintaining
-  aspect ratio. Will scale width to an even number.
+- `change_resolution(height: int) -> int` - Given a height, the video will scale its dimensions while maintaining
+  aspect ratio. Will scale width to an even number and return it.
 - `close() -> None` - Releases resources. Always recommended to call when done. Attempting to use video object after
   closing it may lead to unexpected behaviour.
 - `restart() -> None` - Rewinds video to the beginning. Does not change `active` attribute and does not refresh current
@@ -224,7 +223,7 @@ with Video("example.mp4") as vid:
     vid.preview()
 ```
 
-# *class* VideoPlayer
+# *class* VideoPlayer(video: pyvidplayer2.VideoPygame, rect: Tuple[int, int, int, int], **kwargs)
 
 VideoPlayers are GUI containers for videos. They are useful for scaling a video to fit an area or looping videos. Only
 supported for Pygame.
@@ -254,6 +253,7 @@ supported for Pygame.
   while maintaining aspect ratio. Black bars will appear in any unused space.
 - `queue_: list[pyvidplayer2.VideoPygame | str]` - Videos to play after the current one finishes.
 - `closed: bool` - True after `close()` is called.
+- `font_size: int` - Same as given argument.
 
 ## Methods
 
@@ -282,7 +282,7 @@ supported for Pygame.
 - `get_video() -> pyvidplayer2.VideoPygame` - Returns currently playing video.
 - `preview(max_fps: int = 60)` - Similar to `Video.preview()`. Gives a quick and easy demo of the class.
 
-# *class* Subtitles
+# *class* Subtitles(path: str, **kwargs)
 
 Object used for handling subtitles. Pass this into a `Video` object. Only supported for Pygame.
 
@@ -330,7 +330,7 @@ Object used for handling subtitles. Pass this into a `Video` object. Only suppor
 - `set_font(font: pygame.font.Font | pygame.font.SysFont) -> None` - Same as `font` parameter.
 - `get_font() -> pygame.font.Font | pygame.font.SysFont`
 
-# *class* Webcam
+# *class* Webcam(**kwargs)
 
 Object used for displaying a webcam feed. Only supported for Pygame.
 
@@ -371,8 +371,8 @@ Object used for displaying a webcam feed. Only supported for Pygame.
 - `resize_capture(size: (int, int)) -> bool` - Changes the resolution at which frames are captured from the webcam.
   Returns `True` if a resolution was found that matched the given size exactly. Otherwise, `False` will be returned and
   the closest matching resolution will be used.
-- `change_resolution(height: int) -> None` - Given a height, the video will scale its width while maintaining aspect
-  ratio. Will scale width to an even number.
+- `change_resolution(height: int) -> int` - Given a height, the video will scale its width while maintaining aspect
+  ratio. Will scale width to an even number and return it.
 - `set_interp(interp: str | int) -> None` - Changes the interpolation technique that OpenCV uses. Works the same as the
   `interp` parameter. Does nothing if OpenCV is not installed.
 - `set_post_func(func: callable(numpy.ndarray) -> numpy.ndarray) -> None` - Changes the post processing function. Works

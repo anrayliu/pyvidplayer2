@@ -1,9 +1,11 @@
 import subprocess
-import pygame
-import pysubs2
 import re
 import os
 from typing import Union, Tuple
+
+import pygame
+import pysubs2
+
 from . import FFMPEG_LOGLVL
 from .error import *
 
@@ -39,18 +41,15 @@ class Subtitles:
             else:
 
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. "
-                                          "YTDLP can be installed via pip.")
+                                          "Refer to https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py for instructions.")
         else:
             if not os.path.exists(self.path):
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
 
             if track_index is not None:
-                if not os.path.exists(self.path):
-                    raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
-
                 self.buffer = self._extract_internal_subs()
                 if self.buffer == "":
-                    raise SubtitleError("Could not find selected subtitle track in video.")
+                    raise SubtitleError("Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         self._subs = self._load()
 

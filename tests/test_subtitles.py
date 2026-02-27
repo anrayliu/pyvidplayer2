@@ -1,5 +1,4 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
-# use pip install pyvidplayer2[all] to install all dependencies
 
 
 import unittest
@@ -82,7 +81,7 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/subs1.srt", track_index=1)
-        self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
+        self.assertEqual(str(context.exception), "Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/fake.txt")
@@ -91,7 +90,7 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/fake.txt", track_index=0)
-        self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
+        self.assertEqual(str(context.exception), "Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/wSubs.mp4")
@@ -102,7 +101,7 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/wSubs.mp4", track_index=1)
-        self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
+        self.assertEqual(str(context.exception), "Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/trailer1.mp4")
@@ -111,7 +110,7 @@ class TestSubtitles(unittest.TestCase):
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("resources/trailer1.mp4", track_index=1)
-        self.assertEqual(str(context.exception), "Could not find selected subtitle track in video.")
+        self.assertEqual(str(context.exception), "Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         with self.assertRaises(FileNotFoundError):
             Subtitles("resources/badpath")

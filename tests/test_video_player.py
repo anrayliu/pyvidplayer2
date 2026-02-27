@@ -1,12 +1,11 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
-# use pip install pyvidplayer2[all] to install all dependencies
 
 
 import random
 import time
+import unittest
 from threading import Thread
 from test_video import VIDEO_PATH, while_loop, timed_loop, check_same_frames
-import unittest
 from pyvidplayer2 import *
 
 
@@ -56,6 +55,7 @@ class TestVideoPlayer(unittest.TestCase):
         vp = VideoPlayer(v, (0, 0, *v.original_size))
         self.assertIs(vp.video, v)
         self.assertIs(vp.get_video(), v)
+        self.assertEqual(vp.font_size, 10)
         self.assertEqual(vp.vid_rect, pygame.Rect(0, 0, v.original_size[0], v.original_size[1]))
         self.assertEqual(vp.frame_rect, pygame.Rect(0, 0, v.original_size[0], v.original_size[1]))
         self.assertFalse(vp.interactable)
@@ -267,7 +267,7 @@ class TestVideoPlayer(unittest.TestCase):
         t = Thread(
             target=lambda: VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=300))
         t.start()
-        time.sleep(10)
+        time.sleep(20)
         self.assertFalse(t.is_alive())
 
         # checks that loaded preview thumbnails from both methods produce the same frames

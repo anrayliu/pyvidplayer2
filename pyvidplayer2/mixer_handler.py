@@ -1,5 +1,6 @@
-import pygame
 from io import BytesIO
+
+import pygame
 
 
 class MixerHandler:
@@ -14,11 +15,14 @@ class MixerHandler:
         return pygame.mixer.music.get_busy()
 
     def load(self, bytes_):
-        pygame.mixer.music.load(BytesIO(bytes_))
+        pygame.mixer.music.load(BytesIO(bytes_), "wav")
         self.loaded = True
 
+    # obsolete
+    # doesn't return device channels like Pyaudio does
     def get_num_channels(self):
-        return pygame.mixer.get_num_channels()
+        return 0
+        # return pygame.mixer.get_num_channels()
 
     def unload(self):
         self.stop()

@@ -1,11 +1,13 @@
 import copy
-import pyaudio
 import wave
 import math
 import time
-import numpy as np
 from threading import Thread
 from io import BytesIO
+
+import pyaudio
+import numpy as np
+
 from .error import *
 
 

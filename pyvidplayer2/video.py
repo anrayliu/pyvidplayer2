@@ -1,10 +1,18 @@
+# Contains most of the core logic for video playback
+# This project started when I was a lot less experienced,
+# and over the years, it's greatly surpassed my initial scope.
+# As such, the code quality can be lacking - it's an 
+# active challenge to make better refactors
+
 import subprocess
 import os
 import json
 from abc import abstractmethod
-import numpy as np
 from typing import Union, Callable, Tuple
 from threading import Thread
+
+import numpy as np
+
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
 from . import FFMPEG_LOGLVL
@@ -63,6 +71,7 @@ except ImportError:
 else:
     SUBS = 1
 
+
 # for specifying different reader backends
 READER_AUTO = 0
 READER_FFMPEG = 1
@@ -73,8 +82,8 @@ READER_DECORD = 4
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse,
-                 no_audio, speed,
-                 youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device):
+                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader, 
+                 cuda_device) -> None:
 
         self._audio_path = path  # used for audio only when streaming
         self.path = path
@@ -83,6 +92,9 @@ class Video:
         self.ext = ""
 
         as_bytes = as_bytes or isinstance(path, bytes)
+        
+        # automatic youtube url detection
+        # disabled because it adds too much overhead to be implicit
         # youtube = youtube or self._test_youtube()
 
         self.pref_lang = pref_lang
@@ -90,19 +102,20 @@ class Video:
         # default -1 for no cuda hw acceleration
         self.cuda_device = cuda_device
 
-        # determines correct backend here
+        # determines correct video backend here
         reader = self._get_best_reader(youtube, as_bytes, reader)
         if youtube:
-            if YTDLP:
-                # sets path and audio path for cv2 and ffmpeg
-                # also sets name and ext
-                self._set_stream_url(path, max_res)
-                # cannot use ffmpeg reader and therefore cuda device here
-                self._vid = reader(self.path)
-            else:
+            if not YTDLP:
                 raise ModuleNotFoundError(
-                    "Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
+                    "Unable to stream video because YTDLP is not installed. Refer to https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py for instructions.")
 
+            # sets path and audio path for cv2 and ffmpeg
+            # also sets name and ext
+            self._set_stream_url(path, max_res)
+            
+            # cannot use ffmpeg reader and therefore cuda device here
+            self._vid = reader(self.path)
+                
             # having less than 60 hurts performance
             if chunk_size < 60:
                 chunk_size = 60
@@ -174,20 +187,21 @@ class Video:
         self.vfr = vfr  # or self._test_vfr()
         self.audio_index = audio_index
 
+        # select correct audio backend
         if self.use_pygame_audio:
-            if PYGAME:
-                self._audio = MixerHandler()
-            else:
+            if not PYGAME:
                 raise ModuleNotFoundError(
                     "Unable to use Pygame audio because Pygame is not installed. Pygame can be installed via pip.")
+
+            self._audio = MixerHandler()
         else:
-            if PYAUDIO:
-                self._audio = PyaudioHandler()
-                if self.audio_index is not None:
-                    self._audio._set_device_index(self.audio_index)
-            else:
+            if not PYAUDIO:
                 raise ModuleNotFoundError(
-                    "Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
+                "Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
+
+            self._audio = PyaudioHandler()
+            if self.audio_index is not None:
+                self._audio._set_device_index(self.audio_index)
 
         self.speed = float(max(0.25, min(10, speed)))
         self.reverse = reverse
@@ -215,19 +229,19 @@ class Video:
 
         self.play()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.frame_count
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<{type(self).__name__}(path={self.path if not (self.as_bytes or self.youtube) else ''})>"
 
-    def __enter__(self):
+    def __enter__(self) -> "pyvidplayer2.Video":
         return self
 
-    def __exit__(self, type_, value, traceback):
+    def __exit__(self, type_, value, traceback) -> None:
         self.close()
 
-    def __iter__(self):
+    def __iter__(self) -> "pyvidplayer2.Video":
         self.stop()
         return self
 
@@ -250,8 +264,8 @@ class Video:
             data = self.post_func(data)
 
             return data
-        else:
-            raise StopIteration("No more frames to read.")
+
+        raise StopIteration("No more frames to read.")
 
     def _get_best_reader(self, youtube, as_bytes, reader):
         """
@@ -303,8 +317,7 @@ class Video:
     def _filter_subs(self, subs):
         if SUBS and isinstance(subs, Subtitles):
             return [subs]
-        else:
-            return [] if subs is None else subs
+        return [] if subs is None else subs
 
     def _get_vfrs(self, pts):
         """
@@ -367,6 +380,7 @@ class Video:
             new_reader.duration = self._vid.duration
             new_reader.frame = self._vid.frame
             new_reader.seek(self._vid.frame)
+        
             self.colour_format = new_reader._colour_format
             self._vid.release()
             self._vid = new_reader
@@ -419,21 +433,21 @@ class Video:
         """
 
         self._vid.seek(0)
+
         counter = 0
+        
         has_frame = True
         while has_frame:
             has_frame = self._vid.read()[0]
             if has_frame:
                 counter += 1
+        
         self._vid.seek(self.frame)
+        
         return counter
 
     def _chunks_len(self, chunks):
-        i = 0
-        for c in chunks:
-            if c is not None:
-                i += 1
-        return i
+        return sum(1 for c in chunks if c is not None)
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
@@ -480,16 +494,24 @@ class Video:
             return
 
         return audio == b''
+    
+    def _get_num_channels_to_process(self):
+        return self.audio_channels if self.use_pygame_audio else min(self.audio_channels, self._audio.get_num_channels())
 
     def _threaded_load(self, index):
         i = index  # assigned to variable so another thread does not change it
 
+        # save a spot in the list to prevent other threads from messing up the order
+        # append is atomic
         self._chunks.append(None)
 
         s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / (
             self.speed if not self.reverse else 1)
 
         if self.no_audio:
+            # generates silent audio
+            # very important because audio-visual syncing is done by tracking played audio chunks
+
             command = [
                 "ffmpeg",
                 "-f", "lavfi",
@@ -502,7 +524,6 @@ class Video:
             ]
 
         else:
-
             command = [
                 "ffmpeg",
                 "-i", self._audio_path,
@@ -511,8 +532,12 @@ class Video:
                 "-vn",
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
-                "-ac", str(self._audio.get_num_channels()) if self.use_pygame_audio else str(
-                    min(self.audio_channels, self._audio.get_num_channels())),
+
+                # pyaudio can get number of channels output device has, allowing
+                # ffmpeg to remix audio to match
+                # pygame does not have this feature
+                
+                "-ac", str(self._get_num_channels_to_process()),
                 "-f", "wav",
                 "-loglevel", FFMPEG_LOGLVL,
                 "-"
@@ -585,28 +610,29 @@ class Video:
                 sub._write_subs(self.frame_surf)
 
     def _get_closest_frame(self, pts, ts):
-        lo, hi = 0, len(pts) - 1
-        best_ind = lo
-        while lo <= hi:
-            mid = lo + (hi - lo) // 2
+        low, high = 0, len(pts) - 1
+        index = low
+        while low <= high:
+            mid = low + (high - low) // 2
             if pts[mid] < ts:
-                lo = mid + 1
+                low = mid + 1
             elif pts[mid] > ts:
-                hi = mid - 1
+                high = mid - 1
             else:
-                best_ind = mid
+                index = mid
                 break
-            if abs(pts[mid] - ts) < abs(pts[best_ind] - ts):
-                best_ind = mid
-        if pts[best_ind] > ts and best_ind > 0:
-            best_ind -= 1
-        return best_ind
+            if abs(pts[mid] - ts) < abs(pts[index] - ts):
+                index = mid
+        if pts[index] > ts and index > 0:
+            index -= 1
+        return index
 
     def _has_frame(self, p):
         if self.vfr:
             return self.frame < self.frame_count and p > self.timestamps[self.frame]
         return p > self.frame / float(self.frame_rate)
 
+    # driving function behind video playback
     def _update(self):
         if self._missing_ffmpeg:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
@@ -630,7 +656,6 @@ class Video:
                     except IndexError:
                         has_frame = False
                 else:
-
                     self.buffering = True
                     if self._preloaded:
                         has_frame = True
@@ -644,7 +669,8 @@ class Video:
 
                 self.frame += 1
 
-                # optimized for high playback speeds
+                # optimized for high playback speeds by
+                # avoiding redundant calculations for skipped frames
                 if self._has_frame(p):
                     continue
 
@@ -787,7 +813,6 @@ class Video:
 
             "audio_channels": self.audio_channels,
             "no_audio": self.no_audio
-
         }
 
     def mute(self) -> None:
@@ -846,7 +871,7 @@ class Video:
             self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
             self.frame_surf = self._create_frame(self.frame_data)
 
-    def change_resolution(self, height: int) -> None:
+    def change_resolution(self, height: int) -> int:
         """
         Given a height, the video will scale its dimensions while maintaining aspect ratio.
         Will scale width to an even number. Otherwise same as resize method.
@@ -855,6 +880,8 @@ class Video:
         if w % 2 == 1:
             w += 1
         self.resize((w, height))
+
+        return w
 
     def close(self) -> None:
         """
@@ -971,8 +998,7 @@ class Video:
         """
         Returns the current video timestamp in seconds (float).
         """
-        return self._starting_time + max(0,
-                                         self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
+        return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True) -> None:
         """

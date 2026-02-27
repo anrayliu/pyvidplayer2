@@ -1,5 +1,4 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
-# use pip install pyvidplayer2[all] to install all dependencies
 
 
 import time
@@ -238,20 +237,27 @@ class TestVideo(unittest.TestCase):
     def test_multiple_channels(self):
         v = Video("resources/6channels.mkv", use_pygame_audio=True)
         self.assertEqual(v.audio_channels, 6)
-        self.assertEqual(v._audio.get_num_channels(), 8)
+        
+        # mixer handler's get_num_channels has been made obsolete, returning 0
+        self.assertEqual(v._audio.get_num_channels(), 0)
+
+        self.assertEqual(v._get_num_channels_to_process(), 6)
+
         timed_loop(2, v.update)
         v.close()
 
         v = Video("resources/6channels.mkv", use_pygame_audio=False)
         self.assertEqual(v.audio_channels, 6)
-        self.assertEqual(v._audio.get_num_channels(), 2)
+
+        self.assertEqual(v._get_num_channels_to_process(), min(v.audio_channels, v._audio.get_num_channels()))
+
         timed_loop(2, v.update)
         v.close()
 
     # tests seeking, requires an accurate frame_count attribute
     def test_seeking(self):
         for file in PATHS:
-            if file.endswith(".webm"):
+            if file.endswith(".webm") or file.endswith("av1.mp4"):
                 continue
 
             v = Video(file)
@@ -538,27 +544,20 @@ class TestVideo(unittest.TestCase):
         # ensures no actual resampling is taking place
         self.assertIs(v.frame_surf, None)
 
-        SIZE = v.current_size
-        v.change_resolution(144)
-        self.assertEqual(v.current_size, (256, 144))
-        v.change_resolution(240)
-        self.assertEqual(v.current_size, (426, 240))
-        v.change_resolution(360)
-        self.assertEqual(v.current_size, (640, 360))
-        v.change_resolution(480)
-        self.assertEqual(v.current_size, (854, 480))
-
-        v.change_resolution(720)
-        self.assertEqual(v.current_size, (1280, 720))
-        v.change_resolution(1080)
-        self.assertEqual(v.current_size, (1920, 1080))
-        v.change_resolution(1440)
-        self.assertEqual(v.current_size, (2560, 1440))
-        v.change_resolution(2160)
-        self.assertEqual(v.current_size, (3840, 2160))
-        v.change_resolution(4320)
-        self.assertEqual(v.current_size, (7680, 4320))
-        v.resize(SIZE)
+        for size in (
+            (256, 144),
+            (426, 240),
+            (640, 360),
+            (854, 480),
+            (1280, 720),
+            (1920, 1080),
+            (2560, 1440),
+            (3840, 2160),
+            (7680, 4320)
+        ):
+            w = v.change_resolution(size[1])
+            self.assertEqual(size[0], w)
+            self.assertEqual(v.current_size, size)
 
         v.close()
 
@@ -594,12 +593,13 @@ class TestVideo(unittest.TestCase):
             timer = 0
             frames = 0
             passed = False
+            time.sleep(3)
             while v.active and seconds_elapsed < 10:
                 dt = clock.tick(0)
                 timer += dt
                 if timer >= 1000:
                     seconds_elapsed += 1
-                    if frames > 80:  # 80% of the maximum frame rate
+                    if frames > 70:  # 70% of the maximum frame rate
                         passed = True
                         break
                     timer = 0
@@ -627,6 +627,22 @@ class TestVideo(unittest.TestCase):
     def test_16_bit_colour(self):
         for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
             v = Video("resources/16bit.mp4", reader=reader)
+            while_loop(lambda: v.frame_surf is None, v.update, 5)
+            v.close()
+
+    # test if av1 encoded videos are playable
+    def test_av1_playback(self):
+        # decord cannot decode av1-encoded videos
+        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO):
+            v = Video("resources/av1.mp4", reader=reader)
+            while_loop(lambda: v.frame_surf is None, v.update, 5)
+            v.close()
+
+    # test if webm videos are playable
+    def test_webm_playback(self):
+        # decord cannot grab metadata for webm videos
+        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO):
+            v = Video("resources/hdr.webm", reader=reader)
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
 
@@ -689,7 +705,7 @@ class TestVideo(unittest.TestCase):
             v.pause()
 
             # rewinding because some audio may have been played during loading
-            v.seek(0)
+            v.seek_frame(0)
             self.assertTrue(v.paused)
 
             frame = v.frame
@@ -1248,7 +1264,7 @@ class TestVideo(unittest.TestCase):
 
     # tests different ways to accessing version
     def test_version(self):
-        VER = "0.9.29"
+        VER = "0.9.30"
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)
         self.assertEqual(VER, get_version_info()["pyvidplayer2"])

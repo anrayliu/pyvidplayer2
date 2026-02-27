@@ -11,7 +11,7 @@ from pyvidplayer2 import VideoTkinter
 video = VideoTkinter(r"resources\trailer1.mp4")
 
 def update():
-    video.draw(canvas, (video.current_size[0] / 2, video.current_size[1] / 2), force_draw=False)
+    video.draw(canvas, (video.current_size[0] // 2, video.current_size[1] // 2), force_draw=False)
     if video.active:
         root.after(16, update) # for around 60 fps
     else:

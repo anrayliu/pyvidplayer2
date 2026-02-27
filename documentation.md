@@ -2,7 +2,7 @@
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from YouTube. The object uses FFmpeg
 to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the
-appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio. Pygame or Pygame CE are the only graphics libraries to support subtitles. `ytdlp` is required to stream videos
+appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio. Pygame or Pygame CE are the only graphics libraries to support subtitles. `yt-dlp` is required to stream videos
 from YouTube. Decord is required to play videos from memory. This particular object uses Pygame for graphics, but see
 bottom for other supported libraries. Actual class name is `VideoPygame`.
 
@@ -38,7 +38,7 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   for a 24 fps video, the video will have to be updated at least, but ideally more than 48 times a
   second to achieve true x2 speed. For more information, see the `update` method below.
 - `youtube: bool = False` - Specifies whether to stream a YouTube video. Path must be a valid YouTube video URL. YouTube shorts
-  and livestreams are not supported. The python packages `yt_dlp` and `opencv-python` are required for this feature.
+  and livestreams are not supported. The python packages `yt-dlp` and `opencv-python` are required for this feature.
   They can be installed through pip. Setting this to `True` will force `chunk_size` to be at least 60 and `max_threads`
   to be 1.
 - `max_res: int = 720` - Only used when streaming YouTube videos. Sets the highest possible resolution when choosing video

@@ -107,7 +107,7 @@ class Video:
         if youtube:
             if not YTDLP:
                 raise ModuleNotFoundError(
-                    "Unable to stream video because YTDLP is not installed. YTDLP can be installed via pip.")
+                    "Unable to stream video because YTDLP is not installed. Refer to https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py for instructions.")
 
             # sets path and audio path for cv2 and ffmpeg
             # also sets name and ext

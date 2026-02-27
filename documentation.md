@@ -38,9 +38,8 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   for a 24 fps video, the video will have to be updated at least, but ideally more than 48 times a
   second to achieve true x2 speed. For more information, see the `update` method below.
 - `youtube: bool = False` - Specifies whether to stream a YouTube video. Path must be a valid YouTube video URL. YouTube shorts
-  and livestreams are not supported. The python packages `yt-dlp` and `opencv-python` are required for this feature.
-  They can be installed through pip. Setting this to `True` will force `chunk_size` to be at least 60 and `max_threads`
-  to be 1.
+  and livestreams are not supported. Setting this to `True` will force `chunk_size` to be at least 60 and `max_threads`
+  to be 1. Requires a few external dependencies, see this [example](https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py) for more information.
 - `max_res: int = 720` - Only used when streaming YouTube videos. Sets the highest possible resolution when choosing video
   quality. 4320p is the highest YouTube supports. Note that actual video quality is not guaranteed to match `max_res`.
 - `as_bytes: bool = False` - Specifies whether `path` is a video in byte form. The python package `decord` is required for this

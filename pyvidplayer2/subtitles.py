@@ -41,7 +41,7 @@ class Subtitles:
             else:
 
                 raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. "
-                                          "YTDLP can be installed via pip.")
+                                          "Refer to https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py for instructions.")
         else:
             if not os.path.exists(self.path):
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")

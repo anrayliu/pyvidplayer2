@@ -1,6 +1,6 @@
 '''
 This example shows how to stream videos from youtube in 720p
-pip install yt-dlp[default] before using
+pip install yt-dlp[default] opencv-python before using
 
 **********************************************************************************************************
 Unfortunately, changes to YouTube over time have made this feature significantly less reliable than before

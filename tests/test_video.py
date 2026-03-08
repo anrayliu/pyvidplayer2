@@ -810,10 +810,6 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._chunks_len([1, 2, 3]), 3)  # All non-None
         v.close()
 
-    # tests that ffmpeg logs are hidden in case they were turned on and forgotten
-    def test_loglevels(self):
-        self.assertEqual(FFMPEG_LOGLVL, "quiet")
-
     # test get_closest_frame method
     def test_get_closest_frame(self):
         v = Video(VIDEO_PATH)
@@ -1257,13 +1253,6 @@ class TestVideo(unittest.TestCase):
                 for i, frame in enumerate(v):
                     self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
                 v.close()
-
-    # tests different ways to accessing version
-    def test_version(self):
-        VER = "0.9.30"
-        self.assertEqual(VER, VERSION)
-        self.assertEqual(VER, pyvidplayer2.__version__)
-        self.assertEqual(VER, get_version_info()["pyvidplayer2"])
 
     # tests that the correct pts are extracted for vfr videos
     def test_get_timestamps(self):

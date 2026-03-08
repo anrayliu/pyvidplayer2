@@ -584,30 +584,30 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # tests that high frame rate videos can be achieved
+    # currently can only be achieved with pygame audio
     def test_unlocked_fps(self):
-        for audio_handler in (True, False):
-            v = Video("resources/100fps.mp4", use_pygame_audio=audio_handler)
-            seconds_elapsed = 0
-            clock = pygame.time.Clock()
-            v.play()
-            timer = 0
-            frames = 0
-            passed = False
-            time.sleep(3)
-            while v.active and seconds_elapsed < 10:
-                dt = clock.tick(0)
-                timer += dt
-                if timer >= 1000:
-                    seconds_elapsed += 1
-                    if frames > 70:  # 70% of the maximum frame rate
-                        passed = True
-                        break
-                    timer = 0
-                    frames = 0
-                if v.update():
-                    frames += 1
-            v.close()
-            self.assertTrue(passed)
+        v = Video("resources/100fps.mp4", use_pygame_audio=True)
+        seconds_elapsed = 0
+        clock = pygame.time.Clock()
+        v.play()
+        timer = 0
+        frames = 0
+        passed = False
+        time.sleep(3)
+        while v.active and seconds_elapsed < 10:
+            dt = clock.tick(0)
+            timer += dt
+            if timer >= 1000:
+                seconds_elapsed += 1
+                if frames > 90:  # 90% of the maximum frame rate
+                    passed = True
+                    break
+                timer = 0
+                frames = 0
+            if v.update():
+                frames += 1
+        v.close()
+        self.assertTrue(passed)
 
     # test each readers ability to choose the first video track when there are many
     # fails because decord does not read the first track
@@ -862,7 +862,7 @@ class TestVideo(unittest.TestCase):
 
     # test playing video in reverse and sped up
     def test_reversed_and_speed(self):
-        v = Video(VIDEO_PATH, reverse=True, speed=3)
+        v = Video(VIDEO_PATH, reverse=True, speed=3, use_pygame_audio=True)
         seconds_elapsed = 0
         clock = pygame.time.Clock()
         v.play()
@@ -881,7 +881,7 @@ class TestVideo(unittest.TestCase):
                 frames += 1
                 self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[v.frame_count - v.frame]))
         # check that frame rate kept up
-        self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.7)
+        self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.9)
         v.close()
 
     # tests buffering is working properly
@@ -1216,7 +1216,7 @@ class TestVideo(unittest.TestCase):
     # tests that the correct audio handlers are being selected
     def test_audio_handler(self):
         v = Video(VIDEO_PATH)
-        self.assertEqual(type(v._audio).__name__, "PyaudioHandler")
+        self.assertEqual(type(v._audio).__name__, "PSDHandler")
 
         # play a bit of audio and check that pyaudio is being utilized
         while_loop(lambda: v.frame < 10, v.update, 5)

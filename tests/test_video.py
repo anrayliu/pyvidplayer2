@@ -435,13 +435,14 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v._preloaded)
 
     # tests cv2 frame count, proving frame count, and real frame count
-    # currently fails due to a bug
-    @unittest.skip
     def test_frame_counts(self):
         for file in PATHS:
             v = Video(file)
-            if v.name in ("av1",):
-                continue  # file is corrupt
+            if v.name in (
+                    "av1", # file is corrupt
+                    "birds", # video header stores incorrect frame count
+            ):
+                continue
 
             # check that header information was not completely wrong
             self.assertGreater(v.frame_count, 0)
@@ -606,12 +607,11 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(passed)
 
     # test each readers ability to choose the first video track when there are many
-    # fails because decord does not read the first track
-    @unittest.skip
+    # omitted decord because it does not read the first track
     def test_many_video_tracks(self):
         v = Video("resources/birds.avi")
         vids = [Video("resources/manyv.mp4", reader=reader) for reader in
-                (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
+                (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO)]
         for i in range(10):
             frame = next(v)
             for vid in vids:

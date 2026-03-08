@@ -23,7 +23,6 @@ def find_device(*lambdas):
 
     raise RuntimeError("Could not find specified sound device.")
 
-
 def get_videos():
     paths = []
     for file in os.listdir("resources"):
@@ -32,13 +31,11 @@ def get_videos():
                 paths.append(os.path.join("resources", file))
     return paths
 
-
 def timed_loop(seconds, func, dt=0.1):
     t = time.time() + seconds
     while time.time() < t:
         time.sleep(dt)
         func()
-
 
 def while_loop(condition_func, func, timeout, dt=0.1):
     t = time.time()
@@ -47,7 +44,6 @@ def while_loop(condition_func, func, timeout, dt=0.1):
         func()
         if time.time() - t > timeout:
             raise RuntimeError("Loop timed out.")
-
 
 def check_same_frames(f1, f2):
     return np.array_equal(f1, f2)
@@ -1620,6 +1616,16 @@ class TestVideo(unittest.TestCase):
         self.assertFalse("cuda" in v._vid._get_command())
 
         v.close()
+
+    # tests bug where leftover pygame mixer positions would affect new video starting times
+    def test_pygame_mixer_position(self):
+        v = Video(VIDEO_PATH, use_pygame_audio=True)
+        while_loop(lambda: v.frame_data is None, v.update, 10)
+        v.close()
+        self.assertFalse(pygame.mixer.music.get_busy())
+        self.assertNotEqual(pygame.mixer.music.get_pos(), 0)
+        self.assertEqual(v._audio.get_pos(), 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

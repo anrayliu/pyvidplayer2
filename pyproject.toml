@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pyvidplayer2"
 dynamic = ["version"]
-description = "Reliable, easy, and fast video playback in Python"
+description = "Reliable, easy, and fast video playback in Python with integrations for pygame, tkinter, pyglet, and more."
 readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
     {name = "Anray Liu", email = "anrayliu@gmail.com"}
@@ -19,7 +19,7 @@ dependencies = [
     "pysubs2",
     "PyAudio"
 ]
-keywords = ["pygame", "video", "playback", "tkinter", "pyqt", "pyside", "pyglet", "wxpython"]
+keywords = ["pygame", "video", "playback"]
 maintainers = [
     { name = "Anray Liu", email = "anrayliu@gmail.com" }
 ]
@@ -30,14 +30,17 @@ classifiers = [
   "Topic :: Multimedia :: Video",
   "Topic :: Multimedia :: Video :: Display",
   "Topic :: Software Development :: Libraries :: pygame",
+  "Operating System :: OS Independent",
+  "Typing :: Typed",
 
-"Programming Language :: Python :: 3.8",
-"Programming Language :: Python :: 3.9",
-"Programming Language :: Python :: 3.10",
-"Programming Language :: Python :: 3.11",
-"Programming Language :: Python :: 3.12",
-"Programming Language :: Python :: 3.13",
-"Programming Language :: Python :: 3.14"
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14"
 ]
 
 [project.optional-dependencies]

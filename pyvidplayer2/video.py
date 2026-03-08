@@ -892,8 +892,7 @@ class Video:
         self.stop()
         self._vid.release()
         self._audio.unload()
-        if not self.use_pygame_audio:
-            self._audio.close()
+        self._audio.close()
         self.closed = True
 
     def restart(self) -> None:

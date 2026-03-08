@@ -2,8 +2,10 @@ from io import BytesIO
 
 import pygame
 
+from .audio_handler import AudioHandler
 
-class MixerHandler:
+
+class MixerHandler(AudioHandler):
     def __init__(self):
         self.muted = False
         self.loaded = False
@@ -60,3 +62,19 @@ class MixerHandler:
     def unmute(self):
         self.muted = False
         self.set_volume(self.volume)
+
+    # does not uninit mixer because other videos may still need it
+    def close(self):
+        if self.loaded:
+            self.unload()
+
+    # not ideal, should've used properties instead
+    # still better to be consistent with old patterns until refactors can be made
+    def get_muted(self):
+        return self.muted
+    
+    def get_loaded(self):
+        return self.loaded
+    
+    def get_paused(self):
+        return self.paused

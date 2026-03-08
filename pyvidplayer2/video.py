@@ -34,6 +34,14 @@ else:
     from .pyaudio_handler import PyaudioHandler
 
 try:
+    import sounddevice
+except ImportError:
+    SOUNDDEVICE = 0
+else:
+    SOUNDDEVICE = 1
+    from .psd_handler import PSDHandler
+
+try:
     import pygame
 except ImportError:
     PYGAME = 0
@@ -199,7 +207,9 @@ class Video:
                 raise ModuleNotFoundError(
                 "Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
 
-            self._audio = PyaudioHandler()
+            # self._audio = PyaudioHandler()
+            self._audio = PSDHandler()
+
             if self.audio_index is not None:
                 self._audio._set_device_index(self.audio_index)
 

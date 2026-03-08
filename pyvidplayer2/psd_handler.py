@@ -34,16 +34,15 @@ class PSDHandler(AudioHandler):
             "pipewire",
             "default",
         ]
-        
-        self.device_index = self.choose_device()
+
+        self._refresh_devices()
+        self.device_index = self._choose_device()
         self._buffer = None
 
-    def refresh_devices(self):
+    def _refresh_devices(self):
         self.audio_devices = sd.query_devices()
 
-    def choose_device(self):
-        self.refresh_devices()
-        
+    def _choose_device(self):
         for name in self.preferred_device_names:
             for i, dev in enumerate(self.audio_devices):
                 if name in dev['name'].lower() and dev['max_output_channels'] > 0:
@@ -54,6 +53,14 @@ class PSDHandler(AudioHandler):
                 return i
 
         raise AudioDeviceError("No audio devices found.")
+
+    def _set_device_index(self, index):
+        try:
+            self.audio_devices[index]
+        except IndexError:
+            raise AudioDeviceError(f"Audio device with index {index} does not exist.")
+        else:
+            self.device_index = index
 
     def load(self, bytes_):
         self.unload()
@@ -98,8 +105,9 @@ class PSDHandler(AudioHandler):
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK_SIZE = 128 
+        CHUNK_SIZE = 128
         channels = self.wave.getnchannels()
+        dtype_val = {1: np.int8, 2: np.int16, 4: np.int32}.get(self.wave.getsampwidth(), np.int16)
 
         while not self.stop_thread:
             if self.paused:
@@ -109,21 +117,17 @@ class PSDHandler(AudioHandler):
                 if data == b"":
                     break
 
-                # Convert to numpy array
-                audio = np.frombuffer(data, dtype=np.int16)
+                audio = np.frombuffer(data, dtype=dtype_val)
                 
-                # sounddevice expects (frames, channels) shape
                 audio = audio.reshape(-1, channels)
 
                 if self.volume == 0.0 or self.muted:
                     audio = np.zeros_like(audio)
                 elif self.volume != 1.0:
-                    # Optimized volume math (no need for log10 if you have linear volume)
-                    audio = (audio * self.volume).astype(np.int16)
+                    audio = (audio * self.volume).astype(dtype_val)
 
                 self._buffer = audio
                 
-                # Blocking write to the stream
                 self.stream.write(audio)
 
                 self.chunks_played += CHUNK_SIZE
@@ -142,14 +146,14 @@ class PSDHandler(AudioHandler):
     def unload(self):
         if self.loaded:
             self.stop()
-            if self.wave:
-                self.wave.close()
+            self.wave.close()
             self.wave = None
+            self.thread = None
             self.loaded = False
 
     def close(self):
         self.unload()
-        if self.stream:
+        if self.stream is not None:
             self.stream.stop()
             self.stream.close()
 
@@ -179,8 +183,6 @@ class PSDHandler(AudioHandler):
     def get_busy(self):
         return self.active
 
-    # not ideal, should've used properties instead
-    # still better to be consistent with old patterns until refactors can be made
     def get_muted(self):
         return self.muted
     

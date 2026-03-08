@@ -149,8 +149,7 @@ class PyaudioHandler(AudioHandler):
         return self.audio_devices[self.device_index]["maxOutputChannels"]
 
     def close(self):
-        if self.loaded:
-            self.unload()
+        self.unload()
         if self.stream is not None:
             self.stream.stop_stream()
             self.stream.close()

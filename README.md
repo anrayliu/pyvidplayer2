@@ -30,7 +30,7 @@ played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/is
 - Play multiple videos in parallel
 - Add multiple subtitles to a video
 - Built in GUI and queue system
-- Support for Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, and wxPython
+- Draw videos using Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, or wxPython
 - Post process effects
 - Webcam feed
 - Stream videos from Youtube
@@ -51,13 +51,13 @@ Windows users can go to the [official website](https://www.ffmpeg.org/) to downl
 Add the bin folder location to the PATH environment variable. There's plenty of tutorials online for this.
 Linux and MacOS users can use their package manager of choice.
 
-## Legacy Installs
+## Legacy Installations
 
 Versions prior to v0.9.31 have a PyAudio dependency. To build the wheel for it, some system packages must be present.
 Install them with your package manager before running `pip install pyvidplayer2`.
 
-- Ubuntu/Debian: `sudo apt install ffmpeg python3-dev libjack-jackd2-dev portaudio19-dev`
-- Fedora/RHEL: `sudo dnf install ffmpeg python3-devel portaudio-devel`
+- Ubuntu/Debian: `sudo apt install python3-dev libjack-jackd2-dev portaudio19-dev`
+- Fedora/RHEL: `sudo dnf install python3-devel portaudio-devel`
 - MacOS: `brew install portaudio`
 
 # Dependencies

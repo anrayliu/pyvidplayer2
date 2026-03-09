@@ -229,26 +229,17 @@ class TestVideo(unittest.TestCase):
                 self.assertTrue(v.audio_channels in (0, 2))
             v.close()
 
-    # this test is potentially problematic
     def test_multiple_channels(self):
-        v = Video("resources/6channels.mkv", use_pygame_audio=True)
-        self.assertEqual(v.audio_channels, 6)
-        
-        # mixer handler's get_num_channels has been made obsolete, returning 0
-        self.assertEqual(v._audio.get_num_channels(), 0)
+        for audio_handler in (True, False):
+            v = Video("resources/6channels.mkv", use_pygame_audio=audio_handler)
+            self.assertEqual(v.audio_channels, 6)
 
-        self.assertEqual(v._get_num_channels_to_process(), 6)
+            self.assertEqual(v._audio.get_num_channels(), 2)
 
-        timed_loop(2, v.update)
-        v.close()
+            self.assertEqual(v._get_num_channels_to_process(), 2)
 
-        v = Video("resources/6channels.mkv", use_pygame_audio=False)
-        self.assertEqual(v.audio_channels, 6)
-
-        self.assertEqual(v._get_num_channels_to_process(), min(v.audio_channels, v._audio.get_num_channels()))
-
-        timed_loop(2, v.update)
-        v.close()
+            timed_loop(2, v.update)
+            v.close()
 
     # tests seeking, requires an accurate frame_count attribute
     def test_seeking(self):

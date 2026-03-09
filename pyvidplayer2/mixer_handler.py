@@ -20,11 +20,11 @@ class MixerHandler(AudioHandler):
         pygame.mixer.music.load(BytesIO(bytes_), "wav")
         self.loaded = True
 
-    # obsolete
-    # doesn't return device channels like Pyaudio does
     def get_num_channels(self):
-        return 0
-        # return pygame.mixer.get_num_channels()
+        try:
+            return pygame.mixer.get_init()[2]
+        except IndexError:
+            return 0
 
     def unload(self):
         self.stop()

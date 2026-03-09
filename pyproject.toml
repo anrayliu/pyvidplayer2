@@ -17,7 +17,7 @@ dependencies = [
     "opencv-python",
     "pygame-ce",
     "pysubs2",
-    "PyAudio"
+    "sounddevice"
 ]
 keywords = ["pygame", "video", "playback"]
 maintainers = [
@@ -56,7 +56,6 @@ all = [
         "PyQt6",
         "raylib",
         "wxPython",
-        "sounddevice"
     ]
 
 [tool.setuptools]

@@ -1216,7 +1216,7 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
-        with unittest.mock.patch("pyvidplayer2.video.PYAUDIO", 0):
+        with unittest.mock.patch("pyvidplayer2.video.SOUNDDEVICE", 0):
             self.assertRaises(ModuleNotFoundError, Video, VIDEO_PATH)
 
             # should be fine

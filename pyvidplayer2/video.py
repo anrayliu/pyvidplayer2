@@ -25,13 +25,15 @@ else:
     CV = 1
     from .cv_reader import CVReader
 
-try:
-    import pyaudio
-except ImportError:
-    PYAUDIO = 0
-else:
-    PYAUDIO = 1
-    from .pyaudio_handler import PyaudioHandler
+# pyaudio is obsolete, replaced with python sounddevice
+
+# try:
+#     import pyaudio
+# except ImportError:
+#     PYAUDIO = 0
+# else:
+#     PYAUDIO = 1
+#     from .pyaudio_handler import PyaudioHandler
 
 try:
     import sounddevice
@@ -199,13 +201,13 @@ class Video:
         if self.use_pygame_audio:
             if not PYGAME:
                 raise ModuleNotFoundError(
-                    "Unable to use Pygame audio because Pygame is not installed. Pygame can be installed via pip.")
+                    "Pygame is not installed. Install it via pip or use a different audio backend.")
 
             self._audio = MixerHandler()
         else:
-            if not PYAUDIO:
+            if not SOUNDDEVICE:
                 raise ModuleNotFoundError(
-                "Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
+                "Python-sounddevice is not installed. Install it via pip or use a different audio backend.")
 
             # self._audio = PyaudioHandler()
             self._audio = PSDHandler()

@@ -1,3 +1,5 @@
+# obsolete class, replaced with psd_handler
+
 import copy
 import wave
 import math

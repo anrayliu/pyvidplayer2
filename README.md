@@ -43,34 +43,22 @@ played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/is
 
 # Installation
 
-Install with pip.
 ```
 pip install pyvidplayer2
 ```
 In addition, FFmpeg and FFprobe must be downloaded and accessible via PATH.
-Downloading FFmpeg usually also downloads FFprobe.
-
-## Windows
-
-Go to the [official FFmpeg website](https://www.ffmpeg.org/) to download FFmpeg.
+Windows users can go to the [official website](https://www.ffmpeg.org/) to download FFmpeg (includes FFprobe).
 Add the bin folder location to the PATH environment variable. There's plenty of tutorials online for this.
+Linux and MacOS users can use their package manager of choice.
 
-## Linux
+## Legacy Installs
 
-Before running `pip install pyvidplayer2`, use your package manager to install some system
-packages. FFmpeg is also installed this way, and it should be accessible via $PATH by default.
+Versions prior to v0.9.31 have a PyAudio dependency. To build the wheel for it, some system packages must be present.
+Install them with your package manager before running `pip install pyvidplayer2`.
 
 - Ubuntu/Debian: `sudo apt install ffmpeg python3-dev libjack-jackd2-dev portaudio19-dev`
 - Fedora/RHEL: `sudo dnf install ffmpeg python3-devel portaudio-devel`
-
-## MacOS
-
-Before running `pip install pyvidplayer2`, install PortAudio and FFmpeg with homebrew.
-Limited testing was done on this platform, so please report any issues.
-
-```
-brew install ffmpeg portaudio
-```
+- MacOS: `brew install portaudio`
 
 # Dependencies
 
@@ -86,7 +74,7 @@ At least one graphics library and one audio library is required.
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
 pygame-ce       (graphics and audio library, comes installed)
-PyAudio         (better audio library, comes installed)
+sounddevice     (better audio library, comes installed)
 pysubs2         (for subtitles, comes installed)
 yt_dlp          (for streaming Youtube videos)
 decord          (for videos in bytes, best option)

@@ -660,7 +660,6 @@ class TestVideo(unittest.TestCase):
 
     # tests that pausing works correctly
     def test_pausing(self):
-        # repeat test for pyaudio and pygame mixer
         for audio_handler in (False, True):
             v = Video(VIDEO_PATH, use_pygame_audio=audio_handler)
 
@@ -1201,7 +1200,7 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH)
         self.assertEqual(type(v._audio).__name__, "PSDHandler")
 
-        # play a bit of audio and check that pyaudio is being utilized
+        # play a bit of audio and check that sounddevice is being utilized
         while_loop(lambda: v.frame < 10, v.update, 5)
         self.assertTrue(v._audio.thread is not None and v._audio.thread.is_alive())
 

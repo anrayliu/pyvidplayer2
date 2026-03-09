@@ -545,7 +545,7 @@ class Video:
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
 
-                # pyaudio can get number of channels output device has, allowing
+                # sounddevice can get number of channels output device has, allowing
                 # ffmpeg to remix audio to match
 
                 "-ac", str(self._get_num_channels_to_process()),

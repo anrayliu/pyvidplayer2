@@ -1,8 +1,8 @@
 # *class* Video(path: str, **kwargs)
 
 Main object used to play videos. Videos can be read from disk, memory or streamed from YouTube. The object uses FFmpeg
-to extract chunks of audio from videos and then feeds it into a Pyaudio stream. It uses OpenCV to display the
-appropriate video frames. Videos can only be played simultaneously if they're using Pyaudio. Pygame or Pygame CE are the only graphics libraries to support subtitles. `yt-dlp` is required to stream videos
+to extract chunks of audio from videos and then feeds it into a Sounddevice stream (v0.9.30 and before used PyAudio instead of Sounddevice). It uses OpenCV to display the
+appropriate video frames. Videos can only be played simultaneously if using Sounddevice. Pygame or Pygame CE are the only graphics libraries to support subtitles. `yt-dlp` is required to stream videos
 from YouTube. Decord is required to play videos from memory. This particular object uses Pygame for graphics, but see
 bottom for other supported libraries. Actual class name is `VideoPygame`.
 
@@ -25,8 +25,8 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best
   results when downscaling. This parameter can also accept OpenCV constants like `cv2.INTER_LINEAR`. Resizing will use
   OpenCV when available but can fall back on FFmpeg if needed.
-- `use_pygame_audio: bool = False` - Specifies whether to use Pyaudio or Pygame to play audio. Pyaudio is almost always the best
-  option, so this option mainly exists for situations where Pyaudio cannot be installed (see README installation instructions). Using Pygame audio will not allow videos to be played in parallel.
+- `use_pygame_audio: bool = False` - Specifies whether to use Sounddevice or Pygame to play audio. Sounddevice is almost always the best
+  option, so this option mainly exists for situations where Sounddevice cannot be installed. Using Pygame audio will not allow videos to be played in parallel.
 - `reverse: bool = False` - Specifies whether to play the video in reverse. Warning: Doing so will load every video frame into
   RAM, so videos longer than a few minutes can temporarily brick your computer. Subtitles are currently unaffected by
   reverse playback.
@@ -50,10 +50,10 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   constant frame rate videos, but extracting the timestamps will mean a longer initial load.
 - `pref_lang: str = "en"` - Only used when streaming YouTube videos. Used to select a language track if video has multiple.
   This must be a Google language code; refer to the examples directory.
-- `audio_index: int = None` - Used to specify which audio output device to use if using PyAudio. Can be specific to each video,
+- `audio_index: int = None` - Used to specify which audio output device to use if using Sounddevice. Can be specific to each video,
   and is automatically calculated if argument is not provided. To get a list of devices and their indices, use libraries
   like `sounddevice` (see `audio_devices_demo.py` in examples directory) and the numbers from the MME host APIs. If using Pygame instead
-  of PyAudio, setting output device can be done in the mixer init settings, independent of pyvidplayer2.
+  of Sounddevice, setting output device can be done in the mixer init settings, independent of pyvidplayer2.
 - `reader: int = pyvidplayer2.READER_AUTO` - Specifies which video reading backend to use. Can be `pyvidplayer2.READER_AUTO` (choose best backend
   automatically), `pyvidplayer2.READER_OPENCV` (requires `opencv-python`), `pyvidplayer2.READER_DECORD` (requires `decord`), `pyvidplayer2.READER_IMAGEIO` (requires `imageio`), and
   `pyvidplayer2.READER_FFMPEG`. Note that their respective packages must be installed to use. There are fumdamental differneces between readers. For example, the colour format
@@ -407,7 +407,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 # Errors
 
 - `Pyvidplayer2Error` - Base error for pyvidplayer2 related exceptions.
-- `AudioDeviceError(Pyvidplayer2Error)` - Thrown for exceptions related to PyAudio output devices.
+- `AudioDeviceError(Pyvidplayer2Error)` - Thrown for exceptions related to Sounddevice output devices.
 - `SubtitleError(Pyvidplayer2Error)` - Thrown for exceptions related to subtitles.
 - `VideoStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to general video probing and playback.
 - `AudioStreamError(Pyvidplayer2Error)` - Thrown for exceptions related to audio tracks.

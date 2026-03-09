@@ -1,7 +1,11 @@
 from pyvidplayer2._version import __version__
 
 VERSION = __version__  # for older versions of pyvidplayer2
+
 FFMPEG_LOGLVL = "quiet"
+
+def get_ffmpeg_loglevel() -> str:
+    return FFMPEG_LOGLVL
 
 from subprocess import run
 
@@ -99,3 +103,18 @@ def get_version_info():
     return {"pyvidplayer2": __version__,
             "ffmpeg": ffmpeg_ver,
             "pygame": pygame_ver}
+
+
+def set_ffmpeg_loglevel(level: str) -> None:
+    global FFMPEG_LOGLVL
+    if level in (
+        "quiet",
+        "panic",
+        "fatal",
+        "error",
+        "warning",
+        "info",
+        "verbose",
+        "debug",
+        "trace"
+    ): FFMPEG_LOGLVL = level

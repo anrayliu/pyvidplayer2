@@ -3,7 +3,7 @@ import subprocess
 
 import numpy as np
 
-from . import FFMPEG_LOGLVL
+from . import get_ffmpeg_loglevel
 from .video_reader import VideoReader
 from .error import *
 
@@ -32,7 +32,7 @@ class FFMPEGReader(VideoReader):
             *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device >= 0 else []), # select device
             *(["-ss", self._convert_seconds(index / self.frame_rate)] if index is not None else []),
             "-i", self._path,
-            "-loglevel", FFMPEG_LOGLVL,
+            "-loglevel", get_ffmpeg_loglevel(),
             "-map", "0:v:0",
             "-f", "rawvideo",
             "-vf", "format=bgr24",

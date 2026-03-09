@@ -1,7 +1,7 @@
 import subprocess
 import json
 
-from . import FFMPEG_LOGLVL
+from . import get_ffmpeg_loglevel
 from .error import *
 
 
@@ -34,7 +34,7 @@ class VideoReader:
                 "-show_streams",
                 "-count_packets",
                 "-select_streams", "v:0",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
 

@@ -15,7 +15,7 @@ import numpy as np
 
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
-from . import FFMPEG_LOGLVL
+from . import get_ffmpeg_loglevel
 
 try:
     import cv2
@@ -360,7 +360,7 @@ class Video:
                 "-i", "-" if self.as_bytes else self.path,
                 "-select_streams", "v:0",
                 "-show_entries", "packet=pts_time",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
 
@@ -493,7 +493,7 @@ class Video:
             "-t", str(self._convert_seconds(0.1)),
             "-vn",
             "-f", "wav",
-            "-loglevel", FFMPEG_LOGLVL,
+            "-loglevel", get_ffmpeg_loglevel(),
             "-"
         ]
 
@@ -531,7 +531,7 @@ class Video:
                 "-t", str(self._convert_seconds(
                     min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
                 "-f", "wav",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-"
             ]
 
@@ -550,7 +550,7 @@ class Video:
 
                 "-ac", str(self._get_num_channels_to_process()),
                 "-f", "wav",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-"
             ]
 
@@ -580,7 +580,7 @@ class Video:
                     "-i", "-",
                     "-af", f"atempo={self.speed}",
                     "-f", "wav",
-                    "-loglevel", FFMPEG_LOGLVL,
+                    "-loglevel", get_ffmpeg_loglevel(),
                     "-"
                 ]
 
@@ -736,7 +736,7 @@ class Video:
             process = subprocess.Popen(
                 [
                     "ffmpeg",
-                    "-loglevel", str(FFMPEG_LOGLVL),
+                    "-loglevel", get_ffmpeg_loglevel(),
                     "-f", "rawvideo",
                     "-pix_fmt", "rgb24",
                     "-s", f"{data.shape[1]}x{data.shape[0]}",
@@ -964,7 +964,7 @@ class Video:
                 "-i", "-" if self.as_bytes else self.path,
                 "-show_streams",
                 "-select_streams", f"a:{index}",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
 

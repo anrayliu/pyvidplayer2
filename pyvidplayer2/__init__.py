@@ -2,10 +2,20 @@ from pyvidplayer2._version import __version__
 
 VERSION = __version__  # for older versions of pyvidplayer2
 
-FFMPEG_LOGLVL = "quiet"
+_ffmpeg_loglvl = "quiet"
+_ffmpeg_path = "ffmpeg"
+_ffprobe_path = "ffprobe"
 
+# need to be near top so library can import these
 def get_ffmpeg_loglevel() -> str:
-    return FFMPEG_LOGLVL
+    return _ffmpeg_loglvl
+
+def get_ffmpeg_path() -> str:
+    return _ffmpeg_path
+
+def get_ffprobe_path() -> str:
+    return _ffprobe_path
+
 
 from subprocess import run
 
@@ -106,7 +116,7 @@ def get_version_info():
 
 
 def set_ffmpeg_loglevel(level: str) -> None:
-    global FFMPEG_LOGLVL
+    global _ffmpeg_loglvl
     if level in (
         "quiet",
         "panic",
@@ -117,4 +127,12 @@ def set_ffmpeg_loglevel(level: str) -> None:
         "verbose",
         "debug",
         "trace"
-    ): FFMPEG_LOGLVL = level
+    ): _ffmpeg_loglvl = level
+
+def set_ffmpeg_path(path: str) -> None:
+    global _ffmpeg_path
+    _ffmpeg_path = path
+
+def set_ffprobe_path(path: str) -> None:
+    global _ffprobe_path
+    _ffprobe_path = path

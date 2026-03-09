@@ -1,7 +1,7 @@
 import subprocess
 import json
 
-from . import get_ffmpeg_loglevel
+from . import get_ffmpeg_loglevel, get_ffprobe_path
 from .error import *
 
 
@@ -29,7 +29,7 @@ class VideoReader:
             # p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_streams -select_streams v -loglevel {FFMPEG_LOGLVL} -print_format json", stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
 
             command = [
-                "ffprobe",
+                get_ffprobe_path(),
                 "-i", "-" if as_bytes else path,
                 "-show_streams",
                 "-count_packets",

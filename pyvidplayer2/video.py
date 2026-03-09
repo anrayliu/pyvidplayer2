@@ -15,7 +15,7 @@ import numpy as np
 
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
-from . import get_ffmpeg_loglevel
+from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
 
 try:
     import cv2
@@ -356,7 +356,7 @@ class Video:
 
         try:
             command = [
-                "ffprobe",
+                get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
                 "-select_streams", "v:0",
                 "-show_entries", "packet=pts_time",
@@ -488,7 +488,7 @@ class Video:
         Returns True if video has no audio
         """
         command = [
-            "ffmpeg",
+            get_ffmpeg_path(),
             "-i", self._audio_path,
             "-t", str(self._convert_seconds(0.1)),
             "-vn",
@@ -525,7 +525,7 @@ class Video:
             # very important because audio-visual syncing is done by tracking played audio chunks
 
             command = [
-                "ffmpeg",
+                get_ffmpeg_path(),
                 "-f", "lavfi",
                 "-i", "anullsrc",
                 "-t", str(self._convert_seconds(
@@ -537,7 +537,7 @@ class Video:
 
         else:
             command = [
-                "ffmpeg",
+                get_ffmpeg_path(),
                 "-i", self._audio_path,
                 "-ss", self._convert_seconds(s),
                 "-t", self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
@@ -576,7 +576,7 @@ class Video:
 
             if not self.no_audio and self.speed != 1 and self.reverse:
                 command = [
-                    "ffmpeg",
+                    get_ffmpeg_path(),
                     "-i", "-",
                     "-af", f"atempo={self.speed}",
                     "-f", "wav",
@@ -735,7 +735,7 @@ class Video:
         try:
             process = subprocess.Popen(
                 [
-                    "ffmpeg",
+                    get_ffmpeg_path(),
                     "-loglevel", get_ffmpeg_loglevel(),
                     "-f", "rawvideo",
                     "-pix_fmt", "rgb24",
@@ -960,7 +960,7 @@ class Video:
 
         try:
             command = [
-                "ffprobe",
+                get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
                 "-show_streams",
                 "-select_streams", f"a:{index}",

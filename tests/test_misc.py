@@ -16,7 +16,7 @@ class TestVideo(unittest.TestCase):
         info = pyvidplayer2.get_version_info()
 
         try:
-            ffmpeg_ver = subprocess.run(["ffmpeg", "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
+            ffmpeg_ver = subprocess.run([pyvidplayer2.get_ffmpeg_path(), "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
         except FileNotFoundError:
             ffmpeg_ver = "not installed"
 
@@ -35,4 +35,4 @@ class TestVideo(unittest.TestCase):
 
     # tests that ffmpeg logs are hidden in case they were turned on and forgotten
     def test_loglevels(self):
-        self.assertEqual(pyvidplayer2.FFMPEG_LOGLVL, "quiet")
+        self.assertEqual(pyvidplayer2._ffmpeg_loglvl, "quiet")

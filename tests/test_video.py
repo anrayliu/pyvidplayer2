@@ -234,9 +234,13 @@ class TestVideo(unittest.TestCase):
             v = Video("resources/6channels.mkv", use_pygame_audio=audio_handler)
             self.assertEqual(v.audio_channels, 6)
 
-            self.assertEqual(v._audio.get_num_channels(), 2)
+            if audio_handler:
+                # pygame mixer init with 2 channels
+                # if using sounddevice, this number depends on number of channels on output device
+                self.assertEqual(v._audio.get_num_channels(), 2)
+                self.assertEqual(v._get_num_channels_to_process(), 2)
 
-            self.assertEqual(v._get_num_channels_to_process(), 2)
+            self.assertEqual(v._get_num_channels_to_process(), min(v.audio_channels, v._audio.get_num_channels()))
 
             timed_loop(2, v.update)
             v.close()

@@ -30,25 +30,25 @@ jobs:
           path: ffmpeg-cache
           key: ffmpeg-${{ runner.os }}-v1
 
-      - name: Download FFmpeg - Linux
+      - name: Download FFmpeg - linux x64
         if: runner.os == 'Linux' && steps.cache-ffmpeg.outputs.cache-hit != 'true'
         run: |
           mkdir ffmpeg-cache
-          wget https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl.tar.xz
-          tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz
-          cp ffmpeg-*/bin/ffmpeg ffmpeg-cache/
-          cp ffmpeg-*/bin/ffprobe ffmpeg-cache/
+          wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          tar -xf ffmpeg-release-amd64-static.tar.xz
+          cp ffmpeg-*/ffmpeg-*/ffmpeg ffmpeg-cache/
+          cp ffmpeg-*/ffmpeg-*/ffprobe ffmpeg-cache/
 
-      - name: Download FFmpeg - macOS
+      - name: Download FFmpeg - macos arm64
         if: runner.os == 'macOS' && steps.cache-ffmpeg.outputs.cache-hit != 'true'
         run: |
           mkdir ffmpeg-cache
-          wget https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linuxarm64-gpl.tar.xz
-          tar -xf ffmpeg-master-latest-linuxarm64-gpl.tar.xz 
-          cp ffmpeg-*/bin/ffmpeg ffmpeg-cache/
-          cp ffmpeg-*/bin/ffprobe ffmpeg-cache/
+          wget https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-darwin-arm64
+          cp ffmpeg-darwin-arm64 ffmpeg-cache/ffmpeg
+          wget https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffprobe-darwin-arm64
+          cp ffprobe-darwin-arm64 ffmpeg-cache/ffprobe
 
-      - name: Download FFmpeg - Windows
+      - name: Download FFmpeg - windows x64
         if: runner.os == 'Windows' && steps.cache-ffmpeg.outputs.cache-hit != 'true'
         shell: pwsh
         run: |

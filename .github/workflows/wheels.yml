@@ -36,8 +36,8 @@ jobs:
           mkdir ffmpeg-cache
           wget https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linux64-gpl.tar.xz
           tar -xf ffmpeg-master-latest-linux64-gpl.tar.xz
-          cp ffmpeg-*/ffmpeg ffmpeg-cache/
-          cp ffmpeg-*/ffprobe ffmpeg-cache/
+          cp ffmpeg-*/bin/ffmpeg ffmpeg-cache/
+          cp ffmpeg-*/bin/ffprobe ffmpeg-cache/
 
       - name: Download FFmpeg - macOS
         if: runner.os == 'macOS' && steps.cache-ffmpeg.outputs.cache-hit != 'true'
@@ -45,8 +45,8 @@ jobs:
           mkdir ffmpeg-cache
           wget https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-linuxarm64-gpl.tar.xz
           tar -xf ffmpeg-master-latest-linuxarm64-gpl.tar.xz 
-          cp ffmpeg-*/ffmpeg ffmpeg-cache/
-          cp ffmpeg-*/ffprobe ffmpeg-cache/
+          cp ffmpeg-*/bin/ffmpeg ffmpeg-cache/
+          cp ffmpeg-*/bin/ffprobe ffmpeg-cache/
 
       - name: Download FFmpeg - Windows
         if: runner.os == 'Windows' && steps.cache-ffmpeg.outputs.cache-hit != 'true'

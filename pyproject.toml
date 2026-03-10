@@ -61,6 +61,9 @@ all = [
 [tool.setuptools]
 packages = ["pyvidplayer2"]
 
+[tool.setuptools.package-data]
+pyvidplayer2 = ["bin/ffmpeg", "bin/ffprobe"]
+
 [tool.setuptools.dynamic]
 version = {attr = "pyvidplayer2._version.__version__"}
 

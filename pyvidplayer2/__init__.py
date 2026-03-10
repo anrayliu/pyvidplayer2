@@ -106,7 +106,7 @@ def get_version_info():
         pygame_ver = "not installed"
 
     try:
-        ffmpeg_ver = run(["ffmpeg", "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
+        ffmpeg_ver = run([get_ffmpeg_path(), "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 

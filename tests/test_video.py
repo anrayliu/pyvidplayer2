@@ -1609,6 +1609,41 @@ class TestVideo(unittest.TestCase):
         self.assertNotEqual(pygame.mixer.music.get_pos(), 0)
         self.assertEqual(v._audio.get_pos(), 0.0)
 
+    # tests setters and getters for ffmpeg and ffprobe paths
+    def test_binary_path(self):
+        self.assertEqual(get_ffmpeg_path(), "ffmpeg")
+        self.assertEqual(get_ffprobe_path(), "ffprobe")
+
+        Video(VIDEO_PATH).close() # no error here            
+
+        set_ffmpeg_path("/hehe/ffmpeG")
+        self.assertEqual(get_ffmpeg_path(), "/hehe/ffmpeG")
+
+        v = Video(VIDEO_PATH) # no error here either
+
+        with self.assertRaises(FFmpegNotFoundError):
+            while_loop(lambda: v.frame_data is None, v.update, 10)
+        
+        set_ffmpeg_path("ffmpeg")
+        self.assertEqual(get_ffmpeg_path(), "ffmpeg")
+
+        set_ffprobe_path("/hehe/ffffprobe")
+        self.assertEqual(get_ffprobe_path(), "/hehe/ffffprobe")
+
+        # unlike ffmpeg, a bad ffprobe path should throw exception on video init
+
+        with self.assertRaises(FFmpegNotFoundError):
+            Video(VIDEO_PATH).close()
+
+        set_ffprobe_path("ffprobe")
+        self.assertEqual(get_ffprobe_path(), "ffprobe")
+
+        Video(VIDEO_PATH).close()
+
+        set_ffmpeg_path("/badpath")
+
+        self.assertEqual(get_version_info()["ffmpeg"], "not installed")    
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -421,6 +421,24 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 ```
 print(pyvidplayer2.get_version_info())
 ```
-
 Returns a dictionary with the version of pyvidplayer2, FFmpeg, and Pygame. Version can also be accessed directly
 with `pyvidplayer2.__version__` or `pyvidplayer2.VERSION`.
+
+```
+get_ffmpeg_path() -> str
+set_ffmpeg_path(path: str) -> None
+```
+Setter and getter for path to FFmpeg executable. Default is "ffmpeg" (relative path).
+
+```
+get_ffprobe_path() -> str
+set_ffprobe_path(path: str) -> None
+```
+Setter and getter for path to FFprobe executable. Default is "ffprobe" (relative path).
+
+```
+get_ffmpeg_loglevel() -> str
+set_ffmpeg_loglevel(level: str) -> None
+```
+Setter and getter for FFmpeg log output. Accepted levels include `quiet`, `panic`, `fatal`,
+`error`, `warning`, `info`, `verbose`, `debug`, and `trace`. See [FFmpeg docs](https://ffmpeg.org/ffmpeg.html) for more information. Default loglevel is `quiet`.

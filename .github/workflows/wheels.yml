@@ -1,6 +1,7 @@
 name: Bundle FFmpeg with release wheels
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:

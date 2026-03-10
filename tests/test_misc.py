@@ -39,3 +39,20 @@ class TestVideo(unittest.TestCase):
     # tests that ffmpeg logs are hidden in case they were turned on and forgotten
     def test_loglevels(self):
         self.assertEqual(get_ffmpeg_loglevel(), "quiet")
+
+        for level in (
+            "quiet",
+            "panic",
+            "fatal",
+            "error",
+            "warning",
+            "info",
+            "verbose",
+            "debug",
+            "trace"
+        ):
+            set_ffmpeg_loglevel(level)
+            self.assertEqual(get_ffmpeg_loglevel(), level)
+
+        set_ffmpeg_loglevel("badlevel")
+        self.assertEqual(get_ffmpeg_loglevel(), "trace")

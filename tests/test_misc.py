@@ -5,13 +5,11 @@ import pygame
 import pyvidplayer2
 from pyvidplayer2 import *
 
-from test_video import VIDEO_PATH
-
 
 class TestVideo(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        VER = "0.9.30"
+        VER = "0.9.31"
 
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)

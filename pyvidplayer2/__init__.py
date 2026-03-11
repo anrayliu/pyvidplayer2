@@ -1,7 +1,4 @@
 from pyvidplayer2._version import __version__
-import importlib
-import platform
-import os
 
 VERSION = __version__  # for older versions of pyvidplayer2
 
@@ -14,24 +11,11 @@ def get_ffmpeg_loglevel() -> str:
     return _ffmpeg_loglvl
 
 def get_ffmpeg_path() -> str:
-    if _ffmpeg_path != "ffmpeg":
-        return _ffmpeg_path
-    
-    path = importlib.resources.files("pyvidplayer2.bin") / ("ffmpeg.exe" if platform.system == "Windows" else "ffmpeg")
-    if os.path.exists(path):
-        return path
-    
-    return "ffmpeg"
+    return _ffmpeg_path
 
 def get_ffprobe_path() -> str:
-    if _ffprobe_path != "ffprobe":
-        return _ffprobe_path
-    
-    path = importlib.resources.files("pyvidplayer2.bin") / ("ffprobe.exe" if platform.system == "Windows" else "ffprobe")
-    if os.path.exists(path):
-        return path
-    
-    return "ffprobe"
+    return _ffprobe_path
+
 
 from subprocess import run
 

@@ -55,6 +55,9 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_loglevel("badlevel")
         self.assertEqual(get_ffmpeg_loglevel(), "trace")
 
+        # reset for other unit tests
+        set_ffmpeg_loglevel("quiet")
+
     # tests that API validity
     # noinspection PyUnresolvedReferences
     def test_library_interface(self):

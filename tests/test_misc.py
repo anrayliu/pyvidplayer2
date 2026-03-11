@@ -54,3 +54,44 @@ class TestVideo(unittest.TestCase):
 
         set_ffmpeg_loglevel("badlevel")
         self.assertEqual(get_ffmpeg_loglevel(), "trace")
+
+    # tests that API validity
+    def test_library_interface(self):
+        from pyvidplayer2 import Video
+        from pyvidplayer2 import VideoTkinter
+        from pyvidplayer2 import VideoPySide
+        from pyvidplayer2 import VideoPyQT
+        from pyvidplayer2 import VideoPyglet
+        from pyvidplayer2 import VideoRaylib
+        from pyvidplayer2 import VideoWx
+        from pyvidplayer2 import VideoPlayer
+        from pyvidplayer2 import Webcam
+        from pyvidplayer2 import Subtitles
+
+        from pyvidplayer2 import get_version_info
+        from pyvidplayer2 import get_ffmpeg_path
+        from pyvidplayer2 import set_ffmpeg_path
+        from pyvidplayer2 import get_ffprobe_path
+        from pyvidplayer2 import set_ffprobe_path
+        from pyvidplayer2 import get_ffmpeg_loglevel
+        from pyvidplayer2 import set_ffmpeg_loglevel
+
+        from pyvidplayer2 import READER_FFMPEG
+        from pyvidplayer2 import READER_DECORD
+        from pyvidplayer2 import READER_OPENCV
+        from pyvidplayer2 import READER_IMAGEIO
+        from pyvidplayer2 import READER_AUTO
+
+        from pyvidplayer2 import Pyvidplayer2Error
+        from pyvidplayer2 import AudioDeviceError
+        from pyvidplayer2 import AudioStreamError
+        from pyvidplayer2 import SubtitleError
+        from pyvidplayer2 import VideoStreamError
+        from pyvidplayer2 import FFmpegNotFoundError
+        from pyvidplayer2 import OpenCVError
+        from pyvidplayer2 import YTDLPError
+        from pyvidplayer2 import WebcamNotFoundError
+
+        from pyvidplayer2 import PostProcessing
+        from pyvidplayer2 import VERSION
+        from pyvidplayer2._version import __version__

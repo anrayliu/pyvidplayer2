@@ -56,6 +56,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(get_ffmpeg_loglevel(), "trace")
 
     # tests that API validity
+    # noinspection PyUnresolvedReferences
     def test_library_interface(self):
         from pyvidplayer2 import Video
         from pyvidplayer2 import VideoTkinter

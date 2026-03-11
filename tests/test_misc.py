@@ -1,12 +1,11 @@
 import subprocess
 import unittest
 
-import pygame
 import pyvidplayer2
 from pyvidplayer2 import *
 
 
-class TestVideo(unittest.TestCase):
+class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
         VER = "0.9.31"

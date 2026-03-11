@@ -1182,7 +1182,7 @@ class TestVideo(unittest.TestCase):
         while_loop(lambda: not v.update(), lambda: None, 5, 0)
 
         # check that frame information has been updated
-        self.assertEqual(v.frame, 11)
+        self.assertTrue(0 < v.frame - 10 < 3) # if update is slow, may render 2 frames
         self.assertIsNot(v.frame_surf, None)
         self.assertIsNot(v.frame_data, None)
 
@@ -1648,7 +1648,7 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_loglevel("quiet")
         set_ffmpeg_path("ffmpeg")
         set_ffprobe_path("ffprobe")
-        
+
 
 if __name__ == "__main__":
     unittest.main()

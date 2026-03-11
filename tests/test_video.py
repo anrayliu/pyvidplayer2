@@ -1644,6 +1644,11 @@ class TestVideo(unittest.TestCase):
 
         self.assertEqual(get_version_info()["ffmpeg"], "not installed")    
 
+        # reset for other tests
+        set_ffmpeg_loglevel("quiet")
+        set_ffmpeg_path("ffmpeg")
+        set_ffprobe_path("ffprobe")
+        
 
 if __name__ == "__main__":
     unittest.main()

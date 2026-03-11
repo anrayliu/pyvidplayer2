@@ -6,6 +6,7 @@ _ffmpeg_loglvl = "quiet"
 _ffmpeg_path = "ffmpeg"
 _ffprobe_path = "ffprobe"
 
+##################################################
 # need to be near top so library can import these
 def get_ffmpeg_loglevel() -> str:
     return _ffmpeg_loglvl
@@ -15,9 +16,7 @@ def get_ffmpeg_path() -> str:
 
 def get_ffprobe_path() -> str:
     return _ffprobe_path
-
-
-from subprocess import run
+##################################################
 
 # bug on linux: importing pygame before decord results
 # in display.set_mode deadlocking
@@ -66,6 +65,13 @@ else:
     from .video_wx import VideoWx
 
 try:
+    import pyglet
+except ImportError:
+    pass
+else:
+    from .video_pyglet import VideoPyglet
+
+try:
     import pygame
 except ImportError:
     pass
@@ -89,15 +95,11 @@ else:
     else:
         from .subtitles import Subtitles
 
-try:
-    import pyglet
-except ImportError:
-    pass
-else:
-    from .video_pyglet import VideoPyglet
-
 
 # cv2.setLogLevel(0) # silent
+
+from subprocess import run
+
 
 def get_version_info():
     try:

@@ -2,8 +2,10 @@ from io import BytesIO
 
 import pygame
 
+from .audio_handler import AudioHandler
 
-class MixerHandler:
+
+class MixerHandler(AudioHandler):
     def __init__(self):
         self.muted = False
         self.loaded = False
@@ -18,11 +20,11 @@ class MixerHandler:
         pygame.mixer.music.load(BytesIO(bytes_), "wav")
         self.loaded = True
 
-    # obsolete
-    # doesn't return device channels like Pyaudio does
     def get_num_channels(self):
-        return 0
-        # return pygame.mixer.get_num_channels()
+        try:
+            return pygame.mixer.get_init()[2]
+        except IndexError:
+            return 0
 
     def unload(self):
         self.stop()
@@ -40,6 +42,9 @@ class MixerHandler:
         return self.volume
 
     def get_pos(self):
+        # pygame does not reset audio position when audio is unloaded
+        if not pygame.mixer.music.get_busy() and pygame.mixer.music.get_pos() != 0:
+            return 0
         return max(0, pygame.mixer.music.get_pos()) / 1000.0
 
     def stop(self):
@@ -60,3 +65,19 @@ class MixerHandler:
     def unmute(self):
         self.muted = False
         self.set_volume(self.volume)
+
+    # does not uninit mixer because other videos may still need it
+    def close(self):
+        if self.loaded:
+            self.unload()
+
+    # not ideal, should've used properties instead
+    # still better to be consistent with old patterns until refactors can be made
+    def get_muted(self):
+        return self.muted
+    
+    def get_loaded(self):
+        return self.loaded
+    
+    def get_paused(self):
+        return self.paused

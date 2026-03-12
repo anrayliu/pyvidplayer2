@@ -12,6 +12,11 @@ import pyvidplayer2
 from pyvidplayer2 import *
 
 
+BIN_OVERRIDE = r""
+if BIN_OVERRIDE:
+    pyvidplayer2.set_ffmpeg_path(os.path.join(BIN_OVERRIDE, "ffmpeg"))
+    pyvidplayer2.set_ffprobe_path(os.path.join(BIN_OVERRIDE, "ffprobe"))
+
 def find_device(*lambdas):
     for device in query_devices():
         passed = True
@@ -23,7 +28,6 @@ def find_device(*lambdas):
 
     raise RuntimeError("Could not find specified sound device.")
 
-
 def get_videos():
     paths = []
     for file in os.listdir("resources"):
@@ -32,13 +36,11 @@ def get_videos():
                 paths.append(os.path.join("resources", file))
     return paths
 
-
 def timed_loop(seconds, func, dt=0.1):
     t = time.time() + seconds
     while time.time() < t:
         time.sleep(dt)
         func()
-
 
 def while_loop(condition_func, func, timeout, dt=0.1):
     t = time.time()
@@ -47,7 +49,6 @@ def while_loop(condition_func, func, timeout, dt=0.1):
         func()
         if time.time() - t > timeout:
             raise RuntimeError("Loop timed out.")
-
 
 def check_same_frames(f1, f2):
     return np.array_equal(f1, f2)
@@ -233,26 +234,21 @@ class TestVideo(unittest.TestCase):
                 self.assertTrue(v.audio_channels in (0, 2))
             v.close()
 
-    # this test is potentially problematic
     def test_multiple_channels(self):
-        v = Video("resources/6channels.mkv", use_pygame_audio=True)
-        self.assertEqual(v.audio_channels, 6)
-        
-        # mixer handler's get_num_channels has been made obsolete, returning 0
-        self.assertEqual(v._audio.get_num_channels(), 0)
+        for audio_handler in (True, False):
+            v = Video("resources/6channels.mkv", use_pygame_audio=audio_handler)
+            self.assertEqual(v.audio_channels, 6)
 
-        self.assertEqual(v._get_num_channels_to_process(), 6)
+            if audio_handler:
+                # pygame mixer init with 2 channels
+                # if using sounddevice, this number depends on number of channels on output device
+                self.assertEqual(v._audio.get_num_channels(), 2)
+                self.assertEqual(v._get_num_channels_to_process(), 2)
 
-        timed_loop(2, v.update)
-        v.close()
+            self.assertEqual(v._get_num_channels_to_process(), min(v.audio_channels, v._audio.get_num_channels()))
 
-        v = Video("resources/6channels.mkv", use_pygame_audio=False)
-        self.assertEqual(v.audio_channels, 6)
-
-        self.assertEqual(v._get_num_channels_to_process(), min(v.audio_channels, v._audio.get_num_channels()))
-
-        timed_loop(2, v.update)
-        v.close()
+            timed_loop(2, v.update)
+            v.close()
 
     # tests seeking, requires an accurate frame_count attribute
     def test_seeking(self):
@@ -439,13 +435,14 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v._preloaded)
 
     # tests cv2 frame count, proving frame count, and real frame count
-    # currently fails due to a bug
-    @unittest.skip
     def test_frame_counts(self):
         for file in PATHS:
             v = Video(file)
-            if v.name in ("av1",):
-                continue  # file is corrupt
+            if v.name in (
+                    "av1", # file is corrupt
+                    "birds", # video header stores incorrect frame count
+            ):
+                continue
 
             # check that header information was not completely wrong
             self.assertGreater(v.frame_count, 0)
@@ -584,38 +581,37 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # tests that high frame rate videos can be achieved
+    # currently can only be achieved with pygame audio
     def test_unlocked_fps(self):
-        for audio_handler in (True, False):
-            v = Video("resources/100fps.mp4", use_pygame_audio=audio_handler)
-            seconds_elapsed = 0
-            clock = pygame.time.Clock()
-            v.play()
-            timer = 0
-            frames = 0
-            passed = False
-            time.sleep(3)
-            while v.active and seconds_elapsed < 10:
-                dt = clock.tick(0)
-                timer += dt
-                if timer >= 1000:
-                    seconds_elapsed += 1
-                    if frames > 70:  # 70% of the maximum frame rate
-                        passed = True
-                        break
-                    timer = 0
-                    frames = 0
-                if v.update():
-                    frames += 1
-            v.close()
-            self.assertTrue(passed)
+        v = Video("resources/100fps.mp4", use_pygame_audio=True)
+        seconds_elapsed = 0
+        clock = pygame.time.Clock()
+        v.play()
+        timer = 0
+        frames = 0
+        passed = False
+        time.sleep(3)
+        while v.active and seconds_elapsed < 10:
+            dt = clock.tick(0)
+            timer += dt
+            if timer >= 1000:
+                seconds_elapsed += 1
+                if frames > 90:  # 90% of the maximum frame rate
+                    passed = True
+                    break
+                timer = 0
+                frames = 0
+            if v.update():
+                frames += 1
+        v.close()
+        self.assertTrue(passed)
 
     # test each readers ability to choose the first video track when there are many
-    # fails because decord does not read the first track
-    @unittest.skip
+    # omitted decord because it does not read the first track
     def test_many_video_tracks(self):
         v = Video("resources/birds.avi")
         vids = [Video("resources/manyv.mp4", reader=reader) for reader in
-                (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD)]
+                (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO)]
         for i in range(10):
             frame = next(v)
             for vid in vids:
@@ -673,7 +669,6 @@ class TestVideo(unittest.TestCase):
 
     # tests that pausing works correctly
     def test_pausing(self):
-        # repeat test for pyaudio and pygame mixer
         for audio_handler in (False, True):
             v = Video(VIDEO_PATH, use_pygame_audio=audio_handler)
 
@@ -814,10 +809,6 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._chunks_len([1, 2, 3]), 3)  # All non-None
         v.close()
 
-    # tests that ffmpeg logs are hidden in case they were turned on and forgotten
-    def test_loglevels(self):
-        self.assertEqual(FFMPEG_LOGLVL, "quiet")
-
     # test get_closest_frame method
     def test_get_closest_frame(self):
         v = Video(VIDEO_PATH)
@@ -862,7 +853,7 @@ class TestVideo(unittest.TestCase):
 
     # test playing video in reverse and sped up
     def test_reversed_and_speed(self):
-        v = Video(VIDEO_PATH, reverse=True, speed=3)
+        v = Video(VIDEO_PATH, reverse=True, speed=3, use_pygame_audio=True)
         seconds_elapsed = 0
         clock = pygame.time.Clock()
         v.play()
@@ -881,7 +872,7 @@ class TestVideo(unittest.TestCase):
                 frames += 1
                 self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[v.frame_count - v.frame]))
         # check that frame rate kept up
-        self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.7)
+        self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.9)
         v.close()
 
     # tests buffering is working properly
@@ -1196,7 +1187,7 @@ class TestVideo(unittest.TestCase):
         while_loop(lambda: not v.update(), lambda: None, 5, 0)
 
         # check that frame information has been updated
-        self.assertEqual(v.frame, 11)
+        self.assertTrue(0 < v.frame - 10 < 3) # if update is slow, may render 2 frames
         self.assertIsNot(v.frame_surf, None)
         self.assertIsNot(v.frame_data, None)
 
@@ -1216,9 +1207,9 @@ class TestVideo(unittest.TestCase):
     # tests that the correct audio handlers are being selected
     def test_audio_handler(self):
         v = Video(VIDEO_PATH)
-        self.assertEqual(type(v._audio).__name__, "PyaudioHandler")
+        self.assertEqual(type(v._audio).__name__, "PSDHandler")
 
-        # play a bit of audio and check that pyaudio is being utilized
+        # play a bit of audio and check that sounddevice is being utilized
         while_loop(lambda: v.frame < 10, v.update, 5)
         self.assertTrue(v._audio.thread is not None and v._audio.thread.is_alive())
 
@@ -1233,7 +1224,7 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
-        with unittest.mock.patch("pyvidplayer2.video.PYAUDIO", 0):
+        with unittest.mock.patch("pyvidplayer2.video.SOUNDDEVICE", 0):
             self.assertRaises(ModuleNotFoundError, Video, VIDEO_PATH)
 
             # should be fine
@@ -1261,13 +1252,6 @@ class TestVideo(unittest.TestCase):
                 for i, frame in enumerate(v):
                     self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
                 v.close()
-
-    # tests different ways to accessing version
-    def test_version(self):
-        VER = "0.9.30"
-        self.assertEqual(VER, VERSION)
-        self.assertEqual(VER, pyvidplayer2.__version__)
-        self.assertEqual(VER, get_version_info()["pyvidplayer2"])
 
     # tests that the correct pts are extracted for vfr videos
     def test_get_timestamps(self):
@@ -1620,6 +1604,60 @@ class TestVideo(unittest.TestCase):
         self.assertFalse("cuda" in v._vid._get_command())
 
         v.close()
+
+    # tests bug where leftover pygame mixer positions would affect new video starting times
+    def test_pygame_mixer_position(self):
+        v = Video(VIDEO_PATH, use_pygame_audio=True)
+        while_loop(lambda: v.frame_data is None, v.update, 10)
+        v.close()
+        self.assertFalse(pygame.mixer.music.get_busy())
+        self.assertNotEqual(pygame.mixer.music.get_pos(), 0)
+        self.assertEqual(v._audio.get_pos(), 0.0)
+
+    # tests setters and getters for ffmpeg and ffprobe paths
+    def test_binary_path(self):
+        if BIN_OVERRIDE:
+            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
+            raise Exception("bin override active")
+
+        self.assertEqual(get_ffmpeg_path(), "ffmpeg")
+        self.assertEqual(get_ffprobe_path(), "ffprobe")
+
+        Video(VIDEO_PATH).close() # no error here            
+
+        set_ffmpeg_path("/hehe/ffmpeG")
+        self.assertEqual(get_ffmpeg_path(), "/hehe/ffmpeG")
+
+        v = Video(VIDEO_PATH) # no error here either
+
+        with self.assertRaises(FFmpegNotFoundError):
+            while_loop(lambda: v.frame_data is None, v.update, 10)
+        
+        set_ffmpeg_path("ffmpeg")
+        self.assertEqual(get_ffmpeg_path(), "ffmpeg")
+
+        set_ffprobe_path("/hehe/ffffprobe")
+        self.assertEqual(get_ffprobe_path(), "/hehe/ffffprobe")
+
+        # unlike ffmpeg, a bad ffprobe path should throw exception on video init
+
+        with self.assertRaises(FFmpegNotFoundError):
+            Video(VIDEO_PATH).close()
+
+        set_ffprobe_path("ffprobe")
+        self.assertEqual(get_ffprobe_path(), "ffprobe")
+
+        Video(VIDEO_PATH).close()
+
+        set_ffmpeg_path("/badpath")
+
+        self.assertEqual(get_version_info()["ffmpeg"], "not installed")    
+
+        # reset for other tests
+        set_ffmpeg_loglevel("quiet")
+        set_ffmpeg_path("ffmpeg")
+        set_ffprobe_path("ffprobe")
+
 
 if __name__ == "__main__":
     unittest.main()

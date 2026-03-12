@@ -6,7 +6,7 @@ from typing import Union, Tuple
 import pygame
 import pysubs2
 
-from . import FFMPEG_LOGLVL
+from . import get_ffmpeg_loglevel, get_ffmpeg_path
 from .error import *
 
 try:
@@ -93,9 +93,9 @@ class Subtitles:
 
     def _extract_internal_subs(self):
         command = [
-            "ffmpeg",
+            get_ffmpeg_path(),
             "-i", self.path,
-            "-loglevel", FFMPEG_LOGLVL,
+            "-loglevel", get_ffmpeg_loglevel(),
             "-map", f"0:s:{self.track_index}",
             "-f", "srt",
             "-"

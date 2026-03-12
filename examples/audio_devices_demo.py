@@ -13,7 +13,7 @@ from pyvidplayer2 import Video
 # Refer to https://stackoverflow.com/questions/57099246/set-output-device-for-pygame-mixer
 # to see how the output device can be specified during mixer initialization
 
-# FOR PYAUDIO
+# FOR SOUNDDEVICE
 # see instructions below
 
 # find the index of the device you want

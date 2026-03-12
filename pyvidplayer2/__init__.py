@@ -1,9 +1,22 @@
 from pyvidplayer2._version import __version__
 
 VERSION = __version__  # for older versions of pyvidplayer2
-FFMPEG_LOGLVL = "quiet"
 
-from subprocess import run
+_ffmpeg_loglvl = "quiet"
+_ffmpeg_path = "ffmpeg"
+_ffprobe_path = "ffprobe"
+
+##################################################
+# need to be near top so library can import these
+def get_ffmpeg_loglevel() -> str:
+    return _ffmpeg_loglvl
+
+def get_ffmpeg_path() -> str:
+    return _ffmpeg_path
+
+def get_ffprobe_path() -> str:
+    return _ffprobe_path
+##################################################
 
 # bug on linux: importing pygame before decord results
 # in display.set_mode deadlocking
@@ -52,6 +65,13 @@ else:
     from .video_wx import VideoWx
 
 try:
+    import pyglet
+except ImportError:
+    pass
+else:
+    from .video_pyglet import VideoPyglet
+
+try:
     import pygame
 except ImportError:
     pass
@@ -75,15 +95,11 @@ else:
     else:
         from .subtitles import Subtitles
 
-try:
-    import pyglet
-except ImportError:
-    pass
-else:
-    from .video_pyglet import VideoPyglet
-
 
 # cv2.setLogLevel(0) # silent
+
+from subprocess import run
+
 
 def get_version_info():
     try:
@@ -92,10 +108,33 @@ def get_version_info():
         pygame_ver = "not installed"
 
     try:
-        ffmpeg_ver = run(["ffmpeg", "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
+        ffmpeg_ver = run([get_ffmpeg_path(), "-version"], capture_output=True, universal_newlines=True).stdout.split(" ")[2]
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 
     return {"pyvidplayer2": __version__,
             "ffmpeg": ffmpeg_ver,
             "pygame": pygame_ver}
+
+
+def set_ffmpeg_loglevel(level: str) -> None:
+    global _ffmpeg_loglvl
+    if level in (
+        "quiet",
+        "panic",
+        "fatal",
+        "error",
+        "warning",
+        "info",
+        "verbose",
+        "debug",
+        "trace"
+    ): _ffmpeg_loglvl = level
+
+def set_ffmpeg_path(path: str) -> None:
+    global _ffmpeg_path
+    _ffmpeg_path = path
+
+def set_ffprobe_path(path: str) -> None:
+    global _ffprobe_path
+    _ffprobe_path = path

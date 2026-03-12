@@ -4,9 +4,11 @@
 import unittest
 import time
 from pyvidplayer2 import *
-from test_video import while_loop, timed_loop, check_same_frames, VIDEO_PATH
+from test_video import timed_loop, check_same_frames, VIDEO_PATH
 
+# enable these if you have a webcam
 
+@unittest.skip
 class TestWebcam(unittest.TestCase):
     # tests default webcam
     def test_open_webcam(self):

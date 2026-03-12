@@ -1,3 +1,5 @@
+# obsolete class, replaced with psd_handler
+
 import copy
 import wave
 import math
@@ -9,9 +11,10 @@ import pyaudio
 import numpy as np
 
 from .error import *
+from .audio_handler import AudioHandler
 
 
-class PyaudioHandler:
+class PyaudioHandler(AudioHandler):
     """A simple wrapper for PyAudio to play streams from memory.
 
     Attributes:
@@ -53,11 +56,8 @@ class PyaudioHandler:
         self.audio_devices = []
         self.preferred_device_names = [
             "pulse",
-            "pipewire",  # pipewire stutters with jack on Ubuntu Studio 24.04
-            #  (sample rate related? but QSynth stutters if pipewire is
-            #  selected with 48000 Hz sample rate matching jack)
-            "default",  # no sound & freezes on Ubuntu Studio 24.04
-            # "sysdefault",  # not an output device
+            "pipewire",
+            "default",
         ]
         self.device_index = self.choose_device()
 
@@ -74,13 +74,6 @@ class PyaudioHandler:
     def get_busy(self):
         return self.active
 
-    # def callback(in_data, frame_count, time_info, status):
-    #     # based on
-    #     # <https://people.csail.mit.edu/hubert/pyaudio/docs/>
-    #
-    #     data = self.wave.readframes(frame_count)
-    #     return (data, pyaudio.paContinue)
-
     def choose_device(self):
         device_index = -1
         # List available devices
@@ -89,19 +82,13 @@ class PyaudioHandler:
         for try_name in self.preferred_device_names:
             device_index = self.find_device_by_name(try_name)
             if device_index != -1:
-                # warnings.warn("Detected {}".format(try_name))
                 break
-        # if device_index < 0:
-        # warnings.warn(
-        #    "No preferred device was present: {}"
-        #    .format(self.preferred_device_names))
 
         if device_index < 0:
             # If no device was present, load the first output device
             #   (may stutter and fail under pipewire+jack):
             for i, info in enumerate(self.audio_devices):
                 if info["maxOutputChannels"] > 0:
-                    # warnings.warn("- selected (first output device)")
                     device_index = i
                     break
 
@@ -116,23 +103,14 @@ class PyaudioHandler:
             info = self.p.get_device_info_by_index(i)
             self.audio_devices.append(copy.deepcopy(info))
 
-            # warnings.warn("Device {}: {}".format(i, info['name']))
-
     def find_device_by_name(self, name):
         if self.audio_devices is None:
             raise RuntimeError("find_device_by_name was called before refresh_devices")
         for i in range(len(self.audio_devices)):
-            # self.audio_devices[i] = self.p.get_device_info_by_index(i)
-            # ^ Commenting this assumes refresh_devices was called
-            #   before devices were added or removed.
             info = self.audio_devices[i]
             if info["name"] == name:
                 if info['maxOutputChannels'] > 0:
                     return i
-                # else:
-                #    warnings.warn(
-                #        "Warning: preferred device '{}' is invalid"
-                #        " (has no output)".format(info['name']))
         return -1
 
     def load(self, bytes_):
@@ -159,7 +137,6 @@ class PyaudioHandler:
                     rate=self.wave.getframerate(),
                     output=True,
                     output_device_index=self.device_index,
-                    # stream_callback=self.callback,
                 )
 
             except Exception as e:
@@ -174,6 +151,7 @@ class PyaudioHandler:
         return self.audio_devices[self.device_index]["maxOutputChannels"]
 
     def close(self):
+        self.unload()
         if self.stream is not None:
             self.stream.stop_stream()
             self.stream.close()
@@ -256,3 +234,14 @@ class PyaudioHandler:
 
     def unmute(self):
         self.muted = False
+
+    # not ideal, should've used properties instead
+    # still better to be consistent with old patterns until refactors can be made
+    def get_muted(self):
+        return self.muted
+    
+    def get_loaded(self):
+        return self.loaded
+    
+    def get_paused(self):
+        return self.paused

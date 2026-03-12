@@ -15,7 +15,7 @@ import numpy as np
 
 from .ffmpeg_reader import FFMPEGReader
 from .error import *
-from . import FFMPEG_LOGLVL
+from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
 
 try:
     import cv2
@@ -25,13 +25,23 @@ else:
     CV = 1
     from .cv_reader import CVReader
 
+# pyaudio is obsolete, replaced with python sounddevice
+
+# try:
+#     import pyaudio
+# except ImportError:
+#     PYAUDIO = 0
+# else:
+#     PYAUDIO = 1
+#     from .pyaudio_handler import PyaudioHandler
+
 try:
-    import pyaudio
+    import sounddevice
 except ImportError:
-    PYAUDIO = 0
+    SOUNDDEVICE = 0
 else:
-    PYAUDIO = 1
-    from .pyaudio_handler import PyaudioHandler
+    SOUNDDEVICE = 1
+    from .psd_handler import PSDHandler
 
 try:
     import pygame
@@ -191,15 +201,17 @@ class Video:
         if self.use_pygame_audio:
             if not PYGAME:
                 raise ModuleNotFoundError(
-                    "Unable to use Pygame audio because Pygame is not installed. Pygame can be installed via pip.")
+                    "Pygame is not installed. Install it via pip or use a different audio backend.")
 
             self._audio = MixerHandler()
         else:
-            if not PYAUDIO:
+            if not SOUNDDEVICE:
                 raise ModuleNotFoundError(
-                "Unable to use PyAudio audio because PyAudio is not installed. PyAudio can be installed via pip.")
+                "Python-sounddevice is not installed. Install it via pip or use a different audio backend.")
 
-            self._audio = PyaudioHandler()
+            # self._audio = PyaudioHandler()
+            self._audio = PSDHandler()
+
             if self.audio_index is not None:
                 self._audio._set_device_index(self.audio_index)
 
@@ -344,11 +356,11 @@ class Video:
 
         try:
             command = [
-                "ffprobe",
+                get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
                 "-select_streams", "v:0",
                 "-show_entries", "packet=pts_time",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
 
@@ -476,12 +488,12 @@ class Video:
         Returns True if video has no audio
         """
         command = [
-            "ffmpeg",
+            get_ffmpeg_path(),
             "-i", self._audio_path,
             "-t", str(self._convert_seconds(0.1)),
             "-vn",
             "-f", "wav",
-            "-loglevel", FFMPEG_LOGLVL,
+            "-loglevel", get_ffmpeg_loglevel(),
             "-"
         ]
 
@@ -496,7 +508,7 @@ class Video:
         return audio == b''
     
     def _get_num_channels_to_process(self):
-        return self.audio_channels if self.use_pygame_audio else min(self.audio_channels, self._audio.get_num_channels())
+        return min(self.audio_channels, self._audio.get_num_channels())
 
     def _threaded_load(self, index):
         i = index  # assigned to variable so another thread does not change it
@@ -513,19 +525,19 @@ class Video:
             # very important because audio-visual syncing is done by tracking played audio chunks
 
             command = [
-                "ffmpeg",
+                get_ffmpeg_path(),
                 "-f", "lavfi",
                 "-i", "anullsrc",
                 "-t", str(self._convert_seconds(
                     min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
                 "-f", "wav",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-"
             ]
 
         else:
             command = [
-                "ffmpeg",
+                get_ffmpeg_path(),
                 "-i", self._audio_path,
                 "-ss", self._convert_seconds(s),
                 "-t", self._convert_seconds(self.chunk_size / (self.speed if not self.reverse else 1)),
@@ -533,13 +545,12 @@ class Video:
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
 
-                # pyaudio can get number of channels output device has, allowing
+                # sounddevice can get number of channels output device has, allowing
                 # ffmpeg to remix audio to match
-                # pygame does not have this feature
-                
+
                 "-ac", str(self._get_num_channels_to_process()),
                 "-f", "wav",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-"
             ]
 
@@ -565,11 +576,11 @@ class Video:
 
             if not self.no_audio and self.speed != 1 and self.reverse:
                 command = [
-                    "ffmpeg",
+                    get_ffmpeg_path(),
                     "-i", "-",
                     "-af", f"atempo={self.speed}",
                     "-f", "wav",
-                    "-loglevel", FFMPEG_LOGLVL,
+                    "-loglevel", get_ffmpeg_loglevel(),
                     "-"
                 ]
 
@@ -724,8 +735,8 @@ class Video:
         try:
             process = subprocess.Popen(
                 [
-                    "ffmpeg",
-                    "-loglevel", str(FFMPEG_LOGLVL),
+                    get_ffmpeg_path(),
+                    "-loglevel", get_ffmpeg_loglevel(),
                     "-f", "rawvideo",
                     "-pix_fmt", "rgb24",
                     "-s", f"{data.shape[1]}x{data.shape[0]}",
@@ -892,8 +903,7 @@ class Video:
         self.stop()
         self._vid.release()
         self._audio.unload()
-        if not self.use_pygame_audio:
-            self._audio.close()
+        self._audio.close()
         self.closed = True
 
     def restart(self) -> None:
@@ -950,11 +960,11 @@ class Video:
 
         try:
             command = [
-                "ffprobe",
+                get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
                 "-show_streams",
                 "-select_streams", f"a:{index}",
-                "-loglevel", FFMPEG_LOGLVL,
+                "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
 

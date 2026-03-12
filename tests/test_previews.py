@@ -10,10 +10,7 @@ from test_video import VIDEO_PATH
 from test_youtube import YOUTUBE_PATH
 
 
-# macos and linux os' do not like preview tests, so I've isolated them here
-# can still be buggy on windows, so this test file may be omitted
-
-@unittest.skip
+# macos and linux do not like preview tests
 class TestPreviews(unittest.TestCase):
     # tests that looping is seamless
     # also tests that video does indeed loop by timing out otherwise
@@ -51,9 +48,12 @@ class TestPreviews(unittest.TestCase):
         vp.close()
 
     # tests for a bug where previews would never end if video was looping
-    # for some reason, this fails if ran with the rest, but passes when ran individually
     @unittest.skip
     def test_looping_preview(self):
+        # for some reason, this fails if ran with the rest, but passes when ran individually
+        # pygame.quit()
+        # pygame.init()
+
         v = Video(VIDEO_PATH)
         vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
 
@@ -81,6 +81,10 @@ class TestPreviews(unittest.TestCase):
     # tests that previews behave correctly
     @unittest.skip
     def test_preview(self):
+        # sometimes hangs
+        # pygame.quit()
+        # pygame.init()
+
         v = Video(VIDEO_PATH)
         vp = VideoPlayer(v, (0, 0, 1280, 720))
         v.seek(v.duration)

@@ -37,7 +37,7 @@ class VideoPyglet(Video):
     def preview(self, max_fps: int = 60) -> None:
         self.play()
 
-        def update():
+        def update(_):
             self.draw((0, 0), force_draw=True)
             if not self.active:
                 win.close()

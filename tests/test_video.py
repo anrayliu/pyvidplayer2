@@ -12,6 +12,11 @@ import pyvidplayer2
 from pyvidplayer2 import *
 
 
+BIN_OVERRIDE = r""
+if BIN_OVERRIDE:
+    pyvidplayer2.set_ffmpeg_path(os.path.join(BIN_OVERRIDE, "ffmpeg"))
+    pyvidplayer2.set_ffprobe_path(os.path.join(BIN_OVERRIDE, "ffprobe"))
+
 def find_device(*lambdas):
     for device in query_devices():
         passed = True
@@ -1611,6 +1616,10 @@ class TestVideo(unittest.TestCase):
 
     # tests setters and getters for ffmpeg and ffprobe paths
     def test_binary_path(self):
+        if BIN_OVERRIDE:
+            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
+            raise Exception("bin override active")
+
         self.assertEqual(get_ffmpeg_path(), "ffmpeg")
         self.assertEqual(get_ffprobe_path(), "ffprobe")
 

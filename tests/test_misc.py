@@ -4,6 +4,9 @@ import unittest
 import pyvidplayer2
 from pyvidplayer2 import *
 
+# trigger code in test_video in case this file is executed before
+import test_video
+
 
 class TestMisc(unittest.TestCase):
     # tests get_version_info
@@ -57,7 +60,7 @@ class TestMisc(unittest.TestCase):
         # reset for other unit tests
         set_ffmpeg_loglevel("quiet")
 
-    # tests that API validity
+    # tests API validity
     # noinspection PyUnresolvedReferences
     def test_library_interface(self):
         from pyvidplayer2 import Video

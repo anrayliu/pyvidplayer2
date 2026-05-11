@@ -1616,6 +1616,8 @@ class TestVideo(unittest.TestCase):
 
     # tests setters and getters for ffmpeg and ffprobe paths
     def test_binary_path(self):
+        self.addCleanup(lambda: (set_ffmpeg_path("ffmpeg"), set_ffprobe_path("ffprobe")))
+
         if BIN_OVERRIDE:
             print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
             raise Exception("bin override active")

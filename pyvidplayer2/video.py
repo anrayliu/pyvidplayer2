@@ -220,7 +220,8 @@ class Video:
         self.no_audio = no_audio or self._test_no_audio()
 
         self._missing_ffmpeg = False  # for throwing errors
-        self._generated_frame = False  # for when used as a generator
+        self._skipped_frame = False  # used when slicing
+        self._skipped_frame_index = 0 # used when slicing
         self._preloaded = False
         self._update_time = 0.0  # for testing
 
@@ -257,8 +258,17 @@ class Video:
         self.stop()
         return self
 
+    def __getitem__(self, item) -> np.ndarray:
+        if item >= self.frame_count or item < -self.frame_count:
+            raise IndexError("Index out of bounds.")
+
+        self._skipped_frame_index = self.frame
+        self._skipped_frame = True
+
+        self.seek_frame(item, relative=False)
+        return next(self)
+
     def __next__(self) -> np.ndarray:
-        self._generated_frame = True
         data = None
 
         if self.reverse:
@@ -857,9 +867,10 @@ class Video:
         Sets video.active to True.
         """
         self.active = True
-        if self._generated_frame:
-            self._generated_frame = False
-            self.seek_frame(self.frame)
+        if self._skipped_frame:
+            self._skipped_frame = False # reset flags
+            self._skipped_frame_index = 0
+            self.seek_frame(self._skipped_frame_index)
 
     def stop(self) -> None:
         """

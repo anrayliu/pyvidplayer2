@@ -270,6 +270,9 @@ class Video:
         return next(self)
 
     def __next__(self) -> np.ndarray:
+        self._skipped_frame_index = self.frame
+        self._skipped_frame = True
+
         data = None
 
         if self.reverse:
@@ -282,6 +285,7 @@ class Video:
 
         if data is not None:
             self.frame += 1
+            self._skipped_frame_index += 1
             if self.original_size != self.current_size:
                 data = self._resize_frame(data, self.current_size, self.interp, not CV)
             data = self.post_func(data)
@@ -872,9 +876,9 @@ class Video:
         """
         self.active = True
         if self._skipped_frame:
+            self.seek_frame(self._skipped_frame_index, intuitive=False)
             self._skipped_frame = False # reset flags
             self._skipped_frame_index = 0
-            self.seek_frame(self._skipped_frame_index)
 
     def stop(self) -> None:
         """

@@ -260,8 +260,11 @@ class TestVideo(unittest.TestCase):
             v.probe()  # get accurate frame count
 
             # testing relative time seek
-            v.seek(1.5, relative=False)
-
+            v.seek(0.5, relative=True, intuitive=False)
+            self.assertEqual(v.get_pos(), 0.5)
+            v.seek(0.5, relative=True, intuitive=False)
+            self.assertEqual(v.get_pos(), 1.0)
+            v.seek(0.5, intuitive=False)
             self.assertEqual(v.get_pos(), 1.5)
 
             FRAME = int(1.5 * v.frame_rate)
@@ -269,12 +272,12 @@ class TestVideo(unittest.TestCase):
             original_frame = next(v)
 
             # testing non relative time seek
-            v.seek(0, relative=False)
+            v.seek(0, relative=False, intuitive=False)
             self.assertEqual(v.get_pos(), 0.0)
             self.assertEqual(v.frame, 0)
 
             # testing non relative frame seek
-            v.seek_frame(FRAME)
+            v.seek_frame(FRAME, intuitive=False)
             self.assertEqual(v.get_pos(), FRAME / v.frame_rate)
             self.assertEqual(v.frame, FRAME)
 
@@ -283,30 +286,30 @@ class TestVideo(unittest.TestCase):
             self.assertTrue(check_same_frames(original_frame, new_frame))
 
             # testing relative frame seek
-            v.seek_frame(-FRAME, relative=True)
+            v.seek_frame(-FRAME, relative=True, intuitive=False)
             self.assertEqual(v.get_pos(), 1 / v.frame_rate)
             self.assertEqual(v.frame, 1)
 
             # testing lower bound
-            v.seek(-1, relative=False)
+            v.seek(-1, relative=False, intuitive=False)
             self.assertEqual(v.get_pos(), 0.0)
             self.assertEqual(v.frame, 0)
 
             # testing upper bound
-            v.seek(v.duration)
+            v.seek(v.duration, intuitive=False)
 
             # should never raise a stop iteration exception
             original_frame = next(v)
-            v.seek(v.duration)
+            v.seek(v.duration, intuitive=False)
 
             self.assertEqual(v.get_pos(), v.duration)
             self.assertEqual(v.frame, v.frame_count - 1)
 
-            v.seek_frame(v.frame_count)
+            v.seek_frame(v.frame_count, intuitive=False)
 
             # should never raise a stop iteration exception
             new_frame = next(v)
-            v.seek_frame(v.frame_count)
+            v.seek_frame(v.frame_count, intuitive=False)
 
             self.assertEqual(v.get_pos(), (v.frame_count - 1) / v.frame_rate)
             self.assertEqual(v.frame, v.frame_count - 1)
@@ -316,11 +319,11 @@ class TestVideo(unittest.TestCase):
             # tests that when seeking to x, exactly x will be obtained when checking-
             for i in range(5):
                 rand_time = random.uniform(0, v.duration)
-                v.seek(rand_time, relative=False)
+                v.seek(rand_time, relative=False, intuitive=False)
                 self.assertEqual(v.get_pos(), rand_time)
 
                 rand_frame = random.randrange(0, v.frame_count)
-                v.seek_frame(rand_frame, relative=False)
+                v.seek_frame(rand_frame, relative=False, intuitive=False)
                 self.assertEqual(v.frame, rand_frame)
 
             v.close()
@@ -402,8 +405,10 @@ class TestVideo(unittest.TestCase):
         self.assertFalse(v.active)
 
         # behaviour changed in 0.9.26, does not reset frame information anymore on stop
-        self.assertIsNot(v.frame_data, None)
-        self.assertIsNot(v.frame_surf, None)
+        # changed back in 0.9.32, now does clear frame information
+        # required for automatic buffer_current calls
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
 
         self.assertFalse(v.paused)
         v.stop()  # test for exception
@@ -941,32 +946,32 @@ class TestVideo(unittest.TestCase):
     def test_vfr_seeking(self):
         v = Video(VIDEO_PATH, vfr=True)
 
-        v.seek(-100, relative=False)
+        v.seek(-100, relative=False, intuitive=False)
         self.assertEqual(v.frame, 0)
         self.assertEqual(v.get_pos(), 0.0)
 
-        v.seek_frame(-50)
+        v.seek_frame(-50, intuitive=False)
         self.assertEqual(v.frame, 0)
         self.assertEqual(v.get_pos(), v.timestamps[0])
 
-        v.seek(v.duration, relative=False)
+        v.seek(v.duration, relative=False, intuitive=False)
         self.assertEqual(v.get_pos(), v.duration)
         self.assertEqual(v.frame, v.frame_count - 1)
 
         # should never raise a stopIteration exception
         next(v)
 
-        v.seek_frame(v.frame_count, relative=False)
+        v.seek_frame(v.frame_count, relative=False, intuitive=False)
         self.assertEqual(v.get_pos(), v.timestamps[-1])
         self.assertEqual(v.frame, v.frame_count - 1)
 
         for i in range(5):
             rand = random.uniform(0, v.duration)
-            v.seek(rand, relative=False)
+            v.seek(rand, relative=False, intuitive=False)
             self.assertEqual(v.get_pos(), rand)
 
             rand = random.randrange(0, v.frame_count)
-            v.seek_frame(rand)
+            v.seek_frame(rand, intuitive=False)
             self.assertEqual(v.frame, rand)
             self.assertEqual(v.get_pos(), v.timestamps[rand])
 
@@ -975,9 +980,9 @@ class TestVideo(unittest.TestCase):
     # tests seeking for reversed videos
     def test_reverse_seek(self):
         v = Video(VIDEO_PATH, reverse=True)
-        v.seek_frame(0)
+        v.seek_frame(0, intuitive=False)
         self.assertTrue(check_same_frames(next(v), v._preloaded_frames[-1]))
-        v.seek_frame(v.frame_count - 1)
+        v.seek_frame(v.frame_count - 1, intuitive=False)
         self.assertTrue(check_same_frames(next(v), v._preloaded_frames[0]))
         v.close()
 
@@ -1034,7 +1039,7 @@ class TestVideo(unittest.TestCase):
             while_loop(lambda: not v._audio.loaded, v.update, 5)
             self.assertEqual(round(v.get_pos()), 2)
             self.assertEqual(round(v._audio.get_pos()), 0)
-            v.seek_frame(v.frame_count - 1)
+            v.seek_frame(v.frame_count - 1, intuitive=False)
             next(v)
             self.assertRaises(StopIteration, lambda: next(v))
             v.close()
@@ -1173,15 +1178,20 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH)
 
         self.assertEqual(v.frame, 0)
+        self.assertEqual(v._vid.frame, 0)
         self.assertIs(v.frame_surf, None)
         self.assertIs(v.frame_data, None)
 
-        v.seek_frame(10)
+        v.seek_frame(10, intuitive=False)
 
-        # frame information does not immediately update after seeking
+        # frame information updates immediately after seeking due
+        # to automatic buffer_current calls in 0.9.32
         self.assertEqual(v.frame, 10)
-        self.assertIs(v.frame_surf, None)
-        self.assertIs(v.frame_data, None)
+        self.assertIsNotNone(v.frame_surf)
+        self.assertIsNotNone(v.frame_data)
+
+        # disable this to allow frame information to update by itself
+        v._seek_buffered = False
 
         # update frame information
         while_loop(lambda: not v.update(), lambda: None, 5, 0)
@@ -1198,9 +1208,8 @@ class TestVideo(unittest.TestCase):
         # check that frame information has reset
         self.assertEqual(v.frame, 0)
 
-        # behaviour changed in 0.9.26, now does not reset information
-        self.assertIsNot(v.frame_surf, None)
-        self.assertIsNot(v.frame_data, None)
+        self.assertIsNone(v.frame_surf)
+        self.assertIsNone(v.frame_data)
 
         v.close()
 
@@ -1536,15 +1545,19 @@ class TestVideo(unittest.TestCase):
 
         v.restart()
         for i in range(v.frame_count):
-            v.seek_frame(i)
+            v.seek_frame(i, intuitive=False)
             v.frame_data = None
             while_loop(lambda: v.frame_data is None, v.update, 10)
+            self.assertTrue(check_same_frames(frames[i], v.frame_data))
+
+        for i in range(v.frame_count):
+            v.seek_frame(i, intuitive=True)
             self.assertTrue(check_same_frames(frames[i], v.frame_data))
 
         v.close()
 
     # test buffer current before first frame has been rendered
-    def test_bad_buffer_current(self):
+    def test_first_frame_buffer_current(self):
         v = Video(VIDEO_PATH)
         success = v.buffer_current()
         self.assertFalse(success)
@@ -1553,21 +1566,269 @@ class TestVideo(unittest.TestCase):
     # tests that buffer current works properly
     def test_buffer_current(self):
         v = Video(VIDEO_PATH)
-        v.seek_frame(100)
         self.assertIsNone(v.frame_data)
         self.assertIsNone(v.frame_surf)
 
-        vid_frame = v.frame
-        reader_frame = v._vid.frame
+        success = v.buffer_current()
+        self.assertFalse(success)
 
+        v._vid.frame += 1
         success = v.buffer_current()
         self.assertTrue(success)
 
         self.assertIsNotNone(v.frame_data)
         self.assertIsNotNone(v.frame_surf)
 
-        self.assertTrue(v.frame, vid_frame)
-        self.assertTrue(v._vid.frame, reader_frame)
+        v.close()
+
+    # test what seeking buffers current
+    def test_buffer_current_called(self):
+        v = Video(VIDEO_PATH)
+
+        # buffer current should fail
+
+        v.seek(0, intuitive=False)
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
+
+        v.seek_frame(0, intuitive=False)
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
+
+        # buffer current should succeed
+
+        v.seek(14, intuitive=False)
+        self.assertIsNotNone(v.frame_data)
+        self.assertIsNotNone(v.frame_surf)
+
+        v.seek_frame(120, intuitive=False)
+        self.assertIsNotNone(v.frame_data)
+        self.assertIsNotNone(v.frame_surf)
+
+        v.seek(0)
+        self.assertIsNotNone(v.frame_data)
+        self.assertIsNotNone(v.frame_surf)
+
+        v.seek_frame(0)
+        self.assertIsNotNone(v.frame_data)
+        self.assertIsNotNone(v.frame_surf)
+
+        v.close()
+
+    # tests that correct flag is set when seeking
+    def test_seek_buffered_flag_set(self):
+        v = Video(VIDEO_PATH)
+        self.assertFalse(v._seek_buffered)
+
+        v.seek(9)
+        self.assertTrue(v._seek_buffered)
+        v._seek_buffered = False
+
+        v.seek(0, relative=False)
+        self.assertTrue(v._seek_buffered)
+        v._seek_buffered = False
+
+        v.seek(0, intuitive=False, relative=False)
+        self.assertFalse(v._seek_buffered)
+
+        v.seek_frame(123)
+        self.assertTrue(v._seek_buffered)
+        v._seek_buffered = False
+
+        v.seek_frame(0, intuitive=False)
+        self.assertFalse(v._seek_buffered)
+
+        v.seek_frame(0)
+        self.assertTrue(v._seek_buffered)
+
+        new_frame = v.update()
+        self.assertTrue(new_frame)
+        self.assertFalse(v._seek_buffered)
+
+        v.close()
+
+    # some methods use seek internally - this tests that they explicitly set intuitive=False
+    def test_internal_seeking_is_non_intuitive(self):
+        v = Video(VIDEO_PATH)
+
+        v.seek_frame(4)
+        v.stop()
+        # if intuitive mode accidentally set, this would assert 1
+        self.assertEqual(v.frame, 0)
+
+        v.seek_frame(4)
+        v.restart()
+        # if intuitive mode accidentally set, this would assert 1
+        self.assertEqual(v.frame, 0)
+
+        v.seek_frame(4)
+        v.set_audio_track(0)
+        # if intuitive mode accidentally set, this would assert 1
+        self.assertEqual(v.frame, 4)
+
+        # video.play is covered by other tests
+
+        v.close()
+
+    # tests that correct flags are set when skipping frames
+    def test_skipped_frame_flag_set(self):
+        v = Video(VIDEO_PATH)
+
+        self.assertFalse(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 0)
+
+        while_loop(lambda: v.frame_data is None, v.update, 10)
+
+        self.assertFalse(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 0)
+
+        v.seek(10)
+        frame = v.frame
+
+        self.assertFalse(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 0)
+
+        # up until this point, we didn't skip any frames
+
+        _ = v[0]
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, frame)
+
+        v.play()
+
+        self.assertEqual(v.frame, frame)
+        self.assertEqual(v._vid.frame, frame)
+        self.assertFalse(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 0)
+
+        self.assertEqual(v._audio.get_pos(), 0)
+
+        self.assertTrue(v._seek_buffered) # seek was called
+
+        for i in range(120):
+            next(v)
+            self.assertEqual(v.frame, v._skipped_frame_index)
+
+        self.assertTrue(v._skipped_frame)
+
+        # next moves along frames
+        # should not reset back to original
+        self.assertNotEqual(v._skipped_frame_index, frame)
+
+        frame = v.frame
+
+        v.play()
+
+        self.assertEqual(v.frame, frame)
+        self.assertEqual(v._vid.frame, frame)
+        self.assertFalse(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 0)
+
+        self.assertTrue(v._seek_buffered) # seek was called
+
+        self.assertEqual(v._audio.get_pos(), 0)
+
+        v.close()
+
+    # test intuitive seeking properly skips ahead one frame
+    def test_intuitive_seeking(self):
+        for vfr in (True, False):
+            v = Video("resources/test.mp4", vfr=vfr)
+
+            frames = []
+            for frame in v:
+                frames.append(frame)
+
+            # sanity check
+            self.assertEqual(len(frames), v.frame_count)
+
+            v.seek_frame(3)
+            self.assertEqual(v.frame, 4)
+            self.assertEqual(v._vid.frame, 4)
+            self.assertTrue(check_same_frames(v.frame_data, frames[3]))
+
+            v.seek_frame(3, intuitive=False)
+            self.assertEqual(v.frame, 3)
+            self.assertEqual(v._vid.frame, 3)
+            self.assertTrue(check_same_frames(v.frame_data, frames[2]))
+
+            v.seek(11, relative=False)
+            self.assertEqual(v.frame, 12)
+            self.assertEqual(v._vid.frame, 12)
+            self.assertTrue(check_same_frames(v.frame_data, frames[11]))
+
+            v.seek(11, relative=False, intuitive=False)
+            self.assertEqual(v.frame, 11)
+            self.assertEqual(v._vid.frame, 11)
+            self.assertTrue(check_same_frames(v.frame_data, frames[10]))
+
+            v.close()
+
+    # tests edge cases with intuitive seeking
+    # very important test!
+    def test_intuitive_seeking_ends(self):
+        BIG_NUMBER = 100000
+
+        for reader in (READER_DECORD, READER_IMAGEIO, READER_OPENCV, READER_FFMPEG):
+            v = Video("resources\\5frames.mp4", reader=reader)
+            frames = [frame for frame in v]
+
+            # test seeking before start of video
+
+            v.seek_frame(3)
+            v.seek_frame(-BIG_NUMBER)
+            self.assertTrue(check_same_frames(v.frame_data, frames[0]))
+
+            v.seek_frame(3)
+            v.seek(-BIG_NUMBER, relative=False)
+            self.assertTrue(check_same_frames(v.frame_data, frames[0]))
+
+            v.seek_frame(3)
+            v.seek_frame(-BIG_NUMBER, intuitive=False)
+            self.assertIsNone(v.frame_data)
+
+            v.seek_frame(3)
+            v.seek(-BIG_NUMBER, relative=False, intuitive=False)
+            self.assertIsNone(v.frame_data)
+
+            # test seeking after video
+
+            v.seek_frame(3)
+            v.seek_frame(BIG_NUMBER)
+            self.assertTrue(check_same_frames(v.frame_data, frames[-1]))
+
+            v.seek_frame(3)
+            v.seek(BIG_NUMBER, relative=False)
+            self.assertTrue(check_same_frames(v.frame_data, frames[-1]))
+
+            v.seek_frame(3)
+            v.seek_frame(BIG_NUMBER, intuitive=False)
+            self.assertTrue(check_same_frames(v.frame_data, frames[-2]))
+
+            v.seek_frame(3)
+            v.seek(BIG_NUMBER, relative=False, intuitive=False)
+            self.assertTrue(check_same_frames(v.frame_data, frames[-2]))
+
+            v.close()
+
+    # tests that frame data and frame surf are cleared on certain methods
+    def test_frame_data_reset(self):
+        v = Video("resources/test.mp4")
+
+        for l in (
+            lambda v: v.restart(),
+            lambda v: v.stop(),
+            lambda v: v.seek(0, relative=False, intuitive=False),
+            lambda v: v.seek_frame(0, intuitive=False)
+        ):
+            v.seek(1)
+            self.assertIsNotNone(v.frame_data)
+            self.assertIsNotNone(v.frame_surf)
+
+            l(v)
+            self.assertIsNone(v.frame_data)
+            self.assertIsNone(v.frame_surf)
 
         v.close()
 
@@ -1578,7 +1839,7 @@ class TestVideo(unittest.TestCase):
         for i in range(v.frame_count):
             frames.append(next(v))
         f = random.randrange(1, v.frame_count)
-        v.seek_frame(f)
+        v.seek_frame(f, intuitive=False)
         v.buffer_current()
         self.assertTrue(check_same_frames(v.frame_data, frames[f - 1]))
 
@@ -1659,6 +1920,32 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_loglevel("quiet")
         set_ffmpeg_path("ffmpeg")
         set_ffprobe_path("ffprobe")
+
+    def test_frame_indexing(self):
+        v = Video("resources\\test.mp4")
+
+        frames = [frame for frame in v]
+
+        for i in range(v.frame_count):
+            self.assertTrue(check_same_frames(frames[i], v[i]))
+            self.assertTrue(check_same_frames(frames[-(i + 1)], v[-(i + 1)]))
+
+        v.close()
+
+    def test_slicing_exception(self):
+        with Video(VIDEO_PATH) as v:
+            self.assertRaises(TypeError, lambda: v[1:1])
+
+    # test out of bounds exceptions when indexing
+    def test_indexing_oob(self):
+        with Video("resources\\5frames.mp4") as v:
+            self.assertRaises(IndexError, lambda: v[5])
+            self.assertRaises(IndexError, lambda: v[6])
+            self.assertRaises(IndexError, lambda: v[-6])
+
+            # no errors
+            _ = v[-5]
+            _ = v[-0]
 
 
 if __name__ == "__main__":

@@ -260,14 +260,19 @@ class Video:
         return self
 
     def __getitem__(self, item) -> np.ndarray:
+        if isinstance(item, slice):
+            raise TypeError("Slicing is not supported.")
+
         if item >= self.frame_count or item < -self.frame_count:
             raise IndexError("Index out of bounds.")
+        if item < 0:
+            item = self.frame_count + item
 
         self._skipped_frame_index = self.frame
         self._skipped_frame = True
 
-        self.seek_frame(item, relative=False, intuitive=False)
-        return next(self)
+        self.seek_frame(item) # keep intuitive seeking here
+        return self.frame_data
 
     def __next__(self) -> np.ndarray:
         self._skipped_frame_index = self.frame
@@ -1055,14 +1060,14 @@ class Video:
         self.frame_surf = None
 
         if self.vfr:
-            self._vid.seek(self._get_closest_frame(self.timestamps, self._starting_time) + (1 if intuitive else 0))
+            frame = self._get_closest_frame(self.timestamps, self._starting_time)
         else:
             frame = int(self._starting_time * self.frame_rate)
             if frame >= self.frame_count:
                 frame = self.frame_count - 1
-            if intuitive:
-                frame += 1
-            self._vid.seek(frame)
+        if intuitive:
+            frame += 1
+        self._vid.seek(frame)
 
         self.frame = self._vid.frame
 

@@ -1039,7 +1039,10 @@ class Video:
         Changes the current position in the video. If relative is True, the given time will be added or subtracted to 
         the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in 
         seconds, with no precision limit. If the given value is larger than the video duration,
-        the video will be seeked to the last frame.
+        the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
+        that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
+        want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
+        (which is one frame before requested position), set intuitive to False.
         """
 
         self._starting_time = (self.get_pos() + time) if relative else time
@@ -1080,7 +1083,10 @@ class Video:
         """
         Same as seek method but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to 
         the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total 
-        frames, the video will be seeked to the last frame.
+        frames, the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
+        that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
+        want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
+        (which is one frame before requested position), set intuitive to False.
         """
         index = (self.frame + index) if relative else index
         index = min(max(index, 0), self.frame_count - 1)

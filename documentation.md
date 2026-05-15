@@ -472,6 +472,8 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 - `flipup` - Flips the video across x axis.
 - `rotate90` - Rotates the video by 90 degrees.
 - `rotate270` - Essentially just rotate90 but in the other direction.
+- `vhs` - Old tv effect.
+- `emboss` - 3d paper-like effect.
 
 # Errors
 

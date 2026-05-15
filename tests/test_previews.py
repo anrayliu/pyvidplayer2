@@ -99,9 +99,10 @@ class TestPreviews(unittest.TestCase):
     def test_previews(self):
         for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx):
             v = lib(VIDEO_PATH)
-            v.seek(v.duration)
+            v.seek(v.duration - 0.1)
             v.preview()
             self.assertTrue(v.closed)
+            v.close()
 
     # tests pyav dependency message
     def test_imageio_needs_pyav(self):

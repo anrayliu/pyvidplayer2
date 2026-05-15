@@ -26,7 +26,10 @@ class VideoWx(Video):
         h, w = data.shape[:2]
         if self.colour_format == "BGR":
             data = data[..., ::-1]  # converts to RGB
-        return wx.Image(w, h, data.flatten().tobytes()).ConvertToBitmap()
+        try:
+            return wx.Image(w, h, data.flatten().tobytes()).ConvertToBitmap()
+        except wx._core.PyNoAppError:
+            return None # wx.App object hasn't been created first
 
     def _render_frame(self, panel: wx.Panel, pos: Tuple[int, int]):
         dc = wx.PaintDC(panel)

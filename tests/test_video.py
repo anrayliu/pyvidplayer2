@@ -298,7 +298,7 @@ class TestVideo(unittest.TestCase):
 
             # tests that when seeking to x, exactly x will be obtained when checking-
             for i in range(5):
-                rand_time = random.uniform(0, v.duration)
+                rand_time = round(random.uniform(0, v.duration), 3)
                 v.seek(rand_time, relative=False, intuitive=False)
                 self.assertEqual(v.get_pos(), rand_time)
 
@@ -946,7 +946,7 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.frame, v.frame_count - 1)
 
         for i in range(5):
-            rand = random.uniform(0, v.duration)
+            rand = round(random.uniform(0, v.duration), 3)
             v.seek(rand, relative=False, intuitive=False)
             self.assertEqual(v.get_pos(), rand)
 

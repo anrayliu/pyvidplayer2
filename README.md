@@ -8,38 +8,36 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anrayliu/pyvidplayer2)
 [![Made with ❤️](https://img.shields.io/badge/Made_with-❤️-blue?style=round-square)](https://github.com/anrayliu/pyvidplayer2)
 
-Striving to be the most comprehensive video playback library for Python.
+Comprehensive video playback library for Python.
 
-Note that this library is under active development. If you encounter a bug or a video that cannot be
+This library is under active development. If you encounter a bug or a video that cannot be
 played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
 # Features
 
-- Easy to implement (4 lines of code)
-- Only essential dependencies are numpy, FFmpeg + FFprobe
-- Fast and efficient
-- No audio/video sync issues
-- Unlocked frame rate
-- Nvidia hardware acceleration (AMD coming later)
-- Supports GIFs!
+- Easy to integrate (4 lines of code)
+- Integrates with Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, or wxPython
+- Lean and modular (only required dependencies are numpy and FFmpeg)
 - Supports almost any video codec and container
-- Play variable frame rate videos (VFR)
-- Adjust playback speed
+- Nvidia hardware acceleration (AMD coming later)
+- Customize playback speed
 - Reverse playback
-- Subtitle support (.srt, .ass, etc)
+- Supports GIFs
+- Supports variable frame rate (VFR) videos
+- Supports subtitles (.srt, .ass, etc)
 - Play multiple videos in parallel
-- Add multiple subtitles to a video
-- Built in GUI and queue system
-- Draw videos using Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, or wxPython
-- Post process effects
+- Post-processing effects
 - Webcam feed
 - Stream videos from Youtube
 - Grab subtitles from Youtube, including automatic generation and translation
-- Play videos as byte objects
-- Specify output devices
-- Frame-by-frame iteration
-- Specify different audio tracks
+- Supports videos as byte objects
+- Customize output devices
+- Frame-by-frame iteration and inspection
+- Customize audio tracks
 - Seamless video looping
+- Built-in video player with GUI and queue system
+- No audio/video sync issues
+- Unlocked frame rate
 
 # Installation
 
@@ -160,10 +158,10 @@ pygame.quit()
 
 To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
 For more detailed information, read the [documentation](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md).
-If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). Finally, if you still have questions, 
-open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues) or email me at `anrayliu@gmail.com`. I'm more than happy to answer!
+If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
+open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
 # Known Bugs
 
 For a list of known bugs, refer to [this page](https://github.com/anrayliu/pyvidplayer2/issues/53).
-If you see an issue not listed, feel free to open a new issue!
+If you see an issue not listed, please open a new issue.

@@ -25,6 +25,27 @@ class FFMPEGReader(VideoReader):
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
+    # not guaranteed to be called but since FFmpegReader
+    # is more prone to resource leaks than other readers, adding
+    # this as an extra precaution
+    def __del__(self):
+        self.release()
+
+    def _end_proc(self):
+        if self._process is None:
+            return
+
+        self._process.stdout.close()
+
+        self._process.terminate()
+        try:
+            self._process.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            self._process.kill()
+            self._process.wait(timeout=2)
+
+        self._process = None
+
     def _get_command(self, index=None):
         return [
             get_ffmpeg_path(),
@@ -63,11 +84,11 @@ class FFMPEGReader(VideoReader):
 
     def seek(self, index):
         self.frame = index
-        self._process.terminate()
-        # uses input seeking for very fast reading
+        self._end_proc()
 
+        # uses input seeking for very fast reading
         self._process = subprocess.Popen(self._get_command(index=index), stdout=subprocess.PIPE)
 
     def release(self):
-        self._process.kill()
+        self._end_proc()
         VideoReader.release(self)

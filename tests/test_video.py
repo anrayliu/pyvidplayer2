@@ -1927,6 +1927,10 @@ class TestVideo(unittest.TestCase):
             _ = v[-5]
             _ = v[-0]
 
+    # test that the proper exception is bubbled up, instead of an audio error
+    def test_ffmpeg_reader_exception(self):
+        self.assertRaises(VideoStreamError, lambda: Video("resources\\fake.txt", reader=READER_FFMPEG))
+
 
 if __name__ == "__main__":
     unittest.main()

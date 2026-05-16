@@ -10,6 +10,8 @@ from .error import *
 
 class FFMPEGReader(VideoReader):
     def __init__(self, path, probe=True, cuda_device=-1):
+        self._process = None
+
         VideoReader.__init__(self, path, probe)
 
         self.cuda_device = cuda_device

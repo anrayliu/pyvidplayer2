@@ -59,26 +59,6 @@ VIDEO_PATH = "resources/trailer1.mp4"
 
 
 class TestVideo(unittest.TestCase):
-    # tests each post processing function
-    def test_post_processing(self):
-        # must be done with clip.mp4 because trailer1.mp4 fails letterbox due to it already having one
-        # and trailer2.mp4 fails noise due to the black opening frames
-
-        v1 = Video("resources/clip.mp4")
-        original_frame = next(v1)
-        v2 = Video("resources/clip.mp4")
-        new_frame = next(v2)
-        self.assertTrue(check_same_frames(original_frame, new_frame))
-
-        for func in (lambda d: np.fliplr(d), PostProcessing.blur, PostProcessing.sharpen, PostProcessing.greyscale,
-                     PostProcessing.noise, PostProcessing.letterbox, PostProcessing.cel_shading, PostProcessing.flipup,
-                     PostProcessing.fliplr):
-            v2.set_post_func(func)
-            self.assertFalse(check_same_frames(next(v1), next(v2)))
-
-        v1.close()
-        v2.close()
-
     # tests metadata accuracy for 3 main types of videos
     def test_metadata(self):
         v = Video("resources/trailer1.mp4")

@@ -1916,7 +1916,7 @@ class TestVideo(unittest.TestCase):
         with Video(VIDEO_PATH) as v:
             self.assertRaises(TypeError, lambda: v[1:1])
 
-    # test out of bounds exceptions when indexing
+    # test out-of-bounds exceptions when indexing
     def test_indexing_oob(self):
         with Video("resources\\5frames.mp4") as v:
             self.assertRaises(IndexError, lambda: v[5])

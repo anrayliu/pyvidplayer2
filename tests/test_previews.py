@@ -48,6 +48,7 @@ class TestPreviews(unittest.TestCase):
         vp.close()
 
     # tests for a bug where previews would never end if video was looping
+    # inconsistent test, may never terminate
     @unittest.skip
     def test_looping_preview(self):
         # for some reason, this fails if ran with the rest, but passes when ran individually
@@ -78,13 +79,10 @@ class TestPreviews(unittest.TestCase):
         vp.close()
         thread.join()
 
-    # tests that previews behave correctly
+    # tests video player preview works and does not close when video ends
+    # broken test
     @unittest.skip
-    def test_preview(self):
-        # sometimes hangs
-        # pygame.quit()
-        # pygame.init()
-
+    def test_video_player_preview(self):
         v = Video(VIDEO_PATH)
         vp = VideoPlayer(v, (0, 0, 1280, 720))
         v.seek(v.duration)

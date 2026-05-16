@@ -934,7 +934,7 @@ class Video:
         """
         Rewinds video to the beginning. Does not change video.active, and does not refresh current frame information.
         """
-        self.seek(0, relative=False, intuitive=False)
+        self.seek(0, relative=False, intuitive=True) # should be intuitive
 
         if self._buffered_chunk is not None:
             self._chunks_claimed = 1

@@ -1112,12 +1112,12 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH)
         while_loop(lambda: v.frame < 10, v.update, 10)
         v.restart()
-        self.assertEqual(v.frame, 0)
+        self.assertEqual(v.frame, 1) # restart uses intuitive seek
         self.assertEqual(v.get_pos(), 0)
         self.assertTrue(v.active)
         v.stop()
         v.restart()
-        self.assertEqual(v.frame, 0)
+        self.assertEqual(v.frame, 1)
         self.assertEqual(v.get_pos(), 0)
         self.assertTrue(v.active)
         v.close()
@@ -1637,18 +1637,32 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.frame, 0)
 
         v.seek_frame(4)
-        v.restart()
-        # if intuitive mode accidentally set, this would assert 1
-        self.assertEqual(v.frame, 0)
-
-        v.seek_frame(4)
         v.set_audio_track(0)
-        # if intuitive mode accidentally set, this would assert 1
+        # if intuitive mode accidentally set, this would assert 5
         self.assertEqual(v.frame, 4)
 
         # video.play is covered by other tests
 
         v.close()
+
+    # tests that internally, the restart method uses an intuitive seek
+    def test_restart_is_intuitive(self):
+        v = Video(VIDEO_PATH)
+
+        v.seek_frame(4)
+        v.restart()
+        self.assertEqual(v.frame, 1)
+
+        v.stop()
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
+
+        v.restart()
+        self.assertIsNotNone(v.frame_data)
+        self.assertIsNotNone(v.frame_surf)
+
+        v.close()
+
 
     # tests that correct flags are set when skipping frames
     def test_skipped_frame_flag_set(self):
@@ -1797,7 +1811,6 @@ class TestVideo(unittest.TestCase):
         v = Video("resources/test.mp4")
 
         for l in (
-            lambda v: v.restart(),
             lambda v: v.stop(),
             lambda v: v.seek(0, relative=False, intuitive=False),
             lambda v: v.seek_frame(0, intuitive=False)

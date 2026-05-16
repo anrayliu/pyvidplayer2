@@ -11,7 +11,7 @@ import numpy as np
 class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        VER = "0.9.31"
+        VER = "0.9.32"
 
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)

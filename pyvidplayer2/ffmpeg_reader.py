@@ -33,20 +33,19 @@ class FFMPEGReader(VideoReader):
     def __del__(self):
         self.release()
 
-    def _end_proc(self):
-        if self._process is None:
+    @staticmethod
+    def _end_proc(proc):
+        if proc is None:
             return
 
-        self._process.stdout.close()
+        proc.stdout.close()
 
-        self._process.terminate()
+        proc.terminate()
         try:
-            self._process.wait(timeout=1)
+            proc.wait(timeout=1)
         except subprocess.TimeoutExpired:
-            self._process.kill()
-            self._process.wait(timeout=2)
-
-        self._process = None
+            proc.kill()
+            proc.wait(timeout=2)
 
     def _get_command(self, index=None):
         return [
@@ -86,11 +85,11 @@ class FFMPEGReader(VideoReader):
 
     def seek(self, index):
         self.frame = index
-        self._end_proc()
+        FFMPEGReader._end_proc(self._process)
 
         # uses input seeking for very fast reading
         self._process = subprocess.Popen(self._get_command(index=index), stdout=subprocess.PIPE)
 
     def release(self):
-        self._end_proc()
+        FFMPEGReader._end_proc(self._process)
         VideoReader.release(self)

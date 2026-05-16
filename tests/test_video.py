@@ -1027,7 +1027,7 @@ class TestVideo(unittest.TestCase):
     # tests force draw
     def test_draw(self):
         for force_draw in (False, True):
-            v = Video(VIDEO_PATH)
+            v = Video("resources\\clip.mp4")
             surf = pygame.Surface(v.original_size)
             clock = pygame.time.Clock()
             flag = True

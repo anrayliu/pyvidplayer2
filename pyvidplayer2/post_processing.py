@@ -49,13 +49,6 @@ class PostProcessing:
         def rotate270(data: np.ndarray) -> np.ndarray:
             return np.rot90(data, k=1)
 
-        def chromatic_aberration(data: np.ndarray) -> np.ndarray:
-            shift = 6
-            result = data.copy()
-            result[:, shift:, 2] = data[:, :-shift, 2]
-            result[:, :-shift, 0] = data[:, shift:, 0]
-            return result
-
         def vhs(data: np.ndarray) -> np.ndarray:
             shift = 6
             result = data.copy()

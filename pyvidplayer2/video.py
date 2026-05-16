@@ -674,7 +674,7 @@ class Video:
         if self._seek_buffered:
             n = True
             self._seek_buffered = False
-        self.buffering = False # kind of a forgotten feature
+        self.buffering = False # used by video player objects
 
         if self._audio.get_busy() or self.paused:
 

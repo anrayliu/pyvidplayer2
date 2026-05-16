@@ -43,7 +43,7 @@ class MixerHandler(AudioHandler):
 
     def get_pos(self):
         # pygame does not reset audio position when audio is unloaded
-        if not pygame.mixer.music.get_busy() and pygame.mixer.music.get_pos() != 0:
+        if not self.loaded:
             return 0
         return max(0, pygame.mixer.music.get_pos()) / 1000.0
 

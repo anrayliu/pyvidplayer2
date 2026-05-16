@@ -193,7 +193,7 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
 - `seek(time: float | int, relative: bool = True, intuitive: bool = False) -> None` - Changes the current position in
   the video. If `relative` is
   `True`, the given time will be added or subtracted to the current time. Otherwise, the current position will be set to
-  the given time exactly. Time must be given in seconds, with no precision limit. If the given value is larger than the
+  the given time exactly. Time must be given in seconds, with a precision limit of 3 decimals. If the given value is larger than the
   video duration, the video will
   seek to the last frame. To understand the intuitive parameter, it is important to understand that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,

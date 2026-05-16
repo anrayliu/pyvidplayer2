@@ -1038,7 +1038,7 @@ class Video:
         """
         Changes the current position in the video. If relative is True, the given time will be added or subtracted to 
         the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in 
-        seconds, with no precision limit. If the given value is larger than the video duration,
+        seconds, with a precision limit of 3 decimals. If the given value is larger than the video duration,
         the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
         that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
         want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
@@ -1046,6 +1046,7 @@ class Video:
         """
 
         self._starting_time = (self.get_pos() + time) if relative else time
+        self._starting_time = round(self._starting_time, 3)
         self._starting_time = min(max(0, self._starting_time), self.duration)
 
         for p in self._processes:

@@ -1850,8 +1850,15 @@ class TestVideo(unittest.TestCase):
     def test_pygame_mixer_position(self):
         v = Video(VIDEO_PATH, use_pygame_audio=True)
         while_loop(lambda: v.frame_data is None, v.update, 10)
+        v.pause()
+        # should still return proper audio position when paused
+        self.assertFalse(pygame.mixer.music.get_busy())
+        self.assertTrue(v._audio.loaded)
+        self.assertNotEqual(v._audio.get_pos(), 0.0)
+        self.assertEqual(v._audio.get_pos(), pygame.mixer.music.get_pos() / 1000)
         v.close()
         self.assertFalse(pygame.mixer.music.get_busy())
+        self.assertFalse(v._audio.loaded)
         self.assertNotEqual(pygame.mixer.music.get_pos(), 0)
         self.assertEqual(v._audio.get_pos(), 0.0)
 

@@ -345,7 +345,7 @@ class VideoPlayer:
         pygame.display.set_caption(f"videoplayer - {self.video.name}")
         self.video.play()
         stop = False
-        while self.video.active and not stop:
+        while not stop:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:

@@ -932,7 +932,7 @@ class Video:
 
     def restart(self) -> None:
         """
-        Rewinds video to the beginning. Does not change video.active, and does not refresh current frame information.
+        Rewinds video to the beginning. Does not change video.active.
         """
         self.seek(0, relative=False, intuitive=True) # should be intuitive
 

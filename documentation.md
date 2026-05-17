@@ -171,8 +171,7 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
   aspect ratio. Will scale width to an even number and return it.
 - `close() -> None` - Releases resources. Always recommended to call when done. Attempting to use video object after
   closing it may lead to unexpected behaviour.
-- `restart() -> None` - Rewinds video to the beginning. Does not change `active` attribute and does not refresh current
-  frame information.
+- `restart() -> None` - Rewinds video to the beginning. Does not change `active` attribute.
 - `get_speed() -> float | int` - Returns `speed` attribute. Only exists due to backwards compatibility.
 - `set_volume(volume: float) -> None` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
 - `get_volume() -> float` - Returns `volume` attribute. Only exists due to backwards compatibility.

@@ -220,7 +220,9 @@ class Video:
         self.no_audio = no_audio or self._test_no_audio()
 
         self._missing_ffmpeg = False  # for throwing errors
-        self._generated_frame = False  # for when used as a generator
+        self._skipped_frame = False  # used when slicing
+        self._skipped_frame_index = 0 # used when slicing
+        self._seek_buffered = False
         self._preloaded = False
         self._update_time = 0.0  # for testing
 
@@ -257,8 +259,25 @@ class Video:
         self.stop()
         return self
 
+    def __getitem__(self, item) -> np.ndarray:
+        if isinstance(item, slice):
+            raise TypeError("Slicing is not supported.")
+
+        if item >= self.frame_count or item < -self.frame_count:
+            raise IndexError("Index out of bounds.")
+        if item < 0:
+            item = self.frame_count + item
+
+        self._skipped_frame_index = self.frame
+        self._skipped_frame = True
+
+        self.seek_frame(item) # keep intuitive seeking here
+        return self.frame_data
+
     def __next__(self) -> np.ndarray:
-        self._generated_frame = True
+        self._skipped_frame_index = self.frame
+        self._skipped_frame = True
+
         data = None
 
         if self.reverse:
@@ -271,6 +290,7 @@ class Video:
 
         if data is not None:
             self.frame += 1
+            self._skipped_frame_index += 1
             if self.original_size != self.current_size:
                 data = self._resize_frame(data, self.current_size, self.interp, not CV)
             data = self.post_func(data)
@@ -651,7 +671,10 @@ class Video:
         self._update_threads()
 
         n = False
-        self.buffering = False
+        if self._seek_buffered:
+            n = True
+            self._seek_buffered = False
+        self.buffering = False # used by video player objects
 
         if self._audio.get_busy() or self.paused:
 
@@ -857,15 +880,16 @@ class Video:
         Sets video.active to True.
         """
         self.active = True
-        if self._generated_frame:
-            self._generated_frame = False
-            self.seek_frame(self.frame)
+        if self._skipped_frame:
+            self.seek_frame(self._skipped_frame_index, intuitive=False)
+            self._skipped_frame = False # reset flags
+            self._skipped_frame_index = 0
 
     def stop(self) -> None:
         """
         Sets video.active to False.
         """
-        self.seek(0, relative=False)
+        self.seek(0, relative=False, intuitive=False)
         self.active = False
         # removing this to prevent flickering during loops
         # self.frame_data = None
@@ -908,9 +932,9 @@ class Video:
 
     def restart(self) -> None:
         """
-        Rewinds video to the beginning. Does not change video.active, and does not refresh current frame information.
+        Rewinds video to the beginning. Does not change video.active.
         """
-        self.seek(0, relative=False)
+        self.seek(0, relative=False, intuitive=True) # should be intuitive
 
         if self._buffered_chunk is not None:
             self._chunks_claimed = 1
@@ -986,7 +1010,7 @@ class Video:
 
         self.audio_channels = info[0]["channels"]
         self.audio_track = index
-        self.seek(self.get_pos(), relative=False)  # reloads current audio chunks
+        self.seek(self.get_pos(), relative=False, intuitive=False)  # reloads current audio chunks
 
     def pause(self) -> None:
         """
@@ -1010,21 +1034,24 @@ class Video:
         """
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
-    def seek(self, time: float, relative: bool = True) -> None:
+    def seek(self, time: float, relative: bool = True, intuitive: bool = True) -> None:
         """
         Changes the current position in the video. If relative is True, the given time will be added or subtracted to 
         the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in 
-        seconds, with no precision limit. Note that frames and audio within the video will not yet be updated after 
-        calling seek. Call buffer_current to load the new frames. If the given value is larger than the video duration, 
-        the video will be seeked to the last frame. Calling `next(video)` will read the last frame.
+        seconds, with a precision limit of 3 decimals. If the given value is larger than the video duration,
+        the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
+        that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
+        want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
+        (which is one frame before requested position), set intuitive to False.
         """
-        # seeking accurate to 1/100 of a second
 
         self._starting_time = (self.get_pos() + time) if relative else time
+        self._starting_time = round(self._starting_time, 3)
         self._starting_time = min(max(0, self._starting_time), self.duration)
 
         for p in self._processes:
-            p.kill()
+            # borrow method to cleanly close processes
+            FFMPEGReader._end_proc(p)
         for t in self._threads:
             t.join()
 
@@ -1034,26 +1061,35 @@ class Video:
         self._chunks_played = 0
         self._audio.unload()
 
+        self.frame_data = None
+        self.frame_surf = None
+
         if self.vfr:
-            self._vid.seek(self._get_closest_frame(self.timestamps, self._starting_time))
+            frame = self._get_closest_frame(self.timestamps, self._starting_time)
         else:
             frame = int(self._starting_time * self.frame_rate)
             if frame >= self.frame_count:
                 frame = self.frame_count - 1
-            self._vid.seek(frame)
+        if intuitive:
+            frame += 1
+        self._vid.seek(frame)
 
         self.frame = self._vid.frame
 
         for sub in self.subs:
             sub._seek(self._starting_time)
 
-    def seek_frame(self, index: int, relative: bool = False) -> None:
+        self.buffer_current()
+
+    def seek_frame(self, index: int, relative: bool = False, intuitive: bool = True) -> None:
         """
         Same as seek method but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to 
         the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total 
-        frames, the video will be seeked to the last frame.
+        frames, the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
+        that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
+        want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
+        (which is one frame before requested position), set intuitive to False.
         """
-        # seeking accurate to 1/100 of a second
         index = (self.frame + index) if relative else index
         index = min(max(index, 0), self.frame_count - 1)
 
@@ -1063,7 +1099,8 @@ class Video:
             self._starting_time = min(max(0, index / self.frame_rate), self.duration)
 
         for p in self._processes:
-            p.kill()
+            # borrow method to cleanly close processes
+            FFMPEGReader._end_proc(p)
         for t in self._threads:
             t.join()
 
@@ -1072,6 +1109,19 @@ class Video:
         self._chunks_claimed = 0
         self._chunks_played = 0
         self._audio.unload()
+
+        self.frame_data = None
+        self.frame_surf = None
+
+        # Technically, video.frame represents the next frame that will be rendered.
+        # When seeking to a frame, if video.frame were to match index exactly, the
+        # desired frame by definition, will yet to be rendered. This may be unintuitive for most,
+        # as if you seek to a frame, you expect to be able to see the frame.
+        # Therefore, I'm adding this intuitive parameter so users can choose the behaviour they want.
+
+        if intuitive:
+            index += 1
+
         self._vid.seek(index)
 
         self.frame = index
@@ -1079,12 +1129,14 @@ class Video:
         for sub in self.subs:
             sub._seek(self._starting_time)
 
+        self.buffer_current()
+
     def buffer_current(self) -> bool:
         """
         Whenever frame_surf or frame_data are None, use this method to populate them. This is useful because 
-        seeking does not update frame_data or frame_surf. Keep in mind that video.frame represents the frame
-        that WILL be rendered. Therefore, if video.frame == 0, that means the first frame has yet to be rendered, 
-        and buffer_current will not work. Returns True or False depending on if data was successfully buffered.
+        seeking does not update frame_data or frame_surf. This method does not increment the frame attribute.
+        This method is called automatically when seeking in v0.9.32 and onwards, so explicit calls should no
+        longer be necessary.
         """
         if self._vid.frame > 0 and (self.frame_data is None or self.frame_surf is None):
             p = self.get_pos()
@@ -1100,6 +1152,7 @@ class Video:
 
                 if self.subs and not self.subs_hidden:
                     self._write_subs(p)
+                self._seek_buffered = True
                 return True
         return False
 

@@ -25,11 +25,15 @@ class VideoRaylib(Video):
                        as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
 
     def _create_frame(self, data):
+        # cannot create textures before window is init
+        if not pyray.is_window_ready():
+            return None
+
         if self.frame_surf is not None:
             pyray.unload_texture(self.frame_surf)
         buffer = io.BytesIO()
         Image.fromarray(data[..., ::-1]).save(buffer, format="BMP")
-        img = pyray.load_image_from_memory(".bmp", str(buffer.getvalue()), len(buffer.getvalue()))
+        img = pyray.load_image_from_memory(".bmp", buffer.getvalue(), len(buffer.getvalue()))
         texture = pyray.load_texture_from_image(img)
         pyray.unload_image(img)
         return texture

@@ -26,7 +26,10 @@ class VideoTkinter(Video):
         h, w = data.shape[:2]
         if self.colour_format == "BGR":
             data = data[..., ::-1]  # converts to RGB
-        return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data.tobytes(), format='PPM')
+        try:
+            return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data.tobytes(), format='PPM')
+        except RuntimeError:
+            return None # RunTimeError: Too early to create image: no default root window
 
     def _render_frame(self, canvas, pos):
         canvas.create_image(*pos, image=self.frame_surf)

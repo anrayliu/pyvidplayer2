@@ -23,8 +23,11 @@ class DecordReader(VideoReader):
         VideoReader._probe(self, path, self._as_bytes)
 
     def seek(self, index):
-        self._vid_reader.seek_accurate(index)
-        self.frame = index
+        try:
+            self._vid_reader.seek_accurate(index)
+        except AssertionError:
+            pass # index out of bounds
+        self.frame = index # don't put this into an "else" block
 
     def read(self):
         frame = None

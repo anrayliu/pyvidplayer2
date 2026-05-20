@@ -16,9 +16,6 @@ class PostProcessing:
         def blur(data: np.ndarray) -> np.ndarray:
             return cv2.blur(data, (5, 5))
 
-        def sharpen(data: np.ndarray) -> np.ndarray:
-            return cv2.filter2D(data, -1, np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]]))
-
         def greyscale(data: np.ndarray) -> np.ndarray:
             return np.stack((cv2.cvtColor(data, cv2.COLOR_BGR2GRAY),) * 3, axis=-1)
 
@@ -51,3 +48,32 @@ class PostProcessing:
 
         def rotate270(data: np.ndarray) -> np.ndarray:
             return np.rot90(data, k=1)
+
+        def vhs(data: np.ndarray) -> np.ndarray:
+            shift = 6
+            result = data.copy()
+            result[:, shift:, 2] = data[:, :-shift, 2]
+            result[:, :-shift, 0] = data[:, shift:, 0]
+
+            hsv = cv2.cvtColor(result, cv2.COLOR_BGR2HSV).astype(np.float32)
+            hsv[:, :, 1] *= 1.4
+            hsv[:, :, 2] *= 0.85
+            result = cv2.cvtColor(np.clip(hsv, 0, 255).astype(np.uint8), cv2.COLOR_HSV2BGR)
+            scanlines = np.ones_like(result, dtype=np.float32)
+            scanlines[::2] *= 0.75
+            return np.clip(result * scanlines, 0, 255).astype(np.uint8)
+
+        def emboss(data: np.ndarray) -> np.ndarray:
+            gray = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
+            kernel = np.array([[-2, -1, 0],
+                               [-1,  1, 1],
+                               [ 0,  1, 2]], dtype=np.float32)
+            embossed = cv2.filter2D(gray, -1, kernel) + 128
+            embossed = np.clip(embossed, 0, 255).astype(np.uint8)
+            return cv2.cvtColor(embossed, cv2.COLOR_GRAY2BGR)
+
+        def sharpen(data: np.ndarray) -> np.ndarray:
+            kernel = np.array([[ 0, -1,  0],
+                               [-1,  5, -1],
+                               [ 0, -1,  0]], dtype=np.float32)
+            return np.clip(cv2.filter2D(data, -1, kernel), 0, 255).astype(np.uint8)

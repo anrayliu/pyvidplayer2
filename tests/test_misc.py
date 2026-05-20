@@ -4,14 +4,14 @@ import unittest
 import pyvidplayer2
 from pyvidplayer2 import *
 
-# trigger code in test_video in case this file is executed before
-import test_video
+from test_video import check_same_frames
+import numpy as np
 
 
 class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        VER = "0.9.31"
+        VER = "0.9.32"
 
         self.assertEqual(VER, VERSION)
         self.assertEqual(VER, pyvidplayer2.__version__)
@@ -101,3 +101,24 @@ class TestMisc(unittest.TestCase):
         from pyvidplayer2 import PostProcessing
         from pyvidplayer2 import VERSION
         from pyvidplayer2._version import __version__
+
+    # tests each post processing function
+    def test_post_processing(self):
+        # must be done with clip.mp4 because trailer1.mp4 fails letterbox due to it already having one
+        # and trailer2.mp4 fails noise due to the black opening frames
+
+        v1 = Video("resources/clip.mp4")
+        original_frame = next(v1)
+        v2 = Video("resources/clip.mp4")
+        new_frame = next(v2)
+        self.assertTrue(check_same_frames(original_frame, new_frame))
+
+        for func in (lambda d: np.fliplr(d), PostProcessing.blur, PostProcessing.sharpen, PostProcessing.greyscale,
+                     PostProcessing.noise, PostProcessing.letterbox, PostProcessing.cel_shading, PostProcessing.flipup,
+                     PostProcessing.fliplr, PostProcessing.rotate90, PostProcessing.rotate270,
+                     PostProcessing.vhs, PostProcessing.emboss):
+            v2.set_post_func(func)
+            self.assertFalse(check_same_frames(next(v1), next(v2)))
+
+        v1.close()
+        v2.close()

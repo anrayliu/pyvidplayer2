@@ -54,6 +54,7 @@ class VideoPlayer:
         self._show_seek = False
 
         self._fade_timer = 0
+        self._buffer_timer = 0
 
         if self._show_intervals:
             self._interval = self.video.duration / self.preview_thumbnails
@@ -228,7 +229,6 @@ class VideoPlayer:
             self._handle_on_end()
 
         if self.interactable:
-
             mouse = pygame.mouse.get_pos()
             click = False
             for event in events:
@@ -257,7 +257,12 @@ class VideoPlayer:
                 elif click:
                     self.video.toggle_pause()
 
-        self._buffer_angle += dt / 10
+            self._buffer_angle += dt / 10
+
+            if self.video.buffering:
+                self._buffer_timer += dt
+            else:
+                self._buffer_timer = 0
 
         return self._show_ui
 
@@ -301,7 +306,9 @@ class VideoPlayer:
                     win.blit(surf, (x, self._progress_back.y - 80 - f.get_height()))
 
         if self.interactable:
-            if self.video.buffering:
+            # allow a 0.06 second grace to not show the buffering symbol
+            if self.video.buffering and self._buffer_timer > 60:
+                # draw buffering symbol
                 for i in range(6):
                     a = math.radians(self._buffer_angle + i * 60)
                     pygame.draw.line(win, "white", self._move_angle(self.frame_rect.center, a, 10),
@@ -338,7 +345,7 @@ class VideoPlayer:
         pygame.display.set_caption(f"videoplayer - {self.video.name}")
         self.video.play()
         stop = False
-        while self.video.active and not stop:
+        while not stop:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:

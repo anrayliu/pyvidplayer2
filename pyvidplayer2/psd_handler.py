@@ -127,8 +127,13 @@ class PSDHandler(AudioHandler):
                     audio = (audio * self.volume).astype(dtype_val)
 
                 self._buffer = audio
-                
-                self.stream.write(audio)
+
+                # having psd bubble its exceptions clutter the stack trace
+                # almost always due to handling an existing exception
+                try:
+                    self.stream.write(audio)
+                except sd.PortAudioError:
+                    break
 
                 self.chunks_played += CHUNK_SIZE
                 self.position = self.chunks_played / float(self.wave.getframerate())

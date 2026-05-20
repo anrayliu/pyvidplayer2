@@ -11,7 +11,7 @@ looping is now much more seamless
 import pygame
 from pyvidplayer2 import VideoPlayer, Video
 
-v = Video(r"resources\clip.mp4")
+v = Video(r"resources\loop2.mp4")
 player = VideoPlayer(v, (0, 0, *v.current_size), loop=True)
 
 win = pygame.display.set_mode(v.current_size)

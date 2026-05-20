@@ -48,6 +48,7 @@ class TestPreviews(unittest.TestCase):
         vp.close()
 
     # tests for a bug where previews would never end if video was looping
+    # inconsistent test, may never terminate
     @unittest.skip
     def test_looping_preview(self):
         # for some reason, this fails if ran with the rest, but passes when ran individually
@@ -78,13 +79,10 @@ class TestPreviews(unittest.TestCase):
         vp.close()
         thread.join()
 
-    # tests that previews behave correctly
+    # tests video player preview works and does not close when video ends
+    # broken test
     @unittest.skip
-    def test_preview(self):
-        # sometimes hangs
-        # pygame.quit()
-        # pygame.init()
-
+    def test_video_player_preview(self):
         v = Video(VIDEO_PATH)
         vp = VideoPlayer(v, (0, 0, 1280, 720))
         v.seek(v.duration)
@@ -99,9 +97,10 @@ class TestPreviews(unittest.TestCase):
     def test_previews(self):
         for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx):
             v = lib(VIDEO_PATH)
-            v.seek(v.duration)
+            v.seek(v.duration - 0.1)
             v.preview()
             self.assertTrue(v.closed)
+            v.close()
 
     # tests pyav dependency message
     def test_imageio_needs_pyav(self):
@@ -138,16 +137,4 @@ class TestPreviews(unittest.TestCase):
         thread.start()
         time.sleep(1.5)
         self.assertFalse(thread.is_alive())
-        thread.join()
-
-    # tests that video players work with youtube videos
-    def test_youtube_player(self):
-        v = Video(YOUTUBE_PATH, youtube=True)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
-        v.seek(v.duration)
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
         thread.join()

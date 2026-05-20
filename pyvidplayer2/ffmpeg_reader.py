@@ -10,6 +10,8 @@ from .error import *
 
 class FFMPEGReader(VideoReader):
     def __init__(self, path, probe=True, cuda_device=-1):
+        self._process = None
+
         VideoReader.__init__(self, path, probe)
 
         self.cuda_device = cuda_device
@@ -24,6 +26,27 @@ class FFMPEGReader(VideoReader):
             self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
         except FileNotFoundError:
             raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
+
+    # not guaranteed to be called but since FFmpegReader
+    # is more prone to resource leaks than other readers, adding
+    # this as an extra precaution
+    def __del__(self):
+        self.release()
+
+    @staticmethod
+    def _end_proc(proc):
+        if proc is None:
+            return
+
+        # can cause hanging
+        # proc.stdout.close()
+
+        proc.terminate()
+        try:
+            proc.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait(timeout=2)
 
     def _get_command(self, index=None):
         return [
@@ -63,11 +86,11 @@ class FFMPEGReader(VideoReader):
 
     def seek(self, index):
         self.frame = index
-        self._process.terminate()
-        # uses input seeking for very fast reading
+        FFMPEGReader._end_proc(self._process)
 
+        # uses input seeking for very fast reading
         self._process = subprocess.Popen(self._get_command(index=index), stdout=subprocess.PIPE)
 
     def release(self):
-        self._process.kill()
+        FFMPEGReader._end_proc(self._process)
         VideoReader.release(self)

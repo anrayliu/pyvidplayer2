@@ -15,29 +15,13 @@ played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/is
 
 # Features
 
-- Easy to integrate (4 lines of code)
-- Integrates with Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, or wxPython
-- Lean and modular (only required dependencies are numpy and FFmpeg)
-- Supports almost any video codec and container
-- Nvidia hardware acceleration (AMD coming later)
-- Customize playback speed
-- Reverse playback
-- Supports GIFs
-- Supports variable frame rate (VFR) videos
-- Supports subtitles (.srt, .ass, etc)
-- Play multiple videos in parallel
-- Post-processing effects
-- Webcam feed
+- Integrates easily with Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, or wxPython
+- Full audio support
+- Lean and modular
+- Supports subtitle files
 - Stream videos from Youtube
-- Grab subtitles from Youtube, including automatic generation and translation
-- Supports videos as byte objects
-- Customize output devices
 - Frame-by-frame iteration and inspection
-- Customize audio tracks
-- Seamless video looping
-- Built-in video player with GUI and queue system
-- No audio/video sync issues
-- Unlocked frame rate
+- Built-in video player GUI
 
 # Installation
 
@@ -65,9 +49,9 @@ numpy
 FFmpeg and FFprobe (binaries, not Python packages)
 ```
 
-## Optional Packages
+Still requires one graphics library and one audio library of your choice.
 
-At least one graphics library and one audio library is required.
+## Optional Packages
 
 ```
 opencv_python   (efficiency improvements and more features, comes installed)
@@ -92,13 +76,6 @@ Not required or recommended for regular users.
 # Quickstart
 
 Refer to the [examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) folder for more basic examples.
-
-## Super Quick Demo
-
-```
-from pyvidplayer2 import Video
-Video("video.mp4").preview()
-```
 
 ## Pygame Integration
 

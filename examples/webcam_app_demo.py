@@ -8,10 +8,11 @@ install pywin32 via pip before using
 
 
 import pygame
+import win32api
+import win32con
+import win32gui
 from pyvidplayer2 import Webcam
-import win32api, win32gui, win32con
 from win32com.client import Dispatch
-
 
 webcam = Webcam(interp="area", capture_size=(1920, 1080))
 webcam.change_resolution(240)   # scales video without changing aspect ratio

@@ -25,9 +25,12 @@ try:
 except ImportError:
     pass
 
-from .video import READER_FFMPEG, READER_DECORD, READER_OPENCV, READER_IMAGEIO, READER_AUTO
+from .error import (AudioDeviceError, AudioStreamError, FFmpegNotFoundError,
+                    OpenCVError, Pyvidplayer2Error, SubtitleError,
+                    VideoStreamError, WebcamNotFoundError, YTDLPError)
 from .post_processing import PostProcessing
-from .error import Pyvidplayer2Error, AudioDeviceError, AudioStreamError, SubtitleError, VideoStreamError, FFmpegNotFoundError, OpenCVError, YTDLPError, WebcamNotFoundError
+from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG, READER_IMAGEIO,
+                    READER_OPENCV)
 
 try:
     import tkinter
@@ -78,8 +81,8 @@ except ImportError:
 else:
     pygame.init()
 
-    from .video_pygame import VideoPygame as Video
     from .video_player import VideoPlayer
+    from .video_pygame import VideoPygame as Video
 
     try:
         import cv2

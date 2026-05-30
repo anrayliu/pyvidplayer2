@@ -1,17 +1,17 @@
 # obsolete class, replaced with psd_handler
 
 import copy
-import wave
 import math
 import time
-from threading import Thread
+import wave
 from io import BytesIO
+from threading import Thread
 
-import pyaudio
 import numpy as np
+import pyaudio
 
-from .error import AudioDeviceError
 from .audio_handler import AudioHandler
+from .error import AudioDeviceError
 
 
 class PyaudioHandler(AudioHandler):

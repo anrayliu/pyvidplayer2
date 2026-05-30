@@ -1,15 +1,16 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
-import unittest
-import time
 import sys
+import time
+import unittest
 from threading import Thread
 
 import pygame
+from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
+                          VideoPyQT, VideoPySide, VideoRaylib, VideoTkinter,
+                          VideoWx)
 
-from pyvidplayer2 import Video, VideoPlayer, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx, \
-    READER_IMAGEIO
 from test_video import VIDEO_PATH
 
 

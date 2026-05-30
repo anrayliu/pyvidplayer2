@@ -1,12 +1,12 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
 import numpy as np
-from PySide6.QtGui import QImage, QPixmap, QPainter
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QImage, QPainter, QPixmap
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
 from .post_processing import PostProcessing
-from .video import Video, READER_AUTO
+from .video import READER_AUTO, Video
 
 
 class VideoPySide(Video):

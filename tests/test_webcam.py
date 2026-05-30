@@ -1,13 +1,13 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
-import unittest
 import time
+import unittest
 
 import cv2
+from pyvidplayer2 import PostProcessing, Video, Webcam
 
-from pyvidplayer2 import Webcam, PostProcessing, Video
-from test_video import timed_loop, check_same_frames, VIDEO_PATH
+from test_video import VIDEO_PATH, check_same_frames, timed_loop
 
 # enable these if you have a webcam
 

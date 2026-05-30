@@ -1,10 +1,10 @@
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple, Union
 
 import numpy as np
 import pyglet
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoPyglet(Video):

@@ -1,13 +1,13 @@
-import subprocess
-import re
 import os
-from typing import Union, Tuple
+import re
+import subprocess
+from typing import Tuple, Union
 
 import pygame
 import pysubs2
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path
-from .error import SubtitleError, FFmpegNotFoundError
+from .error import FFmpegNotFoundError, SubtitleError
 
 try:
     import yt_dlp

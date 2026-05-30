@@ -4,8 +4,8 @@ import subprocess
 import numpy as np
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path
-from .video_reader import VideoReader
 from .error import FFmpegNotFoundError
+from .video_reader import VideoReader
 
 
 class FFMPEGReader(VideoReader):

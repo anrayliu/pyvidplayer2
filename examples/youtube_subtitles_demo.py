@@ -6,9 +6,8 @@ If a subtitle file in the preferred language is not available, automatic caption
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
-from pyvidplayer2 import Video, Subtitles
 import pygame
-
+from pyvidplayer2 import Subtitles, Video
 
 # if you don't know Google's language code for a particular area, which can be pretty
 # difficult to find sometimes, I've found success asking chatGPT for them

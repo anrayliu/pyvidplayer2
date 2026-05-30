@@ -1,19 +1,20 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
+import random
 import time
 import unittest
 import unittest.mock
-import random
 from threading import Thread
 
-import yt_dlp
 import pygame
+import yt_dlp
+from pyvidplayer2 import (READER_AUTO, READER_FFMPEG, READER_IMAGEIO,
+                          READER_OPENCV, SubtitleError, Subtitles, Video,
+                          VideoPlayer, YTDLPError)
 
-from pyvidplayer2 import Video, YTDLPError, Subtitles, SubtitleError, READER_AUTO, READER_OPENCV, \
-    READER_FFMPEG, READER_IMAGEIO, VideoPlayer
 from test_subtitles import SUBS
-from test_video import while_loop, timed_loop, check_same_frames
+from test_video import check_same_frames, timed_loop, while_loop
 
 
 def get_youtube_urls(max_results=5):

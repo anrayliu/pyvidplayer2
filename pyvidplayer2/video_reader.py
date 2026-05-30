@@ -1,5 +1,5 @@
-import subprocess
 import json
+import subprocess
 
 from . import get_ffmpeg_loglevel, get_ffprobe_path
 from .error import FFmpegNotFoundError, VideoStreamError

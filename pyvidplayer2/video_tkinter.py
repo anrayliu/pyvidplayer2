@@ -1,10 +1,10 @@
-from typing import Callable, Union, Tuple
 import tkinter as tk
+from typing import Callable, Tuple, Union
 
 import numpy as np
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoTkinter(Video):

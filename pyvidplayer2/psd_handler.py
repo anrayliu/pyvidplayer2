@@ -1,10 +1,10 @@
-import wave
 import time
-from threading import Thread
+import wave
 from io import BytesIO
+from threading import Thread
 
-import sounddevice as sd
 import numpy as np
+import sounddevice as sd
 
 from .audio_handler import AudioHandler
 from .error import AudioStreamError

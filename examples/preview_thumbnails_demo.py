@@ -6,7 +6,7 @@ This example shows off preview thumbnails in the video player
 
 
 import pygame
-from pyvidplayer2 import VideoPlayer, Video
+from pyvidplayer2 import Video, VideoPlayer
 
 video = Video(r"resources\medic.mov")
 

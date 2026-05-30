@@ -6,7 +6,7 @@ This example shows how videos can be queued and skipped through with the VideoPl
 
 
 import pygame
-from pyvidplayer2 import VideoPlayer, Video
+from pyvidplayer2 import Video, VideoPlayer
 
 win = pygame.display.set_mode((1280, 720))
 pygame.display.set_caption("queue demo")

@@ -8,7 +8,6 @@ This is an example showing how to add subtitles to a video
 from pygame import Font
 from pyvidplayer2 import Subtitles, Video
 
-
 # regular subtitles playback
 
 with Video(r"resources\trailer2.mp4", subs=Subtitles(r"resources\subs2.srt")) as v:

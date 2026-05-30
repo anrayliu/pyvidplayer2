@@ -13,7 +13,6 @@ To use this feature, you must follow the steps outlined here: https://github.com
 
 from pyvidplayer2 import Video
 
-
 # chunk_size must be at least 60 for a smooth experience
 # max_threads is forced to 1
 

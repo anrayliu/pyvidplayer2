@@ -6,6 +6,7 @@ This is a quick example of integrating a video into a tkinter project
 
 
 import tkinter
+
 from pyvidplayer2 import VideoTkinter
 
 video = VideoTkinter(r"resources\trailer1.mp4")

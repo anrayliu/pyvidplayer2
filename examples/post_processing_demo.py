@@ -6,7 +6,7 @@ This example gives a side by side comparison between a few available post proces
 
 
 import pygame
-from pyvidplayer2 import Video, PostProcessing
+from pyvidplayer2 import PostProcessing, Video
 
 PATH = r"resources\ocean.mkv"
 

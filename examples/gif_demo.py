@@ -9,7 +9,7 @@ Uses looping_demo.py to loop the gif
 
 
 import pygame
-from pyvidplayer2 import VideoPlayer, Video
+from pyvidplayer2 import Video, VideoPlayer
 
 v = Video("some-gif.gif")
 player = VideoPlayer(v, (0, 0, *v.current_size), loop=True)

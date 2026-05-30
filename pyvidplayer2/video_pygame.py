@@ -1,10 +1,10 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
-import pygame
 import numpy as np
+import pygame
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoPygame(Video):

@@ -1,23 +1,26 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
+import os
+import random
 import time
 import unittest
 import unittest.mock
-import os
-import random
-import numpy as np
 
-from sounddevice import query_devices
-import pygame
 import cv2
-
-from pyvidplayer2 import Video, VideoTkinter, VideoPyglet, VideoPyQT, Subtitles, READER_IMAGEIO, READER_DECORD, \
-    VideoRaylib, VideoPySide, VideoWx, READER_OPENCV, READER_FFMPEG, AudioStreamError, AudioDeviceError, \
-    VideoStreamError, set_ffmpeg_path, get_ffmpeg_path, set_ffprobe_path, get_ffprobe_path, OpenCVError, READER_AUTO, \
-    PostProcessing, FFmpegNotFoundError, set_ffmpeg_loglevel, get_version_info
+import numpy as np
+import pygame
 import pyvidplayer2
-
+from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
+                          READER_IMAGEIO, READER_OPENCV, AudioDeviceError,
+                          AudioStreamError, FFmpegNotFoundError, OpenCVError,
+                          PostProcessing, Subtitles, Video, VideoPyglet,
+                          VideoPyQT, VideoPySide, VideoRaylib,
+                          VideoStreamError, VideoTkinter, VideoWx,
+                          get_ffmpeg_path, get_ffprobe_path, get_version_info,
+                          set_ffmpeg_loglevel, set_ffmpeg_path,
+                          set_ffprobe_path)
+from sounddevice import query_devices
 
 BIN_OVERRIDE = r""
 if BIN_OVERRIDE:

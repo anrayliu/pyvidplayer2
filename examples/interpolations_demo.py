@@ -9,7 +9,6 @@ Can you tell a difference?
 import pygame
 from pyvidplayer2 import Video
 
-
 win = pygame.display.set_mode((1280, 480))
 pygame.display.set_caption("interpolations demo")
 

@@ -4,19 +4,19 @@
 # As such, the code quality can be lacking - it's an 
 # active challenge to make better refactors
 
-import subprocess
-import os
 import json
+import os
+import subprocess
 from abc import abstractmethod
-from typing import Union, Callable, Tuple
 from threading import Thread
+from typing import Callable, Tuple, Union
 
 import numpy as np
 
-from .ffmpeg_reader import FFMPEGReader
 from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
-from .error import OpenCVError, FFmpegNotFoundError, YTDLPError, \
-    VideoStreamError, AudioStreamError
+from .error import (AudioStreamError, FFmpegNotFoundError, OpenCVError,
+                    VideoStreamError, YTDLPError)
+from .ffmpeg_reader import FFMPEGReader
 
 try:
     import cv2

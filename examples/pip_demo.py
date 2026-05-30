@@ -9,12 +9,12 @@ install pywin32 via pip before using
 
 
 import pygame
-from win32gui import SetWindowPos, GetCursorPos, GetWindowRect, GetForegroundWindow, SetForegroundWindow
+from pyvidplayer2 import Video, VideoPlayer
 from win32api import GetSystemMetrics
-from win32con import SWP_NOSIZE, HWND_TOPMOST
 from win32com.client import Dispatch
-from pyvidplayer2 import VideoPlayer, Video
-
+from win32con import HWND_TOPMOST, SWP_NOSIZE
+from win32gui import (GetCursorPos, GetForegroundWindow, GetWindowRect,
+                      SetForegroundWindow, SetWindowPos)
 
 SIZE = (426, 240)
 FILE = r"resources\billiejean.mp4"

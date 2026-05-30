@@ -81,8 +81,13 @@ except ImportError:
 else:
     pygame.init()
 
-    from .video_player import VideoPlayer
+    # isort will try and change the order of these 2 imports,
+    # but doing so will cause a circular import
+    # keep in current order!
+    # --------------------------------------------
     from .video_pygame import VideoPygame as Video
+    from .video_player import VideoPlayer
+    # --------------------------------------------
 
     try:
         import cv2

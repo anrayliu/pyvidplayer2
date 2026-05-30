@@ -9,6 +9,7 @@ class MixerHandler(AudioHandler):
     def __init__(self):
         self.muted = False
         self.loaded = False
+        self.paused = False
         self.volume = 1
 
         pygame.mixer.music.unload()
@@ -51,10 +52,12 @@ class MixerHandler(AudioHandler):
         pygame.mixer.music.stop()
 
     def pause(self):
+        self.paused = True
         pygame.mixer.music.pause()
 
     def unpause(self):
-        # unpausing the mixer when nothing has been loaded causes weird behaviour 
+        self.paused = False
+        # unpausing the mixer when nothing has been loaded causes weird behaviour
         if pygame.mixer.music.get_pos() != -1:
             pygame.mixer.music.unpause()
 
@@ -78,6 +81,7 @@ class MixerHandler(AudioHandler):
     
     def get_loaded(self):
         return self.loaded
-    
+
+    # currently not used
     def get_paused(self):
         return self.paused

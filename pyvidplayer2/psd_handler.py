@@ -7,7 +7,7 @@ import numpy as np
 import sounddevice as sd
 
 from .audio_handler import AudioHandler
-from .error import AudioStreamError
+from .error import AudioDeviceError
 
 
 class PSDHandler(AudioHandler):

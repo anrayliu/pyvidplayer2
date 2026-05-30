@@ -10,7 +10,7 @@ from io import BytesIO
 import pyaudio
 import numpy as np
 
-from .error import *
+from .error import AudioDeviceError
 from .audio_handler import AudioHandler
 
 

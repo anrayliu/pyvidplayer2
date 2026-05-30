@@ -3,7 +3,10 @@
 
 import unittest
 import time
-from pyvidplayer2 import *
+
+import cv2
+
+from pyvidplayer2 import Webcam, PostProcessing, Video
 from test_video import timed_loop, check_same_frames, VIDEO_PATH
 
 # enable these if you have a webcam

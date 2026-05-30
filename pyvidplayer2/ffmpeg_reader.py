@@ -5,7 +5,7 @@ import numpy as np
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path
 from .video_reader import VideoReader
-from .error import *
+from .error import FFmpegNotFoundError
 
 
 class FFMPEGReader(VideoReader):

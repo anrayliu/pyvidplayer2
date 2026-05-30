@@ -5,10 +5,15 @@ import time
 import unittest
 import unittest.mock
 import random
+from threading import Thread
+
 import yt_dlp
+import pygame
+
+from pyvidplayer2 import Video, YTDLPError, Subtitles, SubtitleError, READER_AUTO, READER_OPENCV, \
+    READER_FFMPEG, READER_IMAGEIO, VideoPlayer
 from test_subtitles import SUBS
 from test_video import while_loop, timed_loop, check_same_frames
-from pyvidplayer2 import *
 
 
 def get_youtube_urls(max_results=5):

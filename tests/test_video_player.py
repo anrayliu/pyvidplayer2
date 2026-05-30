@@ -5,8 +5,12 @@ import random
 import time
 import unittest
 from threading import Thread
+
+import pygame
+import cv2
+
+from pyvidplayer2 import Video, VideoPlayer, VideoTkinter, VideoStreamError
 from test_video import VIDEO_PATH, while_loop, timed_loop, check_same_frames
-from pyvidplayer2 import *
 
 
 class TestVideoPlayer(unittest.TestCase):

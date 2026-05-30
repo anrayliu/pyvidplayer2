@@ -3,7 +3,10 @@
 
 import unittest
 import random
-from pyvidplayer2 import *
+
+import pygame
+
+from pyvidplayer2 import Subtitles, SubtitleError, Video
 from test_video import while_loop, timed_loop, check_same_frames
 
 SUBS = (

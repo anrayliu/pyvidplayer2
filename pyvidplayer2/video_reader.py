@@ -2,7 +2,7 @@ import subprocess
 import json
 
 from . import get_ffmpeg_loglevel, get_ffprobe_path
-from .error import *
+from .error import FFmpegNotFoundError, VideoStreamError
 
 
 class VideoReader:

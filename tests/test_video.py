@@ -7,9 +7,16 @@ import unittest.mock
 import os
 import random
 import numpy as np
+
 from sounddevice import query_devices
+import pygame
+import cv2
+
+from pyvidplayer2 import Video, VideoTkinter, VideoPyglet, VideoPyQT, Subtitles, READER_IMAGEIO, READER_DECORD, \
+    VideoRaylib, VideoPySide, VideoWx, READER_OPENCV, READER_FFMPEG, AudioStreamError, AudioDeviceError, \
+    VideoStreamError, set_ffmpeg_path, get_ffmpeg_path, set_ffprobe_path, get_ffprobe_path, OpenCVError, READER_AUTO, \
+    PostProcessing, FFmpegNotFoundError, set_ffmpeg_loglevel, get_version_info
 import pyvidplayer2
-from pyvidplayer2 import *
 
 
 BIN_OVERRIDE = r""

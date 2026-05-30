@@ -2,8 +2,8 @@ from io import BytesIO
 
 import decord
 
+from .error import VideoStreamError
 from .video_reader import VideoReader
-from .error import *
 
 
 class DecordReader(VideoReader):

@@ -26,8 +26,8 @@ except ImportError:
     pass
 
 from .video import READER_FFMPEG, READER_DECORD, READER_OPENCV, READER_IMAGEIO, READER_AUTO
-from .error import *
 from .post_processing import PostProcessing
+from .error import Pyvidplayer2Error, AudioDeviceError, AudioStreamError, SubtitleError, VideoStreamError, FFmpegNotFoundError, OpenCVError, YTDLPError, WebcamNotFoundError
 
 try:
     import tkinter

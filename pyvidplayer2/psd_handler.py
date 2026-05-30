@@ -6,8 +6,8 @@ from io import BytesIO
 import sounddevice as sd
 import numpy as np
 
-from .error import *
 from .audio_handler import AudioHandler
+from .error import AudioStreamError
 
 
 class PSDHandler(AudioHandler):

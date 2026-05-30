@@ -1,11 +1,14 @@
 import subprocess
 import unittest
 
+import numpy as np
+import pygame
+
+from pyvidplayer2 import VERSION, READER_AUTO, READER_FFMPEG, READER_OPENCV, READER_IMAGEIO, READER_DECORD, \
+    get_ffmpeg_loglevel, get_version_info, get_ffmpeg_path, set_ffmpeg_loglevel, PostProcessing, Video
 import pyvidplayer2
-from pyvidplayer2 import *
 
 from test_video import check_same_frames
-import numpy as np
 
 
 class TestMisc(unittest.TestCase):

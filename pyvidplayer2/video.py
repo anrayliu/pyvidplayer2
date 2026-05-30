@@ -14,8 +14,9 @@ from threading import Thread
 import numpy as np
 
 from .ffmpeg_reader import FFMPEGReader
-from .error import *
 from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
+from .error import OpenCVError, FFmpegNotFoundError, YTDLPError, \
+    VideoStreamError, AudioStreamError
 
 try:
     import cv2

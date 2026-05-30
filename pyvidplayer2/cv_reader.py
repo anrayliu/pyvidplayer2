@@ -1,8 +1,7 @@
 import cv2
 
-from .error import *
 from .video_reader import VideoReader
-
+from .error import OpenCVError
 
 class CVReader(VideoReader):
     def __init__(self, path, probe=False):

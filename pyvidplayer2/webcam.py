@@ -5,8 +5,8 @@ import cv2
 import pygame
 import numpy as np
 
+from . import WebcamNotFoundError
 from .post_processing import PostProcessing
-from .error import *
 
 
 class Webcam:

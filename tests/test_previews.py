@@ -5,9 +5,12 @@ import unittest
 import time
 import sys
 from threading import Thread
-from pyvidplayer2 import *
+
+import pygame
+
+from pyvidplayer2 import Video, VideoPlayer, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx, \
+    READER_IMAGEIO
 from test_video import VIDEO_PATH
-from test_youtube import YOUTUBE_PATH
 
 
 # macos and linux do not like preview tests

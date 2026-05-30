@@ -7,7 +7,7 @@ import pygame
 import pysubs2
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path
-from .error import *
+from .error import SubtitleError, FFmpegNotFoundError
 
 try:
     import yt_dlp

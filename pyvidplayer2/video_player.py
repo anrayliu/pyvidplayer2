@@ -4,7 +4,7 @@ from typing import Tuple, Union, List
 import pygame
 
 from . import Video
-from .error import *
+from .error import VideoStreamError
 from .video_pygame import VideoPygame
 
 

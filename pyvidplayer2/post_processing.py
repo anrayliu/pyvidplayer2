@@ -9,21 +9,26 @@ else:
 
 
 class PostProcessing:
+    @staticmethod
     def none(data: np.ndarray) -> np.ndarray:
         return data
 
     if CV:
+        @staticmethod
         def blur(data: np.ndarray) -> np.ndarray:
             return cv2.blur(data, (5, 5))
 
+        @staticmethod
         def greyscale(data: np.ndarray) -> np.ndarray:
             return np.stack((cv2.cvtColor(data, cv2.COLOR_BGR2GRAY),) * 3, axis=-1)
 
+        @staticmethod
         def noise(data: np.ndarray) -> np.ndarray:
             noise = np.zeros(data.shape, dtype=np.uint8)
             cv2.randn(noise, (0,) * 3, (20,) * 3)
             return data + noise
 
+        @staticmethod
         def letterbox(data: np.ndarray) -> np.ndarray:
             background = np.zeros((*data.shape[:2], 3), dtype=np.uint8)
 
@@ -34,21 +39,27 @@ class PostProcessing:
 
             return background
 
+        @staticmethod
         def cel_shading(data: np.ndarray) -> np.ndarray:
             return cv2.subtract(data, cv2.blur(cv2.merge((cv2.Canny(data, 150, 200),) * 3), (2, 2)))
 
+        @staticmethod
         def flipup(data: np.ndarray) -> np.ndarray:
             return np.flipud(data)
 
+        @staticmethod
         def fliplr(data: np.ndarray) -> np.ndarray:
             return np.fliplr(data)
 
+        @staticmethod
         def rotate90(data: np.ndarray) -> np.ndarray:
             return np.rot90(data, k=3)
 
+        @staticmethod
         def rotate270(data: np.ndarray) -> np.ndarray:
             return np.rot90(data, k=1)
 
+        @staticmethod
         def vhs(data: np.ndarray) -> np.ndarray:
             shift = 6
             result = data.copy()
@@ -63,6 +74,7 @@ class PostProcessing:
             scanlines[::2] *= 0.75
             return np.clip(result * scanlines, 0, 255).astype(np.uint8)
 
+        @staticmethod
         def emboss(data: np.ndarray) -> np.ndarray:
             gray = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
             kernel = np.array([[-2, -1, 0],
@@ -72,6 +84,7 @@ class PostProcessing:
             embossed = np.clip(embossed, 0, 255).astype(np.uint8)
             return cv2.cvtColor(embossed, cv2.COLOR_GRAY2BGR)
 
+        @staticmethod
         def sharpen(data: np.ndarray) -> np.ndarray:
             kernel = np.array([[ 0, -1,  0],
                                [-1,  5, -1],

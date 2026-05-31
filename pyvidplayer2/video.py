@@ -1,7 +1,7 @@
 # Contains most of the core logic for video playback
 # This project started when I was a lot less experienced,
 # and over the years, it's greatly surpassed my initial scope.
-# As such, the code quality can be lacking - it's an 
+# As such, the code quality can be lacking - it's an
 # active challenge to make better refactors
 
 import json
@@ -127,10 +127,8 @@ class Video:
             self._vid = reader(self.path)
 
             # having less than 60 hurts performance
-            if chunk_size < 60:
-                chunk_size = 60
-            if max_threads > 1:
-                max_threads = 1
+            chunk_size = max(chunk_size, 60)
+            max_threads = min(max_threads, 1)
 
         elif as_bytes:
             # cannot use ffmpeg reader and therefore cuda device here
@@ -308,41 +306,41 @@ class Video:
         Decides the best reader to use based on what's installed
         """
         if youtube:
-            if reader == READER_AUTO or reader == READER_OPENCV:
+            if reader in (READER_AUTO, READER_OPENCV):
                 if CV:
                     return CVReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError(
                         "Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
             raise ValueError("Only READER_OPENCV is supported for Youtube videos.")
         elif as_bytes:
-            if reader == READER_AUTO or reader == READER_DECORD:
+            if reader in (READER_AUTO, READER_DECORD):
                 if DECORD:
                     return DecordReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError(
                         "Unable to read video from memory because decord is not installed. "
                         "Decord can be installed via pip.")
-            if reader == READER_AUTO or reader == READER_IMAGEIO:
+            if reader in (READER_AUTO, READER_IMAGEIO):
                 if IIO:
                     return IIOReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError(
                         "Unable to read video from memory because IMAGEIO is not installed. "
                         "IMAGEIO can be installed via pip.")
             raise ValueError("Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
         else:
-            if reader == READER_AUTO or reader == READER_OPENCV:
+            if reader in (READER_AUTO, READER_OPENCV):
                 if CV:
                     return CVReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError("OpenCV is not installed. OpenCV can be installed through pip.")
-            if reader == READER_AUTO or reader == READER_DECORD:
+            if reader in (READER_AUTO, READER_DECORD):
                 if DECORD:
                     return DecordReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError("Decord is not installed. Decord can be installed through pip.")
-            if reader == READER_AUTO or reader == READER_FFMPEG:
+            if reader in (READER_AUTO, READER_FFMPEG):
                 return FFMPEGReader
             if reader == READER_IMAGEIO:
                 if IIO:
@@ -388,13 +386,13 @@ class Video:
                 "-print_format", "json"
             ]
 
-            p = subprocess.Popen(command, stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
+            with subprocess.Popen(
+                    command, stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE) as p:
+                info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+        except FileNotFoundError as e:
             raise FFmpegNotFoundError(
                 "Could not find FFprobe (should be bundled with FFmpeg). "
-                "Make sure FFprobe is installed and accessible via PATH.")
-
-        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+                "Make sure FFprobe is installed and accessible via PATH.") from e
 
         pts = sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
         if pts:
@@ -437,13 +435,13 @@ class Video:
                 raise
             except Exception as e:  # something went wrong with yt_dlp
                 if "Requested format is not available" in str(e):
-                    raise YTDLPError("Could not find requested resolution.")
-                raise YTDLPError("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
-            else:
-                self.path = formats[0]["url"]
-                self._audio_path = formats[1]["url"]
-                self.name = info.get("title", "")
-                self.ext = ".webm"
+                    raise YTDLPError("Could not find requested resolution.") from e
+                raise YTDLPError("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.") from e
+
+            self.path = formats[0]["url"]
+            self._audio_path = formats[1]["url"]
+            self.name = info.get("title", "")
+            self.ext = ".webm"
 
     def _preload_frames(self):
         """
@@ -522,8 +520,10 @@ class Video:
         ]
 
         try:
-            p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE if self.as_bytes else None)
-            audio = p.communicate(input=self.path if self.as_bytes else None)[0]
+            with subprocess.Popen(command,
+                                  stdout=subprocess.PIPE,
+                                  stdin=subprocess.PIPE if self.as_bytes else None) as p:
+                audio = p.communicate(input=self.path if self.as_bytes else None)[0]
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
@@ -756,11 +756,11 @@ class Video:
 
         # without opencv, use ffmpeg resizing
 
-        if type(interp) == int:
+        if isinstance(interp, int):
             interp = ("neighbor", "bilinear", "bicubic", "area", "lanczos")[interp]
 
         try:
-            process = subprocess.Popen(
+            with subprocess.Popen(
                 [
                     get_ffmpeg_path(),
                     "-loglevel", get_ffmpeg_loglevel(),
@@ -774,11 +774,11 @@ class Video:
                 ],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-            )
-        except FileNotFoundError:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure it's downloaded and accessible via PATH.")
-
-        return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
+            ) as p:
+                return np.frombuffer(p.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
+        except FileNotFoundError as e:
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure it's downloaded and accessible via PATH.") from e
 
     def probe(self) -> None:
         """
@@ -970,13 +970,19 @@ class Video:
         """
         Pauses if the video is playing, and resumes if the video is paused.
         """
-        self.resume() if self.paused else self.pause()
+        if self.paused:
+            self.resume()
+        else:
+            self.pause()
 
     def toggle_mute(self) -> None:
         """
         Mutes if the video is unmuted, and unmutes if the video is muted.
         """
-        self.unmute() if self.muted else self.mute()
+        if self.muted:
+            self.unmute()
+        else:
+            self.mute()
 
     def set_audio_track(self, index: int) -> None:
         """
@@ -996,15 +1002,16 @@ class Video:
                 "-print_format", "json"
             ]
 
-            p = subprocess.Popen(
+            with subprocess.Popen(
                 command,
-                stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
+                stdin=subprocess.PIPE if self.as_bytes else None,
+                stdout=subprocess.PIPE) as p:
+
+                info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+        except FileNotFoundError as e:
             raise FFmpegNotFoundError(
                 "Could not find FFprobe (should be bundled with FFmpeg). "
-                "Make sure FFprobe is installed and accessible via PATH.")
-
-        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+                "Make sure FFprobe is installed and accessible via PATH.") from e
 
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
@@ -1187,10 +1194,9 @@ class Video:
         pass
 
     @abstractmethod
-    def preview(self):
+    def preview(self, *args):
         """
         Opens a window and plays the video. This method will hang until the video finishes. max_fps enforces how many
         times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number
         of new frames being rendered every second.
         """
-        pass

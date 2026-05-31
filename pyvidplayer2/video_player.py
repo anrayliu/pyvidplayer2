@@ -194,7 +194,7 @@ class VideoPlayer:
             self.zoom_to_fill()
 
     def queue(self, input_: Union[str, Video]) -> None:
-        if type(input_) != str and not isinstance(input_, Video):
+        if not isinstance(input_, str) and not isinstance(input_, Video):
             raise ValueError("Can only queue video paths or video objects.")
 
         self.queue_.append(input_)
@@ -324,7 +324,10 @@ class VideoPlayer:
 
     def skip(self) -> None:
         if self.queue_:
-            self.video.stop() if self.loop else self.video.close()
+            if self.loop:
+                self.video.stop()
+            else:
+                self.video.close()
             self._handle_on_end()
 
     def get_next(self) -> Union[str, Video]:

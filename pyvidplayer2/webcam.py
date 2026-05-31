@@ -195,7 +195,7 @@ class Webcam:
         Videos are played at whatever fps the webcam object is set to.
         """
         win = pygame.display.set_mode(self.current_size)
-        pygame.display.set_caption(f"webcam")
+        pygame.display.set_caption("webcam")
         self.play()
         clock = pygame.time.Clock()
         while self.active:

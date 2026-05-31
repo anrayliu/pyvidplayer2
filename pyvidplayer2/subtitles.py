@@ -75,9 +75,11 @@ class Subtitles:
             if self.buffer != "":
                 return iter(pysubs2.SSAFile.from_string(self.buffer))
             return iter(pysubs2.load(self.path, encoding=self.encoding))
-        except (pysubs2.exceptions.FormatAutodetectionError, UnicodeDecodeError):
-            raise SubtitleError("Could not load subtitles. Unknown format or corrupt file. "
-                                "Check that the proper encoding format is set.")
+        except (pysubs2.exceptions.FormatAutodetectionError, UnicodeDecodeError) as e:
+            raise SubtitleError(
+                "Could not load subtitles. Unknown format or corrupt file. "
+                "Check that the proper encoding format is set."
+            ) from e
 
     def _to_surf(self, text):
         h = self.font.get_height()
@@ -103,11 +105,11 @@ class Subtitles:
         ]
 
         try:
-            p = subprocess.Popen(command, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
-
-        return "\n".join(p.communicate()[0].decode(self.encoding).splitlines())
+            with subprocess.Popen(command, stdout=subprocess.PIPE) as p:
+                return "\n".join(p.communicate()[0].decode(self.encoding).splitlines())
+        except FileNotFoundError as e:
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.") from e
 
     def _extract_youtube_subs(self):
         cfg = {
@@ -131,8 +133,8 @@ class Subtitles:
                 for i, s in enumerate(subs[self.pref_lang]):
                     if s["ext"] == "vtt":
                         return ydl.urlopen(subs[self.pref_lang][i]["url"]).read().decode("utf-8")
-            else:
-                raise SubtitleError("Could not find subtitles in the specified language.")
+
+            raise SubtitleError("Could not find subtitles in the specified language.")
 
     def _get_next(self):
         try:

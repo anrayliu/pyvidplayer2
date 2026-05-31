@@ -38,12 +38,16 @@ class VideoReader:
                 "-print_format", "json"
             ]
 
-            p = subprocess.Popen(command, stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FFmpegNotFoundError(
-                "Could not find FFprobe (should be bundled with FFmpeg). Make sure FFprobe is installed and accessible via PATH.")
+            with subprocess.Popen(command,
+                                  stdin=subprocess.PIPE if as_bytes else None,
+                                  stdout=subprocess.PIPE) as p:
+                info = json.loads(p.communicate(input=path if as_bytes else None)[0])
 
-        info = json.loads(p.communicate(input=path if as_bytes else None)[0])
+        except FileNotFoundError as e:
+            raise FFmpegNotFoundError(
+                "Could not find FFprobe (should be bundled with FFmpeg)."
+                "Make sure FFprobe is installed and accessible via PATH."
+            ) from e
 
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
@@ -61,16 +65,16 @@ class VideoReader:
 
         # this detects duration instead
 
-        '''try:
-            p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_format -loglevel {FFMPEG_LOGLVL} -print_format json",
-                stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FileNotFoundError(
-                "Could not find FFprobe (should be bundled with FFmpeg). Make sure FFprobe is installed and accessible via PATH.")
-
-        info = json.loads(p.communicate(input=path if as_bytes else None)[0])["format"]
-        self.duration = float(info["duration"])
-        self.frame_count = int(self.duration * self.frame_rate)'''
+        # try:
+        #     p = subprocess.Popen(f"ffprobe -i {'-' if as_bytes else path} -show_format -loglevel {FFMPEG_LOGLVL} -print_format json",
+        #         stdin=subprocess.PIPE if as_bytes else None, stdout=subprocess.PIPE)
+        # except FileNotFoundError:
+        #     raise FileNotFoundError(
+        #         "Could not find FFprobe (should be bundled with FFmpeg). Make sure FFprobe is installed and accessible via PATH.")
+        #
+        # info = json.loads(p.communicate(input=path if as_bytes else None)[0])["format"]
+        # self.duration = float(info["duration"])
+        # self.frame_count = int(self.duration * self.frame_rate)
 
         # use header information if available, which should be more accurate than counting packets
         try:
@@ -83,6 +87,7 @@ class VideoReader:
         except KeyError:
             self.duration = self.frame_count / self.frame_rate
 
+    # not in snake case to match cv2's interface
     def isOpened(self):
         return True
 

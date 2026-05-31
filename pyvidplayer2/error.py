@@ -1,35 +1,34 @@
 class Pyvidplayer2Error(Exception):
-    """Base Exception"""
-    pass
+    """Base Exception inherited by all pyvidplayer2 exceptions."""
 
 
 class AudioDeviceError(Pyvidplayer2Error):
-    pass
+    """Thrown for errors related to audio output devices."""
 
 
 class AudioStreamError(Pyvidplayer2Error):
-    pass
+    """Thrown for errors related to audio tracks within video."""
 
 
 class SubtitleError(Pyvidplayer2Error):
-    pass
+    """Thrown for errors related to subtitles."""
 
 
 class VideoStreamError(Pyvidplayer2Error):
-    pass
+    """Thrown for errors related to video probing and playback."""
 
 
 class FFmpegNotFoundError(Pyvidplayer2Error, FileNotFoundError):
-    pass
+    """Thrown when pyvidplayer2 cannot find FFmpeg or FFprobe."""
 
 
 class OpenCVError(Pyvidplayer2Error):
-    pass
+    """Thrown for errors originating from OpenCV."""
 
 
 class YTDLPError(Pyvidplayer2Error):
-    pass
+    """Thrown for errors originating from yt-dlp."""
 
 
 class WebcamNotFoundError(Pyvidplayer2Error):
-    pass
+    """Thrown when there are no available webcam devices."""

@@ -66,10 +66,9 @@ class PyaudioHandler(AudioHandler):
     def _set_device_index(self, index):
         try:
             self.audio_devices[index]
-        except IndexError:
-            raise AudioDeviceError(f"Audio device with index {index} does not exist.")
-        else:
-            self.device_index = index
+        except IndexError as e:
+            raise AudioDeviceError(f"Audio device with index {index} does not exist.") from e
+        self.device_index = index
 
     def get_busy(self):
         return self.active
@@ -106,26 +105,25 @@ class PyaudioHandler(AudioHandler):
     def find_device_by_name(self, name):
         if self.audio_devices is None:
             raise RuntimeError("find_device_by_name was called before refresh_devices")
-        for i in range(len(self.audio_devices)):
-            info = self.audio_devices[i]
+        for i, info in enumerate(self.audio_devices):
             if info["name"] == name:
                 if info['maxOutputChannels'] > 0:
                     return i
         return -1
 
-    def load(self, bytes_):
+    def load(self, audio_chunk):
         self.unload()
 
         try:
-            self.wave = wave.open(BytesIO(bytes_), "rb")
-        except EOFError:
+            self.wave = wave.open(BytesIO(audio_chunk), "rb")
+        except EOFError as e:
             raise EOFError(
                 "Audio is empty. This may mean the file is corrupted."
                 " If your video has no audio track,"
                 " try initializing it with no_audio=True."
                 " If it has several tracks, make sure the correct one"
                 " is selected with the audio_track parameter."
-            )
+            ) from e
 
         if self.stream is None:
             try:
@@ -140,8 +138,8 @@ class PyaudioHandler(AudioHandler):
                 )
 
             except Exception as e:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}\": {}".format(
-                    self.audio_devices[self.device_index]["name"], e))
+                raise AudioDeviceError("Failed to open audio stream with device \"{}\"".format(
+                    self.audio_devices[self.device_index]["name"])) from e
 
         self.loaded = True
 

@@ -24,8 +24,9 @@ class FFMPEGReader(VideoReader):
             command = self._get_command()
 
             self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
+        except FileNotFoundError as e:
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.") from e
 
     # not guaranteed to be called but since FFmpegReader
     # is more prone to resource leaks than other readers, adding

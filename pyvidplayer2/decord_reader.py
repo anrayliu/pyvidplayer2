@@ -17,8 +17,8 @@ class DecordReader(VideoReader):
 
         try:
             self._vid_reader = decord.VideoReader(BytesIO(path) if self._as_bytes else path)
-        except RuntimeError:
-            raise VideoStreamError("Could not determine video.")
+        except RuntimeError as e:
+            raise VideoStreamError("Could not determine video.") from e
 
         VideoReader._probe(self, path, self._as_bytes)
 

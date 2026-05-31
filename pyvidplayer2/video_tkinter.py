@@ -17,7 +17,8 @@ class VideoTkinter(Video):
                  interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
                  no_audio: bool = False, speed: float = 1, youtube: bool = False,
                  max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
+                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
         Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
                        as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
@@ -29,7 +30,7 @@ class VideoTkinter(Video):
         try:
             return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data.tobytes(), format='PPM')
         except RuntimeError:
-            return None # RunTimeError: Too early to create image: no default root window
+            return None  # RunTimeError: Too early to create image: no default root window
 
     def _render_frame(self, canvas, pos):
         canvas.create_image(*pos, image=self.frame_surf)

@@ -82,7 +82,6 @@ except ImportError:
 else:
     SUBS = 1
 
-
 # for specifying different reader backends
 READER_AUTO = 0
 READER_FFMPEG = 1
@@ -93,7 +92,7 @@ READER_DECORD = 4
 
 class Video:
     def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse,
-                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader, 
+                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader,
                  cuda_device) -> None:
 
         self._audio_path = path  # used for audio only when streaming
@@ -103,7 +102,7 @@ class Video:
         self.ext = ""
 
         as_bytes = as_bytes or isinstance(path, bytes)
-        
+
         # automatic youtube url detection
         # disabled because it adds too much overhead to be implicit
         # youtube = youtube or self._test_youtube()
@@ -123,10 +122,10 @@ class Video:
             # sets path and audio path for cv2 and ffmpeg
             # also sets name and ext
             self._set_stream_url(path, max_res)
-            
+
             # cannot use ffmpeg reader and therefore cuda device here
             self._vid = reader(self.path)
-                
+
             # having less than 60 hurts performance
             if chunk_size < 60:
                 chunk_size = 60
@@ -208,7 +207,7 @@ class Video:
         else:
             if not SOUNDDEVICE:
                 raise ModuleNotFoundError(
-                "Python-sounddevice is not installed. Install it via pip or use a different audio backend.")
+                    "Python-sounddevice is not installed. Install it via pip or use a different audio backend.")
 
             # self._audio = PyaudioHandler()
             self._audio = PSDHandler()
@@ -222,7 +221,7 @@ class Video:
 
         self._missing_ffmpeg = False  # for throwing errors
         self._skipped_frame = False  # used when slicing
-        self._skipped_frame_index = 0 # used when slicing
+        self._skipped_frame_index = 0  # used when slicing
         self._seek_buffered = False
         self._preloaded = False
         self._update_time = 0.0  # for testing
@@ -276,7 +275,7 @@ class Video:
         self._skipped_frame_index = self.frame
         self._skipped_frame = True
 
-        self.seek_frame(item) # keep intuitive seeking here
+        self.seek_frame(item)  # keep intuitive seeking here
         return self.frame_data
 
     def __next__(self) -> np.ndarray:
@@ -417,7 +416,7 @@ class Video:
             new_reader.duration = self._vid.duration
             new_reader.frame = self._vid.frame
             new_reader.seek(self._vid.frame)
-        
+
             self.colour_format = new_reader._colour_format
             self._vid.release()
             self._vid = new_reader
@@ -472,15 +471,15 @@ class Video:
         self._vid.seek(0)
 
         counter = 0
-        
+
         has_frame = True
         while has_frame:
             has_frame = self._vid.read()[0]
             if has_frame:
                 counter += 1
-        
+
         self._vid.seek(self.frame)
-        
+
         return counter
 
     def _chunks_len(self, chunks):
@@ -531,7 +530,7 @@ class Video:
             return
 
         return audio == b''
-    
+
     def _get_num_channels_to_process(self):
         return min(self.audio_channels, self._audio.get_num_channels())
 
@@ -679,7 +678,7 @@ class Video:
         if self._seek_buffered:
             n = True
             self._seek_buffered = False
-        self.buffering = False # used by video player objects
+        self.buffering = False  # used by video player objects
 
         if self._audio.get_busy() or self.paused:
 
@@ -887,7 +886,7 @@ class Video:
         self.active = True
         if self._skipped_frame:
             self.seek_frame(self._skipped_frame_index, intuitive=False)
-            self._skipped_frame = False # reset flags
+            self._skipped_frame = False  # reset flags
             self._skipped_frame_index = 0
 
     def stop(self) -> None:
@@ -939,7 +938,7 @@ class Video:
         """
         Rewinds video to the beginning. Does not change video.active.
         """
-        self.seek(0, relative=False, intuitive=True) # should be intuitive
+        self.seek(0, relative=False, intuitive=True)  # should be intuitive
 
         if self._buffered_chunk is not None:
             self._chunks_claimed = 1
@@ -1037,7 +1036,8 @@ class Video:
         """
         Returns the current video timestamp in seconds (float).
         """
-        return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
+        return self._starting_time + max(0,
+                                         self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True, intuitive: bool = True) -> None:
         """

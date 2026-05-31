@@ -49,7 +49,8 @@ class Subtitles:
             if track_index is not None:
                 self.buffer = self._extract_internal_subs()
                 if self.buffer == "":
-                    raise SubtitleError("Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
+                    raise SubtitleError(
+                        "Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         self._subs = self._load()
 
@@ -166,7 +167,7 @@ class Subtitles:
 
     def _write_subs(self, surf):
         surf.blit(self.surf, (
-        surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
+            surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
 
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
         """

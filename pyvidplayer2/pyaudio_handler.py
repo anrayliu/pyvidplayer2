@@ -239,9 +239,9 @@ class PyaudioHandler(AudioHandler):
     # still better to be consistent with old patterns until refactors can be made
     def get_muted(self):
         return self.muted
-    
+
     def get_loaded(self):
         return self.loaded
-    
+
     def get_paused(self):
         return self.paused

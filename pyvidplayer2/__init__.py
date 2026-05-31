@@ -6,16 +6,21 @@ _ffmpeg_loglvl = "quiet"
 _ffmpeg_path = "ffmpeg"
 _ffprobe_path = "ffprobe"
 
+
 ##################################################
 # need to be near top so library can import these
 def get_ffmpeg_loglevel() -> str:
     return _ffmpeg_loglvl
 
+
 def get_ffmpeg_path() -> str:
     return _ffmpeg_path
 
+
 def get_ffprobe_path() -> str:
     return _ffprobe_path
+
+
 ##################################################
 
 # bug on linux: importing pygame before decord results
@@ -87,6 +92,7 @@ else:
     # --------------------------------------------
     from .video_pygame import VideoPygame as Video
     from .video_player import VideoPlayer
+
     # --------------------------------------------
 
     try:
@@ -102,7 +108,6 @@ else:
         pass
     else:
         from .subtitles import Subtitles
-
 
 # cv2.setLogLevel(0) # silent
 
@@ -128,20 +133,22 @@ def get_version_info():
 def set_ffmpeg_loglevel(level: str) -> None:
     global _ffmpeg_loglvl
     if level in (
-        "quiet",
-        "panic",
-        "fatal",
-        "error",
-        "warning",
-        "info",
-        "verbose",
-        "debug",
-        "trace"
+            "quiet",
+            "panic",
+            "fatal",
+            "error",
+            "warning",
+            "info",
+            "verbose",
+            "debug",
+            "trace"
     ): _ffmpeg_loglvl = level
+
 
 def set_ffmpeg_path(path: str) -> None:
     global _ffmpeg_path
     _ffmpeg_path = path
+
 
 def set_ffprobe_path(path: str) -> None:
     global _ffprobe_path

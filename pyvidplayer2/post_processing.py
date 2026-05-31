@@ -78,15 +78,15 @@ class PostProcessing:
         def emboss(data: np.ndarray) -> np.ndarray:
             gray = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
             kernel = np.array([[-2, -1, 0],
-                               [-1,  1, 1],
-                               [ 0,  1, 2]], dtype=np.float32)
+                               [-1, 1, 1],
+                               [0, 1, 2]], dtype=np.float32)
             embossed = cv2.filter2D(gray, -1, kernel) + 128
             embossed = np.clip(embossed, 0, 255).astype(np.uint8)
             return cv2.cvtColor(embossed, cv2.COLOR_GRAY2BGR)
 
         @staticmethod
         def sharpen(data: np.ndarray) -> np.ndarray:
-            kernel = np.array([[ 0, -1,  0],
-                               [-1,  5, -1],
-                               [ 0, -1,  0]], dtype=np.float32)
+            kernel = np.array([[0, -1, 0],
+                               [-1, 5, -1],
+                               [0, -1, 0]], dtype=np.float32)
             return np.clip(cv2.filter2D(data, -1, kernel), 0, 255).astype(np.uint8)

@@ -75,7 +75,7 @@ class PSDHandler(AudioHandler):
                 " If it has several tracks, make sure the correct one"
                 " is selected with the audio_track parameter."
             )
-        
+
         if self.stream is None:
             try:
                 self.stream = sd.OutputStream(
@@ -118,7 +118,7 @@ class PSDHandler(AudioHandler):
                     break
 
                 audio = np.frombuffer(data, dtype=dtype_val)
-                
+
                 audio = audio.reshape(-1, channels)
 
                 if self.volume == 0.0 or self.muted:
@@ -175,24 +175,24 @@ class PSDHandler(AudioHandler):
 
     def pause(self):
         self.paused = True
-    
+
     def unpause(self):
         self.paused = False
-    
+
     def mute(self):
         self.muted = True
-    
+
     def unmute(self):
         self.muted = False
-    
+
     def get_busy(self):
         return self.active
 
     def get_muted(self):
         return self.muted
-    
+
     def get_loaded(self):
         return self.loaded
-    
+
     def get_paused(self):
         return self.paused

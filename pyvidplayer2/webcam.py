@@ -25,7 +25,7 @@ class Webcam:
         self.original_size = (0, 0)
         if capture_size == (0, 0):
             self.original_size = (
-            int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+                int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         else:
             self.resize_capture(capture_size)
 
@@ -140,7 +140,7 @@ class Webcam:
         self._vid.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
         self._vid.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
         self.original_size = (
-        int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
         return self.original_size == size
 
     def change_resolution(self, height: int) -> int:

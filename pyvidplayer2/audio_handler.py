@@ -72,13 +72,13 @@ class AudioHandler(ABC):
         Returns how many total seconds of audio have been played, across all loaded chunks.
         '''
         pass
-    
+
     @abstractmethod
     def play(self) -> None:
         '''
         Starts playing audio.
         '''
-        pass 
+        pass
 
     @abstractmethod
     def stop(self) -> None:

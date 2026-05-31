@@ -312,7 +312,7 @@ class Video:
                 if CV:
                     return CVReader
                 elif reader != READER_AUTO:
-                    ModuleNotFoundError(
+                    raise ModuleNotFoundError(
                         "Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
             raise ValueError("Only READER_OPENCV is supported for Youtube videos.")
         elif as_bytes:

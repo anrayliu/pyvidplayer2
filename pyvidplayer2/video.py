@@ -91,8 +91,10 @@ READER_DECORD = 4
 
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse,
-                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader,
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs,
+                 post_process, interp, use_pygame_audio, reverse,
+                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr,
+                 pref_lang, audio_index, reader,
                  cuda_device) -> None:
 
         self._audio_path = path  # used for audio only when streaming
@@ -137,7 +139,8 @@ class Video:
 
         else:
             if not os.path.exists(self.path):
-                raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
+                raise FileNotFoundError(
+                    f"[Errno 2] No such file or directory: '{self.path}'")
 
             self._vid = reader(self.path, cuda_device=cuda_device) if reader == FFMPEGReader else reader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
@@ -312,7 +315,8 @@ class Video:
                 if reader != READER_AUTO:
                     raise ModuleNotFoundError(
                         "Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
-            raise ValueError("Only READER_OPENCV is supported for Youtube videos.")
+            raise ValueError(
+                "Only READER_OPENCV is supported for Youtube videos.")
         elif as_bytes:
             if reader in (READER_AUTO, READER_DECORD):
                 if DECORD:
@@ -328,24 +332,28 @@ class Video:
                     raise ModuleNotFoundError(
                         "Unable to read video from memory because IMAGEIO is not installed. "
                         "IMAGEIO can be installed via pip.")
-            raise ValueError("Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
+            raise ValueError(
+                "Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
         else:
             if reader in (READER_AUTO, READER_OPENCV):
                 if CV:
                     return CVReader
                 if reader != READER_AUTO:
-                    raise ModuleNotFoundError("OpenCV is not installed. OpenCV can be installed through pip.")
+                    raise ModuleNotFoundError(
+                        "OpenCV is not installed. OpenCV can be installed through pip.")
             if reader in (READER_AUTO, READER_DECORD):
                 if DECORD:
                     return DecordReader
                 if reader != READER_AUTO:
-                    raise ModuleNotFoundError("Decord is not installed. Decord can be installed through pip.")
+                    raise ModuleNotFoundError(
+                        "Decord is not installed. Decord can be installed through pip.")
             if reader in (READER_AUTO, READER_FFMPEG):
                 return FFMPEGReader
             if reader == READER_IMAGEIO:
                 if IIO:
                     return IIOReader
-                raise ModuleNotFoundError("ImageIO is not installed. ImageIO can be installed through pip.")
+                raise ModuleNotFoundError(
+                    "ImageIO is not installed. ImageIO can be installed through pip.")
             raise ValueError("Could not identify backend.")
 
     def _filter_subs(self, subs):
@@ -435,8 +443,10 @@ class Video:
                 raise
             except Exception as e:  # something went wrong with yt_dlp
                 if "Requested format is not available" in str(e):
-                    raise YTDLPError("Could not find requested resolution.") from e
-                raise YTDLPError("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.") from e
+                    raise YTDLPError(
+                        "Could not find requested resolution.") from e
+                raise YTDLPError(
+                    "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.") from e
 
             self.path = formats[0]["url"]
             self._audio_path = formats[1]["url"]
@@ -670,7 +680,8 @@ class Video:
     # driving function behind video playback
     def _update(self):
         if self._missing_ffmpeg:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         self._update_threads()
 
@@ -761,19 +772,19 @@ class Video:
 
         try:
             with subprocess.Popen(
-                [
-                    get_ffmpeg_path(),
-                    "-loglevel", get_ffmpeg_loglevel(),
-                    "-f", "rawvideo",
-                    "-pix_fmt", "rgb24",
-                    "-s", f"{data.shape[1]}x{data.shape[0]}",
-                    "-i", "-",
-                    "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
-                    "-f", "rawvideo",
-                    "-"
-                ],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
+                    [
+                        get_ffmpeg_path(),
+                        "-loglevel", get_ffmpeg_loglevel(),
+                        "-f", "rawvideo",
+                        "-pix_fmt", "rgb24",
+                        "-s", f"{data.shape[1]}x{data.shape[0]}",
+                        "-i", "-",
+                        "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
+                        "-f", "rawvideo",
+                        "-"
+                    ],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
             ) as p:
                 return np.frombuffer(p.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
         except FileNotFoundError as e:
@@ -1003,9 +1014,9 @@ class Video:
             ]
 
             with subprocess.Popen(
-                command,
-                stdin=subprocess.PIPE if self.as_bytes else None,
-                stdout=subprocess.PIPE) as p:
+                    command,
+                    stdin=subprocess.PIPE if self.as_bytes else None,
+                    stdout=subprocess.PIPE) as p:
 
                 info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
         except FileNotFoundError as e:
@@ -1048,8 +1059,8 @@ class Video:
 
     def seek(self, time: float, relative: bool = True, intuitive: bool = True) -> None:
         """
-        Changes the current position in the video. If relative is True, the given time will be added or subtracted to 
-        the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in 
+        Changes the current position in the video. If relative is True, the given time will be added or subtracted to
+        the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in
         seconds, with a precision limit of 3 decimals. If the given value is larger than the video duration,
         the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
         that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
@@ -1095,8 +1106,8 @@ class Video:
 
     def seek_frame(self, index: int, relative: bool = False, intuitive: bool = True) -> None:
         """
-        Same as seek method but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to 
-        the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total 
+        Same as seek method but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to
+        the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total
         frames, the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
         that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
         want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
@@ -1145,7 +1156,7 @@ class Video:
 
     def buffer_current(self) -> bool:
         """
-        Whenever frame_surf or frame_data are None, use this method to populate them. This is useful because 
+        Whenever frame_surf or frame_data are None, use this method to populate them. This is useful because
         seeking does not update frame_data or frame_surf. This method does not increment the frame attribute.
         This method is called automatically when seeking in v0.9.32 and onwards, so explicit calls should no
         longer be necessary.

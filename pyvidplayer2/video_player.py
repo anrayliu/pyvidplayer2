@@ -13,7 +13,8 @@ class VideoPlayer:
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
 
-    def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop: bool = False,
+    def __init__(self, video: Video, rect: Tuple[int, int, int, int],
+                 interactable: bool = False, loop: bool = False,
                  preview_thumbnails: int = 0, font_size: int = 10):
         self.video = video
         if isinstance(self.video, VideoPygame):
@@ -127,7 +128,9 @@ class VideoPlayer:
         self.frame_rect = rect
         self.zoom_out()
 
-        self._progress_back = pygame.Rect(self.frame_rect.x + 10, self.frame_rect.bottom - 25, self.frame_rect.w - 20,
+        self._progress_back = pygame.Rect(self.frame_rect.x + 10,
+                                          self.frame_rect.bottom - 25,
+                                          self.frame_rect.w - 20,
                                           15)
         self._progress_bar = self._progress_back.copy()
 
@@ -175,7 +178,8 @@ class VideoPlayer:
             self.video.restart()
 
     def zoom_to_fill(self) -> None:
-        s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
+        s = max(abs(self.frame_rect.w - self.vid_rect.w),
+                abs(self.frame_rect.h - self.vid_rect.h))
         self.vid_rect.inflate_ip(s, s)
         self.vid_rect.center = self.frame_rect.center  # adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
@@ -272,7 +276,10 @@ class VideoPlayer:
         if buffer is not None:
             if self._zoomed:
                 win.blit(buffer, self.frame_rect.topleft, (
-                    self.frame_rect.x - self.vid_rect.x, self.frame_rect.y - self.vid_rect.y, *self.frame_rect.size))
+                    self.frame_rect.x - self.vid_rect.x,
+                    self.frame_rect.y - self.vid_rect.y,
+                    self.frame_rect.size[0],
+                    self.frame_rect.size[1]))
             else:
                 win.blit(buffer, self.vid_rect.topleft)
 
@@ -290,8 +297,10 @@ class VideoPlayer:
             win.blit(f, (self.frame_rect.x + 10, self._progress_bar.top - f.get_height() - 10))
 
             if self._show_seek:
-                pygame.draw.line(win, "white", (self._seek_pos, self._progress_back.top),
-                                 (self._seek_pos, self._progress_back.bottom), 2)
+                pygame.draw.line(win, "white",
+                                 (self._seek_pos, self._progress_back.top),
+                                 (self._seek_pos, self._progress_back.bottom),
+                                 2)
 
                 f = self._font.render(self._convert_seconds(self._seek_time), True, "white")
                 win.blit(f, (self._seek_pos - f.get_width() // 2, self._progress_back.y - 10 - f.get_height()))

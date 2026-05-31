@@ -122,9 +122,9 @@ def get_version_info():
 
     try:
         ffmpeg_ver = run([get_ffmpeg_path(), "-version"],
-                            capture_output=True,
-                            universal_newlines=True,
-                            check=False).stdout.split(" ")[2]
+                         capture_output=True,
+                         universal_newlines=True,
+                         check=False).stdout.split(" ")[2]
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 

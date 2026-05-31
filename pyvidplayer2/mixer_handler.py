@@ -57,7 +57,8 @@ class MixerHandler(AudioHandler):
 
     def unpause(self):
         self.paused = False
-        # unpausing the mixer when nothing has been loaded causes weird behaviour
+        # unpausing the mixer when nothing has been loaded causes
+        # weird behaviour
         if pygame.mixer.music.get_pos() != -1:
             pygame.mixer.music.unpause()
 
@@ -75,7 +76,7 @@ class MixerHandler(AudioHandler):
             self.unload()
 
     # not ideal, should've used properties instead
-    # still better to be consistent with old patterns until refactors can be made
+    # but now the public interface is already set
     def get_muted(self):
         return self.muted
 

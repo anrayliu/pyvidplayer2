@@ -34,6 +34,7 @@ def get_youtube_urls(max_results=5):
 
 YOUTUBE_PATH = "https://www.youtube.com/watch?v=K8PoK3533es&t=3s"
 
+
 # youtube support just continues to degrade over time...
 # reached a point where I've justified skipping these by default
 
@@ -135,16 +136,29 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests for errors for unsupported youtube links
     def test_bad_youtube_links(self):
         for url in (
-        "https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
-        "https://www.youtube.com/", "https://www.youtube.com/shorts"):
+            "https://www.youtube.com/@joewoobie1155",
+            "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
+            "https://www.youtube.com/",
+            "https://www.youtube.com/shorts"
+        ):
             with self.assertRaises(YTDLPError):
                 Video(url, youtube=True).close()
             time.sleep(0.1)
 
     # tests that nothing crashes when selecting different languages with Youtube
     def test_youtube_language_tracks(self):
-        for lang in (None, "en-US", "fr-FR", "es-US", "it", "pt-BR", "de-DE", "badcode"):
-            v = Video("https://www.youtube.com/watch?v=v4H2fTgHGuc", youtube=True, pref_lang=lang)
+        for lang in (
+            None,
+            "en-US",
+            "fr-FR",
+            "es-US",
+            "it",
+            "pt-BR",
+            "de-DE",
+            "badcode"
+        ):
+            v = Video("https://www.youtube.com/watch?v=v4H2fTgHGuc",
+                      youtube=True, pref_lang=lang)
             timed_loop(3, v.update)
             v.close()
             time.sleep(0.1)
@@ -221,16 +235,21 @@ class TestYoutubeVideo(unittest.TestCase):
 
                         # check the correct subtitle was generated
                         if not v.subs_hidden:
-                            self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)),
-                                                              pygame.surfarray.array3d(v.subs[0].surf)))
+                            self.assertTrue(check_same_frames(
+                                pygame.surfarray.array3d(v.subs[0]._to_surf(text)),
+                                pygame.surfarray.array3d(v.subs[0].surf)
+                                )
+                            )
 
                         break
 
                 if not in_interval:
                     self.assertTrue(
-                        check_same_frames(pygame.surfarray.array3d(v.frame_surf),
-                                          pygame.surfarray.array3d(v._create_frame(
-                                              v.frame_data))))
+                        check_same_frames(
+                            pygame.surfarray.array3d(v.frame_surf),
+                            pygame.surfarray.array3d(v._create_frame(v.frame_data))
+                        )
+                    )
 
         self.assertFalse(v.subs_hidden)
 

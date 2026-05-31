@@ -67,7 +67,9 @@ class PyaudioHandler(AudioHandler):
         try:
             self.audio_devices[index]
         except IndexError as e:
-            raise AudioDeviceError(f"Audio device with index {index} does not exist.") from e
+            raise AudioDeviceError(
+                f"Audio device with index {index} does not exist."
+            ) from e
         self.device_index = index
 
     def get_busy(self):
@@ -138,8 +140,10 @@ class PyaudioHandler(AudioHandler):
                 )
 
             except Exception as e:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}\"".format(
-                    self.audio_devices[self.device_index]["name"])) from e
+                raise AudioDeviceError(
+                    "Failed to open audio stream with device \"{}\"".format(
+                        self.audio_devices[self.device_index]["name"])
+                ) from e
 
         self.loaded = True
 
@@ -233,8 +237,6 @@ class PyaudioHandler(AudioHandler):
     def unmute(self):
         self.muted = False
 
-    # not ideal, should've used properties instead
-    # still better to be consistent with old patterns until refactors can be made
     def get_muted(self):
         return self.muted
 

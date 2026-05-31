@@ -94,10 +94,21 @@ class TestMisc(unittest.TestCase):
         new_frame = next(v2)
         self.assertTrue(check_same_frames(original_frame, new_frame))
 
-        for func in (lambda d: np.fliplr(d), PostProcessing.blur, PostProcessing.sharpen, PostProcessing.greyscale,
-                     PostProcessing.noise, PostProcessing.letterbox, PostProcessing.cel_shading, PostProcessing.flipup,
-                     PostProcessing.fliplr, PostProcessing.rotate90, PostProcessing.rotate270,
-                     PostProcessing.vhs, PostProcessing.emboss):
+        for func in (
+            lambda d: np.fliplr(d),
+            PostProcessing.blur,
+            PostProcessing.sharpen,
+            PostProcessing.greyscale,
+            PostProcessing.noise,
+            PostProcessing.letterbox,
+            PostProcessing.cel_shading,
+            PostProcessing.flipup,
+            PostProcessing.fliplr,
+            PostProcessing.rotate90,
+            PostProcessing.rotate270,
+            PostProcessing.vhs,
+            PostProcessing.emboss
+        ):
             v2.set_post_func(func)
             self.assertFalse(check_same_frames(next(v1), next(v2)))
 

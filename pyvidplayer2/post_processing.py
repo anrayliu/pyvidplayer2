@@ -32,10 +32,17 @@ class PostProcessing:
         def letterbox(data: np.ndarray) -> np.ndarray:
             background = np.zeros((*data.shape[:2], 3), dtype=np.uint8)
 
-            x1, y1 = 0, int(data.shape[0] * 0.1)  # topleft crop
-            x2, y2 = data.shape[1], int(data.shape[0] * 0.9)  # bottomright crop
-            data = data[y1:y2, x1:x2]  # crops image
-            background[y1:y1 + data.shape[0], x1:x1 + data.shape[1]] = data  # draws image onto background
+            # topleft crop
+            x1, y1 = 0, int(data.shape[0] * 0.1)
+
+            # bottomright crop
+            x2, y2 = data.shape[1], int(data.shape[0] * 0.9)
+
+            # crops image
+            data = data[y1:y2, x1:x2]
+
+            # draws image onto background
+            background[y1:y1 + data.shape[0], x1:x1 + data.shape[1]] = data
 
             return background
 

@@ -97,13 +97,13 @@ class AudioHandler(ABC):
     @abstractmethod
     def mute(self) -> None:
         '''
-        Mutes audio. Does not affect volume.        
+        Mutes audio. Does not affect volume.
         '''
 
     @abstractmethod
     def unmute(self) -> None:
         '''
-        Unmutes audio. Does not affect volume.        
+        Unmutes audio. Does not affect volume.
         '''
 
     @abstractmethod

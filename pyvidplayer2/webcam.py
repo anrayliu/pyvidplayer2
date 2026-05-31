@@ -15,7 +15,8 @@ class Webcam:
     """
 
     def __init__(self, post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", fps: int = 30, cam_id: int = 0,
+                 interp: Union[str, int] = "linear", fps: int = 30,
+                 cam_id: int = 0,
                  capture_size: Tuple[int, int] = (0, 0)) -> None:
         self._vid = cv2.VideoCapture(cam_id)
 
@@ -25,7 +26,9 @@ class Webcam:
         self.original_size = (0, 0)
         if capture_size == (0, 0):
             self.original_size = (
-                int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+                int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            )
         else:
             self.resize_capture(capture_size)
 
@@ -130,7 +133,9 @@ class Webcam:
         """
         self.current_size = size
         if self.frame_data is not None:
-            self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp)
+            self.frame_data = self._resize_frame(self.frame_data,
+                                                 self.current_size,
+                                                 self.interp)
             self.frame_surf = self._create_frame(self.frame_data)
 
     def resize_capture(self, size: Tuple[int, int]) -> bool:
@@ -140,7 +145,9 @@ class Webcam:
         self._vid.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
         self._vid.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])
         self.original_size = (
-            int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            int(self._vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(self._vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        )
         return self.original_size == size
 
     def change_resolution(self, height: int) -> int:

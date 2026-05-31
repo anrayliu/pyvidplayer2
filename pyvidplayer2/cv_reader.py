@@ -17,8 +17,10 @@ class CVReader(VideoReader):
         if not probe:
             self.frame_count = int(self._vidcap.get(cv2.CAP_PROP_FRAME_COUNT))
             self.frame_rate = self._vidcap.get(cv2.CAP_PROP_FPS)
-            self.original_size = (int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                                  int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            self.original_size = (
+                int(self._vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                int(self._vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            )
             self.duration = self.frame_count / self.frame_rate
 
             # webm videos have negative frame counts

@@ -22,10 +22,13 @@ class Subtitles:
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
 
-    def __init__(self, path: str, colour: Union[str, pygame.Color, Tuple[int, int, int, int]] = "white",
+    def __init__(self, path: str,
+                 colour: Union[str, pygame.Color, Tuple[int, int, int, int]] = "white",
                  highlight: Union[str, pygame.Color, Tuple[int, int, int, int]] = (0, 0, 0, 128),
-                 font: Union[pygame.font.SysFont, pygame.font.Font] = None, encoding: str = "utf-8", offset: int = 50,
-                 delay: float = 0, youtube: bool = False, pref_lang: str = "en", track_index: int = None) -> None:
+                 font: Union[pygame.font.SysFont, pygame.font.Font] = None,
+                 encoding: str = "utf-8", offset: int = 50,
+                 delay: float = 0, youtube: bool = False,
+                 pref_lang: str = "en", track_index: int = None) -> None:
 
         self.path = path
         self.track_index = track_index
@@ -39,9 +42,9 @@ class Subtitles:
             if YTDLP:
                 self.buffer = self._extract_youtube_subs()
             else:
-
-                raise ModuleNotFoundError("Unable to fetch subtitles because YTDLP is not installed. "
-                                          "Refer to https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py for instructions.")
+                raise ModuleNotFoundError(
+                    "Unable to fetch subtitles because YTDLP is not installed. "
+                    "Refer to https://github.com/anrayliu/pyvidplayer2/blob/main/examples/youtube_streaming_demo.py for instructions.")
         else:
             if not os.path.exists(self.path):
                 raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
@@ -50,7 +53,8 @@ class Subtitles:
                 self.buffer = self._extract_internal_subs()
                 if self.buffer == "":
                     raise SubtitleError(
-                        "Failed to extract subtitles from video. Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
+                        "Failed to extract subtitles from video. "
+                        "Could be that requested track doesn't exist or FFmpeg lacks the required decoder.")
 
         self._subs = self._load()
 
@@ -169,7 +173,9 @@ class Subtitles:
 
     def _write_subs(self, surf):
         surf.blit(self.surf, (
-            surf.get_width() / 2 - self.surf.get_width() / 2, surf.get_height() - self.surf.get_height() - self.offset))
+            surf.get_width() / 2 - self.surf.get_width() / 2,
+            surf.get_height() - self.surf.get_height() - self.offset)
+        )
 
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
         """
@@ -177,7 +183,8 @@ class Subtitles:
         """
         self.font = font
         if not isinstance(self.font, pygame.font.Font):
-            raise ValueError("Font must be a pygame.font.Font or pygame.font.SysFont object.")
+            raise ValueError(
+                "Font must be a pygame.font.Font or pygame.font.SysFont object.")
 
     def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
         """

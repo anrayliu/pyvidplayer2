@@ -27,6 +27,7 @@ if BIN_OVERRIDE:
     pyvidplayer2.set_ffmpeg_path(os.path.join(BIN_OVERRIDE, "ffmpeg"))
     pyvidplayer2.set_ffprobe_path(os.path.join(BIN_OVERRIDE, "ffprobe"))
 
+
 def find_device(*lambdas):
     for device in query_devices():
         passed = True
@@ -38,19 +39,23 @@ def find_device(*lambdas):
 
     raise RuntimeError("Could not find specified sound device.")
 
+
 def get_videos():
     paths = []
     for file in os.listdir("resources"):
         for ext in ("mp4", "avi", "webm", "mov", "mkv"):
-            if file.endswith(ext) and not file.endswith("nov.mp4"):  # causes a lot of issues with tests
+            # causes a lot of issues with tests
+            if file.endswith(ext) and not file.endswith("nov.mp4"):
                 paths.append(os.path.join("resources", file))
     return paths
+
 
 def timed_loop(seconds, func, dt=0.1):
     t = time.time() + seconds
     while time.time() < t:
         time.sleep(dt)
         func()
+
 
 def while_loop(condition_func, func, timeout, dt=0.1):
     t = time.time()
@@ -59,6 +64,7 @@ def while_loop(condition_func, func, timeout, dt=0.1):
         func()
         if time.time() - t > timeout:
             raise RuntimeError("Loop timed out.")
+
 
 def check_same_frames(f1, f2):
     return np.array_equal(f1, f2)
@@ -434,8 +440,8 @@ class TestVideo(unittest.TestCase):
         for file in PATHS:
             v = Video(file)
             if v.name in (
-                    "av1", # file is corrupt
-                    "birds", # video header stores incorrect frame count
+                    "av1",  # file is corrupt
+                    "birds",  # video header stores incorrect frame count
             ):
                 continue
 
@@ -537,15 +543,15 @@ class TestVideo(unittest.TestCase):
         self.assertIs(v.frame_surf, None)
 
         for size in (
-            (256, 144),
-            (426, 240),
-            (640, 360),
-            (854, 480),
-            (1280, 720),
-            (1920, 1080),
-            (2560, 1440),
-            (3840, 2160),
-            (7680, 4320)
+                (256, 144),
+                (426, 240),
+                (640, 360),
+                (854, 480),
+                (1280, 720),
+                (1920, 1080),
+                (2560, 1440),
+                (3840, 2160),
+                (7680, 4320)
         ):
             w = v.change_resolution(size[1])
             self.assertEqual(size[0], w)
@@ -616,7 +622,12 @@ class TestVideo(unittest.TestCase):
 
     # test each reader's ability to handle 16 bit colours
     def test_16_bit_colour(self):
-        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
+        for reader in (
+            READER_OPENCV,
+            READER_FFMPEG,
+            READER_IMAGEIO,
+            READER_DECORD
+        ):
             v = Video("resources/16bit.mp4", reader=reader)
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
@@ -657,7 +668,12 @@ class TestVideo(unittest.TestCase):
 
     # test each reader's ability to handle a single colour channel
     def test_grayscale(self):
-        for reader in (READER_OPENCV, READER_FFMPEG, READER_IMAGEIO, READER_DECORD):
+        for reader in (
+            READER_OPENCV,
+            READER_FFMPEG,
+            READER_IMAGEIO,
+            READER_DECORD
+        ):
             v = Video("resources/1channel.mp4", reader=reader)
             while_loop(lambda: v.frame_surf is None, v.update, 5)
             v.close()
@@ -761,8 +777,14 @@ class TestVideo(unittest.TestCase):
         ffmpeg_resampled = v._resize_frame(original_frame, NEW_SIZE, "bicubic", True)
         self.assertFalse(check_same_frames(cv_resampled, ffmpeg_resampled))
 
-        SIZES = (
-        (426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
+        SIZES = ((426, 240),
+                 (640, 360),
+                 (854, 480),
+                 (1280, 720),
+                 (1920, 1080),
+                 (2560, 1440),
+                 (3840, 2160),
+                 (7680, 4320))
 
         # test cv resamplers
         for size in SIZES:
@@ -774,7 +796,16 @@ class TestVideo(unittest.TestCase):
 
         # test ffmpeg resamplers
         for size in SIZES:
-            for flag in ("bilinear", "bicubic", "neighbor", "area", "lanczos", "fast_bilinear", "gauss", "spline"):
+            for flag in (
+                "bilinear",
+                "bicubic",
+                "neighbor",
+                "area",
+                "lanczos",
+                "fast_bilinear",
+                "gauss",
+                "spline"
+            ):
                 new_frame = v._resize_frame(original_frame, size, flag, True)
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
                 if size == v.original_size:  # check that no resizing occurred
@@ -782,7 +813,13 @@ class TestVideo(unittest.TestCase):
 
         # test no cv
         for size in SIZES:
-            for flag in (cv2.INTER_LINEAR, cv2.INTER_NEAREST, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_AREA):
+            for flag in (
+                cv2.INTER_LINEAR,
+                cv2.INTER_NEAREST,
+                cv2.INTER_CUBIC,
+                cv2.INTER_LANCZOS4,
+                cv2.INTER_AREA
+            ):
                 new_frame = v._resize_frame(original_frame, size, flag, True)
                 self.assertEqual(new_frame.shape, (size[1], size[0], 3))
                 if size == v.original_size:
@@ -1048,7 +1085,8 @@ class TestVideo(unittest.TestCase):
                 surf.fill("blue")
                 for i in range(5):
                     pygame.draw.circle(surf, "red", (
-                    random.randrange(0, v.original_size[0]), random.randrange(0, v.original_size[1])),
+                        random.randrange(0, v.original_size[0]),
+                        random.randrange(0, v.original_size[1])),
                                        random.randint(1, 5))
                 array = pygame.surfarray.array3d(surf)
 
@@ -1070,7 +1108,11 @@ class TestVideo(unittest.TestCase):
     # performs test by counting rendered frames
     def test_last_frame(self):
         PATH = "resources/5frames.mp4"
-        for v in (Video(PATH, vfr=True), Video(PATH), Video(PATH, reverse=True)):
+        for v in (
+            Video(PATH, vfr=True),
+            Video(PATH),
+            Video(PATH, reverse=True)
+        ):
             frames = 0
 
             def update():
@@ -1122,7 +1164,7 @@ class TestVideo(unittest.TestCase):
         v = Video(VIDEO_PATH)
         while_loop(lambda: v.frame < 10, v.update, 10)
         v.restart()
-        self.assertEqual(v.frame, 1) # restart uses intuitive seek
+        self.assertEqual(v.frame, 1)  # restart uses intuitive seek
         self.assertEqual(v.get_pos(), 0)
         self.assertTrue(v.active)
         v.stop()
@@ -1392,25 +1434,42 @@ class TestVideo(unittest.TestCase):
         # test each graphics library with exact number of arguments
 
         # test correct args
-        v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                  0, False, "en", None, READER_AUTO, -1)
+        v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear",
+                  False, False, False, 1, False, 1080,
+                  False,0, False, "en", None, READER_AUTO, -1)
         v.close()
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
-            v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
-                           False,
-                           0, False, "en", None, READER_AUTO, -1)
+        for videoClass in (
+                VideoTkinter,
+                VideoPyglet,
+                VideoPyQT,
+                VideoRaylib,
+                VideoPySide,
+                VideoWx
+        ):
+            v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear",
+                           False, False, False, 1, False, 1080,
+                           False,0, False, "en", None, READER_AUTO, -1)
             v.close()
 
         # test extra args
         with self.assertRaises(TypeError):
-            Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear", False, False, False, 1, False, 1080, False,
-                  0, False, "en", None, READER_AUTO, -1, "extra_arg")
+            Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear",
+                  False, False, False, 1, False, 1080,
+                  False,0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
-        for videoClass in (VideoTkinter, VideoPyglet, VideoPyQT, VideoRaylib, VideoPySide, VideoWx):
+        for videoClass in (
+            VideoTkinter,
+            VideoPyglet,
+            VideoPyQT,
+            VideoRaylib,
+            VideoPySide,
+            VideoWx
+        ):
             with self.assertRaises(TypeError):
-                videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear", False, False, False, 1, False, 1080,
-                           False,
-                           0, False, "en", None, READER_AUTO, -1, "extra_arg")
+                videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear",
+                           False, False, False, 1, False, 1080,
+                           False,0, False, "en", None, READER_AUTO, -1,
+                           "extra_arg")
 
     # tests that each backend can be forced
     def test_force_readers(self):
@@ -1675,7 +1734,6 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
-
     # tests that correct flags are set when skipping frames
     def test_skipped_frame_flag_set(self):
         v = Video(VIDEO_PATH)
@@ -1710,7 +1768,7 @@ class TestVideo(unittest.TestCase):
 
         self.assertEqual(v._audio.get_pos(), 0)
 
-        self.assertTrue(v._seek_buffered) # seek was called
+        self.assertTrue(v._seek_buffered)  # seek was called
 
         for i in range(120):
             next(v)
@@ -1731,7 +1789,7 @@ class TestVideo(unittest.TestCase):
         self.assertFalse(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, 0)
 
-        self.assertTrue(v._seek_buffered) # seek was called
+        self.assertTrue(v._seek_buffered)  # seek was called
 
         self.assertEqual(v._audio.get_pos(), 0)
 
@@ -1774,46 +1832,51 @@ class TestVideo(unittest.TestCase):
     # tests edge cases with intuitive seeking
     # very important test!
     def test_intuitive_seeking_ends(self):
-        BIG_NUMBER = 100000
+        big_num = 100000
 
-        for reader in (READER_DECORD, READER_IMAGEIO, READER_OPENCV, READER_FFMPEG):
+        for reader in (
+            READER_DECORD,
+            READER_IMAGEIO,
+            READER_OPENCV,
+            READER_FFMPEG
+        ):
             v = Video("resources\\5frames.mp4", reader=reader)
             frames = [frame for frame in v]
 
             # test seeking before start of video
 
             v.seek_frame(3)
-            v.seek_frame(-BIG_NUMBER)
+            v.seek_frame(-big_num)
             self.assertTrue(check_same_frames(v.frame_data, frames[0]))
 
             v.seek_frame(3)
-            v.seek(-BIG_NUMBER, relative=False)
+            v.seek(-big_num, relative=False)
             self.assertTrue(check_same_frames(v.frame_data, frames[0]))
 
             v.seek_frame(3)
-            v.seek_frame(-BIG_NUMBER, intuitive=False)
+            v.seek_frame(-big_num, intuitive=False)
             self.assertIsNone(v.frame_data)
 
             v.seek_frame(3)
-            v.seek(-BIG_NUMBER, relative=False, intuitive=False)
+            v.seek(-big_num, relative=False, intuitive=False)
             self.assertIsNone(v.frame_data)
 
             # test seeking after video
 
             v.seek_frame(3)
-            v.seek_frame(BIG_NUMBER)
+            v.seek_frame(big_num)
             self.assertTrue(check_same_frames(v.frame_data, frames[-1]))
 
             v.seek_frame(3)
-            v.seek(BIG_NUMBER, relative=False)
+            v.seek(big_num, relative=False)
             self.assertTrue(check_same_frames(v.frame_data, frames[-1]))
 
             v.seek_frame(3)
-            v.seek_frame(BIG_NUMBER, intuitive=False)
+            v.seek_frame(big_num, intuitive=False)
             self.assertTrue(check_same_frames(v.frame_data, frames[-2]))
 
             v.seek_frame(3)
-            v.seek(BIG_NUMBER, relative=False, intuitive=False)
+            v.seek(big_num, relative=False, intuitive=False)
             self.assertTrue(check_same_frames(v.frame_data, frames[-2]))
 
             v.close()
@@ -1898,16 +1961,16 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(get_ffmpeg_path(), "ffmpeg")
         self.assertEqual(get_ffprobe_path(), "ffprobe")
 
-        Video(VIDEO_PATH).close() # no error here            
+        Video(VIDEO_PATH).close()  # no error here
 
         set_ffmpeg_path("/hehe/ffmpeG")
         self.assertEqual(get_ffmpeg_path(), "/hehe/ffmpeG")
 
-        v = Video(VIDEO_PATH) # no error here either
+        v = Video(VIDEO_PATH)  # no error here either
 
         with self.assertRaises(FFmpegNotFoundError):
             while_loop(lambda: v.frame_data is None, v.update, 10)
-        
+
         set_ffmpeg_path("ffmpeg")
         self.assertEqual(get_ffmpeg_path(), "ffmpeg")
 
@@ -1926,7 +1989,7 @@ class TestVideo(unittest.TestCase):
 
         set_ffmpeg_path("/badpath")
 
-        self.assertEqual(get_version_info()["ffmpeg"], "not installed")    
+        self.assertEqual(get_version_info()["ffmpeg"], "not installed")
 
         # reset for other tests
         set_ffmpeg_loglevel("quiet")

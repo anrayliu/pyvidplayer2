@@ -58,7 +58,9 @@ class PSDHandler(AudioHandler):
         try:
             self.audio_devices[index]
         except IndexError as e:
-            raise AudioDeviceError(f"Audio device with index {index} does not exist.") from e
+            raise AudioDeviceError(
+                f"Audio device with index {index} does not exist."
+            ) from e
         self.device_index = index
 
     def load(self, audio_chunk):
@@ -85,8 +87,10 @@ class PSDHandler(AudioHandler):
                 )
                 self.stream.start()
             except Exception as e:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}\"".format(
-                    self.audio_devices[self.device_index]["name"])) from e
+                raise AudioDeviceError(
+                    "Failed to open audio stream with device \"{}\"".format(
+                        self.audio_devices[self.device_index]["name"])
+                ) from e
 
         self.loaded = True
 
@@ -165,7 +169,7 @@ class PSDHandler(AudioHandler):
         self.volume = min(1.0, max(0.0, vol))
 
     # not ideal, should've used properties instead
-    # still better to be consistent with old patterns until refactors can be made
+    # but now the public interface is already set
     def get_volume(self):
         return self.volume
 

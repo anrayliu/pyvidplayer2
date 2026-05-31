@@ -113,7 +113,7 @@ class VideoPlayer:
                     self._interval_frames.append(pygame.image.frombuffer(
                         self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(),
                         size, self.video._vid._colour_format))
-                except:
+                except AttributeError:
                     i += 1
                 else:
                     break
@@ -215,7 +215,7 @@ class VideoPlayer:
 
     def move(self, pos: Tuple[int, int], relative: bool = False) -> None:
         if relative:
-            self.frame_rect.move_ip(*pos)
+            self.frame_rect.move_ip(pos[0], pos[1])
         else:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)

@@ -28,7 +28,9 @@ class VideoWx(Video):
             data = data[..., ::-1]  # converts to RGB
         try:
             return wx.Image(w, h, data.flatten().tobytes()).ConvertToBitmap()
-        except wx._core.PyNoAppError:
+        # important Exception here is wx._core.PyNoAppError, but I don't want to couple a protected object
+        # generic exception it is...
+        except Exception:
             return None # wx.App object hasn't been created first
 
     def _render_frame(self, panel: wx.Panel, pos: Tuple[int, int]):
@@ -69,13 +71,13 @@ class VideoWx(Video):
 
                 self_frame.Show()
 
-            def update(self_frame, event):
+            def update(self_frame, _):
                 if not self_video.active:
                     wx.CallAfter(self_frame.Close)
 
                 self_frame.panel.Refresh(eraseBackground=False)
 
-            def draw(self_frame, event):
+            def draw(self_frame, _):
                 self_video.draw(self_frame.panel, (0, 0), False)
 
         class MyApp(wx.App):

@@ -33,6 +33,7 @@ class VideoRaylib(Video):
             pyray.unload_texture(self.frame_surf)
         buffer = io.BytesIO()
         Image.fromarray(data[..., ::-1]).save(buffer, format="BMP")
+        # bug in pyray: interface requests str but only works with bytes
         img = pyray.load_image_from_memory(".bmp", buffer.getvalue(), len(buffer.getvalue()))
         texture = pyray.load_texture_from_image(img)
         pyray.unload_image(img)

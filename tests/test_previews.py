@@ -20,7 +20,7 @@ class TestPreviews(unittest.TestCase):
     # also tests that video does indeed loop by timing out otherwise
     def test_seamless_loop(self):
         v = Video("resources/loop.mp4")
-        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]), loop=True)
 
         self.assertTrue(v._buffer_first_chunk)
 
@@ -60,7 +60,7 @@ class TestPreviews(unittest.TestCase):
         # pygame.init()
 
         v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]), loop=True)
 
         thread = Thread(target=lambda: vp.preview())
         thread.start()
@@ -112,7 +112,7 @@ class TestPreviews(unittest.TestCase):
         dict_ = {key: None for key in sys.modules.keys() if key.startswith("av.")}
         dict_.update({"av": None})
         with unittest.mock.patch.dict("sys.modules", dict_):
-            with self.assertRaises(ImportError) as context:
+            with self.assertRaises(ImportError) as _:
                 Video("resources/clip.mp4", reader=READER_IMAGEIO).preview()
 
     # tests for a bug where the last frame would hang in situations like this

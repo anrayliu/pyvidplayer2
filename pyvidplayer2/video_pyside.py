@@ -30,7 +30,7 @@ class VideoPySide(Video):
         return QImage(data, data.shape[1], data.shape[0], data.strides[0], f)
 
     def _render_frame(self, win, pos):  # must be called in paintEvent
-        QPainter(win).drawPixmap(*pos, QPixmap.fromImage(self.frame_surf))
+        QPainter(win).drawPixmap(pos[0], pos[1], QPixmap.fromImage(self.frame_surf))
 
     def draw(self, surf: QWidget, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, surf, pos, force_draw)
@@ -55,7 +55,7 @@ class VideoPySide(Video):
         app = QApplication([])
         win = Window()
         win.setWindowTitle(f"pyside6 - {self.name}")
-        win.setFixedSize(*self.current_size)
+        win.setFixedSize(self.current_size[0], self.current_size[1])
         win.show()
         app.exec()
         self.close()

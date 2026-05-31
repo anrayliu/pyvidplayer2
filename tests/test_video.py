@@ -1386,6 +1386,8 @@ class TestVideo(unittest.TestCase):
 
     # tests that each video object has the correct amount of parameters
     # here to ensure that new parameters are added to each video object
+
+    # noinspection PyArgumentList
     def test_parameters(self):
         # test each graphics library with exact number of arguments
 

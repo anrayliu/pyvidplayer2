@@ -23,7 +23,7 @@ class VideoPyglet(Video):
                        as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
 
     def _create_frame(self, data):
-        return pyglet.image.ImageData(*self.current_size, self._vid._colour_format, np.flip(data, 0).tobytes())
+        return pyglet.image.ImageData(self.current_size[0], self.current_size[1], self._vid._colour_format, np.flip(data, 0).tobytes())
 
     def _render_frame(self, pos):
         self.frame_surf.blit(*pos)

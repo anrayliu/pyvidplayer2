@@ -17,7 +17,7 @@ class TestVideoPlayer(unittest.TestCase):
     # tests that a video can be played entirely in a video player
     def test_full_player(self):
         v = Video("resources/clip.mp4")
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
         while_loop(lambda: v.active, vp.update, 10)
         vp.close()
         self.assertTrue(vp.closed)
@@ -27,7 +27,7 @@ class TestVideoPlayer(unittest.TestCase):
         for i in range(100):
             pos = (random.randint(0, 2000), random.randint(0, 2000))
             size = (random.randint(100, 2000), random.randint(100, 2000))
-            vp = VideoPlayer(Video(VIDEO_PATH), (*pos, *size))
+            vp = VideoPlayer(Video(VIDEO_PATH), (pos[0], pos[1], size[0], size[1]))
 
             original_vid_rect = vp.vid_rect.copy()
             original_frame_rect = vp.frame_rect.copy()
@@ -56,7 +56,7 @@ class TestVideoPlayer(unittest.TestCase):
     # tests default video player
     def test_open_video_player(self):
         v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
         self.assertIs(vp.video, v)
         self.assertIs(vp.get_video(), v)
         self.assertEqual(vp.font_size, 10)
@@ -72,7 +72,7 @@ class TestVideoPlayer(unittest.TestCase):
     def test_queue(self):
         original_video = Video("resources/clip.mp4")
 
-        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
+        vp = VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]))
         self.assertEqual(len(vp.queue_), 0)
         self.assertIs(vp.get_queue(), vp.queue_)
 
@@ -141,7 +141,7 @@ class TestVideoPlayer(unittest.TestCase):
     def test_enqueue(self):
         original_video = Video("resources/clip.mp4")
 
-        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size))
+        vp = VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]))
         v1 = Video("resources/trailer1.mp4")
         vp.enqueue(v1)
         self.assertEqual(len(vp.queue_), 1)
@@ -163,7 +163,7 @@ class TestVideoPlayer(unittest.TestCase):
         v1 = Video("resources/trailer2.mp4")
         v2 = Video("resources/clip.mp4")
 
-        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
+        vp = VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]), loop=True)
         vp.queue(v1)
         vp.queue(v2)
 
@@ -206,7 +206,7 @@ class TestVideoPlayer(unittest.TestCase):
     # tests the move method video player
     def test_move_video_player(self):
         v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
 
         vid_pos = vp.vid_rect.topleft
         vid_size = vp.vid_rect.size
@@ -230,7 +230,7 @@ class TestVideoPlayer(unittest.TestCase):
     # tests queueing with video paths instead of objects
     def test_queue_str_path(self):
         original_video = Video(VIDEO_PATH)
-        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), loop=True)
+        vp = VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]), loop=True)
 
         vp.queue("resources/trailer2.mp4")
         vp.queue("resources/clip.mp4")
@@ -254,7 +254,7 @@ class TestVideoPlayer(unittest.TestCase):
 
         # test that preview thumbnail loading does not change vid frame pointer
         self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
-        vp = VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=30)
+        vp = VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]), preview_thumbnails=30)
         self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
 
         self.assertEqual(len(vp._interval_frames), 31)
@@ -269,13 +269,13 @@ class TestVideoPlayer(unittest.TestCase):
         # ensures that when preloaded, the preview thumbnails are taken straight from the preloaded frames
         original_video._preload_frames()
         t = Thread(
-            target=lambda: VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=300))
+            target=lambda: VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]), preview_thumbnails=300))
         t.start()
         time.sleep(20)
         self.assertFalse(t.is_alive())
 
         # checks that loaded preview thumbnails from both methods produce the same frames
-        vp2 = VideoPlayer(original_video, (0, 0, *original_video.original_size), preview_thumbnails=30)
+        vp2 = VideoPlayer(original_video, (0, 0, original_video.original_size[0], original_video.original_size[1]), preview_thumbnails=30)
         for f1, f2 in zip(vp._interval_frames, vp2._interval_frames):
             self.assertTrue(check_same_frames(pygame.surfarray.array3d(f1), pygame.surfarray.array3d(f2)))
 
@@ -391,16 +391,16 @@ class TestVideoPlayer(unittest.TestCase):
 
     # tests different arguments for videoplayers to check for errors
     def test_bad_player_path(self):
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError) as _:
             VideoPlayer("badpath", (0, 0, 100, 100))
 
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError) as _:
             VideoPlayer(VideoTkinter(VIDEO_PATH), (0, 0, 100, 100))
 
         v = Video(VIDEO_PATH)
         v.close()
         with self.assertRaises(VideoStreamError) as context:
-            VideoPlayer(v, (0, 0, *v.original_size))
+            VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
         self.assertEqual(str(context.exception), "Provided video is closed.")
 
     # tests __str__

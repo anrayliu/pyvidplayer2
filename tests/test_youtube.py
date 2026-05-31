@@ -290,7 +290,7 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests that video players work with youtube videos
     def test_youtube_player(self):
         v = Video(YOUTUBE_PATH, youtube=True)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
         v.seek(v.duration)
         thread = Thread(target=lambda: vp.preview())
         thread.start()

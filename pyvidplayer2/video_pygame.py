@@ -12,6 +12,8 @@ class VideoPygame(Video):
     Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
     """
 
+    # noinspection PyUnresolvedReferences
+    # pycharm will warn: Unresolved reference 'pyvidplayer2' here
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
                  subs: "pyvidplayer2.Subtitles" = None,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
@@ -74,5 +76,7 @@ class VideoPygame(Video):
         if self.frame_data is not None:
             self.frame_surf = self._create_frame(self.frame_data)
 
+    # noinspection PyUnresolvedReferences
+    # pycharm will warn: Unresolved reference 'pyvidplayer2' here
     def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:
         self.subs = self._filter_subs(subs)

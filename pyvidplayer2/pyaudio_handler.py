@@ -180,13 +180,13 @@ class PyaudioHandler(AudioHandler):
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK_SIZE = 128  # increasing this will reduce get_pos precision
+        chunk_size = 128  # increasing this will reduce get_pos precision
 
         while not self.stop_thread:
             if self.paused:
                 time.sleep(0.01)
             else:
-                data = self.wave.readframes(CHUNK_SIZE)
+                data = self.wave.readframes(chunk_size)
                 if data == b"":
                     break
 
@@ -202,7 +202,7 @@ class PyaudioHandler(AudioHandler):
 
                 self.stream.write(audio.tobytes())
 
-                self.chunks_played += CHUNK_SIZE
+                self.chunks_played += chunk_size
                 self.position = self.chunks_played / float(self.wave.getframerate())
 
         self.active = False

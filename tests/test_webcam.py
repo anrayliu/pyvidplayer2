@@ -151,10 +151,10 @@ class TestWebcam(unittest.TestCase):
 
         w = Webcam()
 
-        SIZES = (
+        sizes = (
         (426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
 
-        for size in SIZES:
+        for size in sizes:
             for flag in (cv2.INTER_LINEAR, cv2.INTER_NEAREST, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_AREA):
                 new_frame = v._resize_frame(original_frame, size, flag, False)
                 webcam_resized = w._resize_frame(original_frame, size, flag)

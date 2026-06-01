@@ -128,7 +128,7 @@ class Subtitles:
             info = ydl.extract_info(self.path, download=False)
 
             subs = info.get("subtitles", {})
-            if not self.pref_lang in subs:
+            if self.pref_lang not in subs:
                 subs = info.get("automatic_captions", {})
 
                 self._auto_cap = True

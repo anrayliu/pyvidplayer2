@@ -1,4 +1,5 @@
 import importlib.util
+import subprocess
 
 from pyvidplayer2._version import __version__
 
@@ -76,10 +77,6 @@ if importlib.util.find_spec("pygame") is not None:
     if importlib.util.find_spec("pysubs2") is not None:
         from .subtitles import Subtitles
 
-# cv2.setLogLevel(0) # silent
-
-from subprocess import run
-
 
 def get_version_info():
     try:
@@ -88,10 +85,10 @@ def get_version_info():
         pygame_ver = "not installed"
 
     try:
-        ffmpeg_ver = run([get_ffmpeg_path(), "-version"],
-                         capture_output=True,
-                         universal_newlines=True,
-                         check=False).stdout.split(" ")[2]
+        ffmpeg_ver = subprocess.run([get_ffmpeg_path(), "-version"],
+                                     capture_output=True,
+                                     universal_newlines=True,
+                                     check=False).stdout.split(" ")[2]
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 
@@ -123,3 +120,6 @@ def set_ffmpeg_path(path: str) -> None:
 def set_ffprobe_path(path: str) -> None:
     global _ffprobe_path
     _ffprobe_path = path
+
+
+# cv2.setLogLevel(0) # silent

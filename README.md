@@ -4,6 +4,7 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/pyvidplayer2)](https://pepy.tech/projects/pyvidplayer2)
 [![Status](https://img.shields.io/pypi/status/pyvidplayer2)](https://pypi.org/project/pyvidplayer2/)
 ![Coverage](https://img.shields.io/badge/Coverage-92%25-red)
+[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 [![Python Version](https://img.shields.io/pypi/pyversions/pyvidplayer2?logo=python&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anrayliu/pyvidplayer2)
 [![Made with ❤️](https://img.shields.io/badge/Made_with-❤️-blue?style=round-square)](https://github.com/anrayliu/pyvidplayer2)

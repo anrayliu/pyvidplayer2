@@ -1,3 +1,5 @@
+import importlib.util
+
 from pyvidplayer2._version import __version__
 
 VERSION = __version__  # for older versions of pyvidplayer2
@@ -19,16 +21,8 @@ def get_ffmpeg_path() -> str:
 
 def get_ffprobe_path() -> str:
     return _ffprobe_path
-
-
 ##################################################
 
-# bug on linux: importing pygame before decord results
-# in display.set_mode deadlocking
-try:
-    import decord
-except ImportError:
-    pass
 
 from .error import (AudioDeviceError, AudioStreamError, FFmpegNotFoundError,
                     OpenCVError, Pyvidplayer2Error, SubtitleError,
@@ -37,53 +31,35 @@ from .post_processing import PostProcessing
 from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG, READER_IMAGEIO,
                     READER_OPENCV)
 
-try:
-    import tkinter
-except ImportError:
-    pass
-else:
+
+if importlib.util.find_spec("tkinter") is not None:
     from .video_tkinter import VideoTkinter
 
-try:
-    import PySide6
-except ImportError:
-    pass
-else:
+if importlib.util.find_spec("PySide6") is not None:
     from .video_pyside import VideoPySide
 
-try:
-    import PyQt6
-except ImportError:
-    pass
-else:
+if importlib.util.find_spec("PyQt6") is not None:
     from .video_pyqt import VideoPyQT
 
-try:
-    import pyray
-except ImportError:
-    pass
-else:
+if importlib.util.find_spec("pyray") is not None:
     from .video_raylib import VideoRaylib
 
-try:
-    import wx
-except ImportError:
-    pass
-else:
+if importlib.util.find_spec("wx") is not None:
     from .video_wx import VideoWx
 
-try:
-    import pyglet
-except ImportError:
-    pass
-else:
+if importlib.util.find_spec("pyglet") is not None:
     from .video_pyglet import VideoPyglet
 
-try:
+if importlib.util.find_spec("pygame") is not None:
+    # bug on linux: importing pygame before decord results
+    # in display.set_mode deadlocking
+    try:
+        import decord
+    except ImportError:
+        pass
+
     import pygame
-except ImportError:
-    pass
-else:
+
     pygame.init()
 
     # isort will try and change the order of these 2 imports,
@@ -92,21 +68,12 @@ else:
     # --------------------------------------------
     from .video_pygame import VideoPygame as Video
     from .video_player import VideoPlayer
-
     # --------------------------------------------
 
-    try:
-        import cv2
-    except ImportError:
-        pass
-    else:
+    if importlib.util.find_spec("cv2") is not None:
         from .webcam import Webcam
 
-    try:
-        import pysubs2
-    except ImportError:
-        pass
-    else:
+    if importlib.util.find_spec("pysubs2") is not None:
         from .subtitles import Subtitles
 
 # cv2.setLogLevel(0) # silent

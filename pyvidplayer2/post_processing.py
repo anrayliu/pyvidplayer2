@@ -1,11 +1,10 @@
+import importlib.util
 import numpy as np
 
-try:
-    import cv2
-except ImportError:
-    CV = 0
-else:
+CV = 0
+if importlib.util.find_spec("cv2") is not None:
     CV = 1
+    import cv2
 
 
 class PostProcessing:

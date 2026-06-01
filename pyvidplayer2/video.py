@@ -3,7 +3,7 @@
 # and over the years, it's greatly surpassed my initial scope.
 # As such, the code quality can be lacking - it's an
 # active challenge to make better refactors
-
+import importlib.util
 import json
 import os
 import subprocess
@@ -18,12 +18,10 @@ from .error import (AudioStreamError, FFmpegNotFoundError, OpenCVError,
                     VideoStreamError, YTDLPError)
 from .ffmpeg_reader import FFMPEGReader
 
-try:
-    import cv2
-except ImportError:
-    CV = 0
-else:
+CV = 0
+if importlib.util.find_spec("cv2") is not None:
     CV = 1
+    import cv2
     from .cv_reader import CVReader
 
 # pyaudio is obsolete, replaced with python sounddevice
@@ -36,51 +34,36 @@ else:
 #     PYAUDIO = 1
 #     from .pyaudio_handler import PyaudioHandler
 
-try:
-    import sounddevice
-except ImportError:
-    SOUNDDEVICE = 0
-else:
+SOUNDDEVICE = 0
+if importlib.util.find_spec("sounddevice") is not None:
     SOUNDDEVICE = 1
     from .psd_handler import PSDHandler
 
-try:
-    import pygame
-except ImportError:
-    PYGAME = 0
-else:
+PYGAME = 0
+if importlib.util.find_spec("pygame") is not None:
     PYGAME = 1
     from .mixer_handler import MixerHandler
 
-try:
-    import yt_dlp
-except ImportError:
-    YTDLP = 0
-else:
+YTDLP = 0
+if importlib.util.find_spec("yt_dlp") is not None:
     YTDLP = 1
+    import yt_dlp
 
-try:
-    import imageio.v3
-except ImportError:
-    IIO = 0
-else:
+IIO = 0
+if importlib.util.find_spec("imageio") is not None:
     IIO = 1
     from .imageio_reader import IIOReader
 
-try:
-    import decord
-except ImportError:
-    DECORD = 0
-else:
+DECORD = 0
+if importlib.util.find_spec("decord") is not None:
     DECORD = 1
     from .decord_reader import DecordReader
 
-try:
-    from .subtitles import Subtitles
-except ImportError:
-    SUBS = 0
-else:
+SUBS = 0
+if importlib.util.find_spec("pysubs2") is not None:
     SUBS = 1
+    from .subtitles import Subtitles
+
 
 # for specifying different reader backends
 READER_AUTO = 0

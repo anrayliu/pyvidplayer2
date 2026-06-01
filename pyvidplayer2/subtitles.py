@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import re
 import subprocess
@@ -9,12 +10,11 @@ import pysubs2
 from . import get_ffmpeg_loglevel, get_ffmpeg_path
 from .error import FFmpegNotFoundError, SubtitleError
 
-try:
-    import yt_dlp
-except ModuleNotFoundError:
-    YTDLP = 0
-else:
+
+YTDLP = 0
+if importlib.util.find_spec("yt_dlp") is not None:
     YTDLP = 1
+    import yt_dlp
 
 
 class Subtitles:

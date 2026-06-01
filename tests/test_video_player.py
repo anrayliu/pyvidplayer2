@@ -10,7 +10,7 @@ import cv2
 import pygame
 from pyvidplayer2 import Video, VideoPlayer, VideoStreamError, VideoTkinter
 
-from test_video import VIDEO_PATH, check_same_frames, timed_loop, while_loop
+from .test_video import VIDEO_PATH, check_same_frames, timed_loop, while_loop
 
 
 class TestVideoPlayer(unittest.TestCase):

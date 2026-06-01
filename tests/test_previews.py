@@ -11,7 +11,7 @@ from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
                           VideoPyQT, VideoPySide, VideoRaylib, VideoTkinter,
                           VideoWx)
 
-from test_video import VIDEO_PATH
+from .test_video import VIDEO_PATH
 
 
 # macos and linux do not like preview tests

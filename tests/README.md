@@ -14,3 +14,10 @@ My 5600x has no issues, while my 7530U sometimes struggles
 Problematic tests should have comments next to them.
 
 Feel free to open an issue if needed.
+
+For coverage tests:
+```
+python -m pip install coverage
+python -m coverage run -m unittest discover
+python -m coverage html -i
+```

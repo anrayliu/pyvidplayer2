@@ -10,7 +10,7 @@ from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           get_ffmpeg_path, get_version_info,
                           set_ffmpeg_loglevel)
 
-from test_video import check_same_frames
+from .test_video import check_same_frames
 
 
 class TestMisc(unittest.TestCase):

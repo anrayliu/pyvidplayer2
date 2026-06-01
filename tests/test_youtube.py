@@ -13,8 +13,8 @@ from pyvidplayer2 import (READER_AUTO, READER_FFMPEG, READER_IMAGEIO,
                           READER_OPENCV, SubtitleError, Subtitles, Video,
                           VideoPlayer, YTDLPError)
 
-from test_subtitles import SUBS
-from test_video import check_same_frames, timed_loop, while_loop
+from .test_subtitles import SUBS
+from .test_video import check_same_frames, timed_loop, while_loop
 
 
 def get_youtube_urls(max_results=5):

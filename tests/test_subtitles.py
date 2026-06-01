@@ -7,7 +7,7 @@ import unittest
 import pygame
 from pyvidplayer2 import SubtitleError, Subtitles, Video
 
-from test_video import check_same_frames, timed_loop, while_loop
+from .test_video import check_same_frames, timed_loop, while_loop
 
 SUBS = (
     (0.875, 1.71, "Oh, my God!"),

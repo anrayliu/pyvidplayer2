@@ -40,9 +40,14 @@ if importlib.util.find_spec("sounddevice") is not None:
     from .psd_handler import PSDHandler
 
 PYGAME = 0
+SUBS = 0
 if importlib.util.find_spec("pygame") is not None:
     PYGAME = 1
     from .mixer_handler import MixerHandler
+
+    if importlib.util.find_spec("pysubs2") is not None:
+        SUBS = 1
+        from .subtitles import Subtitles
 
 YTDLP = 0
 if importlib.util.find_spec("yt_dlp") is not None:
@@ -58,11 +63,6 @@ DECORD = 0
 if importlib.util.find_spec("decord") is not None:
     DECORD = 1
     from .decord_reader import DecordReader
-
-SUBS = 0
-if importlib.util.find_spec("pysubs2") is not None:
-    SUBS = 1
-    from .subtitles import Subtitles
 
 
 # for specifying different reader backends

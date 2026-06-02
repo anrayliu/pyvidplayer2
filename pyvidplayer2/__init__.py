@@ -2,6 +2,10 @@ import importlib.util
 import subprocess
 
 from pyvidplayer2._version import __version__
+from .error import (AudioDeviceError, AudioStreamError, FFmpegNotFoundError,
+                    OpenCVError, Pyvidplayer2Error, SubtitleError,
+                    VideoStreamError, WebcamNotFoundError, YTDLPError)
+from .post_processing import PostProcessing
 
 VERSION = __version__  # for older versions of pyvidplayer2
 
@@ -25,11 +29,7 @@ def get_ffprobe_path() -> str:
 ##################################################
 
 
-from .error import (AudioDeviceError, AudioStreamError, FFmpegNotFoundError,
-                    OpenCVError, Pyvidplayer2Error, SubtitleError,
-                    VideoStreamError, WebcamNotFoundError, YTDLPError)
-from .post_processing import PostProcessing
-from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG, READER_IMAGEIO,
+from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG, READER_IMAGEIO,  # noqa: E402
                     READER_OPENCV)
 
 
@@ -84,9 +84,9 @@ def get_version_info():
 
     try:
         ffmpeg_ver = subprocess.run([get_ffmpeg_path(), "-version"],
-                                     capture_output=True,
-                                     universal_newlines=True,
-                                     check=False).stdout.split(" ")[2]
+                                    capture_output=True,
+                                    universal_newlines=True,
+                                    check=False).stdout.split(" ")[2]
     except FileNotFoundError:
         ffmpeg_ver = "not installed"
 
@@ -107,7 +107,8 @@ def set_ffmpeg_loglevel(level: str) -> None:
             "verbose",
             "debug",
             "trace"
-    ): _ffmpeg_loglvl = level
+    ):
+        _ffmpeg_loglvl = level
 
 
 # consider adding path validation to these?

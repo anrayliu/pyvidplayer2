@@ -87,7 +87,8 @@ class Webcam:
 
     def update(self) -> bool:
         """
-        Allows webcam to perform required operations. Draw method already calls this method, so it's usually not used. Returns True if a new frame is ready to be displayed.
+        Allows webcam to perform required operations. Draw method already calls this method, so it's usually not used.
+        Returns True if a new frame is ready to be displayed.
         """
         return self._update()
 
@@ -99,7 +100,8 @@ class Webcam:
 
     def set_interp(self, interp: Union[str, int]) -> None:
         """
-        Changes the interpolation technique that OpenCV uses. Works the same as the interp parameter. Does nothing if OpenCV is not installed.
+        Changes the interpolation technique that OpenCV uses. Works the same as the interp parameter.
+        Does nothing if OpenCV is not installed.
         """
         # cv2 will always be installed for webcam
 
@@ -144,7 +146,9 @@ class Webcam:
 
     def resize_capture(self, size: Tuple[int, int]) -> bool:
         """
-        Changes the resolution at which frames are captured from the webcam. Returns True if a resolution was found that matched the given size exactly. Otherwise, False will be returned and the closest matching resolution will be used.
+        Changes the resolution at which frames are captured from the webcam.
+        Returns True if a resolution was found that matched the given size exactly.
+        Otherwise, False will be returned and the closest matching resolution will be used.
         """
         self._vid.set(cv2.CAP_PROP_FRAME_WIDTH, size[0])
         self._vid.set(cv2.CAP_PROP_FRAME_HEIGHT, size[1])

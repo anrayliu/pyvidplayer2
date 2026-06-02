@@ -16,6 +16,9 @@ class VideoPlayer:
     def __init__(self, video: Video, rect: Tuple[int, int, int, int],
                  interactable: bool = False, loop: bool = False,
                  preview_thumbnails: int = 0, font_size: int = 10):
+        if not pygame.get_init():
+            pygame.init()
+
         self.video = video
         if isinstance(self.video, VideoPygame):
             if self.video.closed:
@@ -309,9 +312,10 @@ class VideoPlayer:
                     surf = self._get_closest_frame(self._seek_time)
                     x = self._seek_pos - surf.get_width() // 2
                     x = min(max(x, self.frame_rect.x), self.frame_rect.right - surf.get_width())
-                    pygame.draw.rect(win, (0, 0, 0), (
-                        x - 2, self._progress_back.y - 80 - f.get_height() - 2, surf.get_width() + 4,
-                        surf.get_height() + 4), 2)
+                    width = 1
+                    pygame.draw.rect(win, (50, 50, 50), (
+                        x - width, self._progress_back.y - 80 - f.get_height() - width, surf.get_width() + width * 2,
+                        surf.get_height() + width * 2), width)
                     win.blit(surf, (x, self._progress_back.y - 80 - f.get_height()))
 
         if self.interactable:

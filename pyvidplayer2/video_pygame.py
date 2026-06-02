@@ -31,6 +31,9 @@ class VideoPygame(Video):
                        as_bytes, audio_track, vfr, pref_lang, audio_index,
                        reader, cuda_device)
 
+        if not pygame.get_init():
+            pygame.init()
+
     def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), (data.shape[1], data.shape[0]), self._vid._colour_format)
 

@@ -18,6 +18,10 @@ class Webcam:
                  interp: Union[str, int] = "linear", fps: int = 30,
                  cam_id: int = 0,
                  capture_size: Tuple[int, int] = (0, 0)) -> None:
+
+        if not pygame.get_init():
+            pygame.init()
+
         self._vid = cv2.VideoCapture(cam_id)
 
         if not self._vid.isOpened():

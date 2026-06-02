@@ -30,6 +30,9 @@ class Subtitles:
                  delay: float = 0, youtube: bool = False,
                  pref_lang: str = "en", track_index: int = None) -> None:
 
+        if not pygame.get_init():
+            pygame.init()
+
         self.path = path
         self.track_index = track_index
         self.encoding = encoding

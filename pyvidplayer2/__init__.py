@@ -59,10 +59,6 @@ if importlib.util.find_spec("pygame") is not None:
     except ImportError:
         pass
 
-    import pygame
-
-    pygame.init()
-
     # isort will try and change the order of these 2 imports,
     # but doing so will cause a circular import
     # keep in current order!
@@ -80,8 +76,10 @@ if importlib.util.find_spec("pygame") is not None:
 
 def get_version_info():
     try:
+        import pygame
         pygame_ver = pygame.version.ver
-    except NameError:
+
+    except ModuleNotFoundError:
         pygame_ver = "not installed"
 
     try:
@@ -112,6 +110,7 @@ def set_ffmpeg_loglevel(level: str) -> None:
     ): _ffmpeg_loglvl = level
 
 
+# consider adding path validation to these?
 def set_ffmpeg_path(path: str) -> None:
     global _ffmpeg_path
     _ffmpeg_path = path

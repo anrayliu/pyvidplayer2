@@ -16,7 +16,7 @@ from test_video import check_same_frames
 class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        ver = "0.9.32"
+        ver = "0.9.33"
 
         self.assertEqual(ver, VERSION)
         self.assertEqual(ver, pyvidplayer2.__version__)

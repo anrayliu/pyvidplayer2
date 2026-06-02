@@ -234,16 +234,14 @@ class Video:
         return f"<{type(self).__name__}(path={self.path if not (self.as_bytes or self.youtube) else ''})>"
 
     # noinspection PyUnresolvedReferences
-    # pycharm will warn: Unresolved reference 'pyvidplayer2' here
-    def __enter__(self) -> "pyvidplayer2.Video":
+    def __enter__(self) -> "pyvidplayer2.Video":  # noqa: F821
         return self
 
     def __exit__(self, type_, value, traceback) -> None:
         self.close()
 
     # noinspection PyUnresolvedReferences
-    # pycharm will warn: Unresolved reference 'pyvidplayer2' here
-    def __iter__(self) -> "pyvidplayer2.Video":
+    def __iter__(self) -> "pyvidplayer2.Video":  # noqa: F821
         self.stop()
         return self
 

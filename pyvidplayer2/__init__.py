@@ -55,7 +55,7 @@ if importlib.util.find_spec("pygame") is not None:
     # bug on linux: importing pygame before decord results
     # in display.set_mode deadlocking
     try:
-        import decord
+        import decord  # noqa: F401
     except ImportError:
         pass
 

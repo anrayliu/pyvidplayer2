@@ -39,4 +39,3 @@ jobs:
       - name: run bandit
         run: |
           bandit -c bandit.yaml -r ./pyvidplayer2
-        continue-on-error: true

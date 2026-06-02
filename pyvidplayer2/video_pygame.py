@@ -13,10 +13,9 @@ class VideoPygame(Video):
     """
 
     # noinspection PyUnresolvedReferences
-    # pycharm will warn: Unresolved reference 'pyvidplayer2' here
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
                  max_threads: int = 1, max_chunks: int = 1,
-                 subs: "pyvidplayer2.Subtitles" = None,
+                 subs: "pyvidplayer2.Subtitles" = None,  # noqa: F821
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
                  interp: Union[str, int] = "linear",
                  use_pygame_audio: bool = False, reverse: bool = False,
@@ -84,6 +83,5 @@ class VideoPygame(Video):
             self.frame_surf = self._create_frame(self.frame_data)
 
     # noinspection PyUnresolvedReferences
-    # pycharm will warn: Unresolved reference 'pyvidplayer2' here
-    def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:
+    def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:  # noqa: F821
         self.subs = self._filter_subs(subs)

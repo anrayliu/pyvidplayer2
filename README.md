@@ -55,20 +55,19 @@ Still requires one graphics library and one audio library of your choice.
 ## Optional Packages
 
 ```
-opencv_python   (efficiency improvements and more features, comes installed)
-pygame-ce       (graphics and audio library, comes installed)
-sounddevice     (better audio library, comes installed)
-pysubs2         (for subtitles, comes installed)
-yt_dlp          (for streaming Youtube videos)
-decord          (for videos in bytes, best option)
-imageio         (for videos in bytes)
-av              (required for imageio)
-pyglet          (graphics library)
-PySide6         (graphics library)
-PyQt6           (graphics library)
-tkinter         (graphics library, installed as a system package or with Python installer, not pip)
-raylib          (graphics library)
-wxPython        (graphics library)
+opencv_python       (efficiency improvements and more features, comes installed)
+pygame/pygame-ce    (graphics and audio library, comes installed)
+sounddevice         (better audio library, comes installed)
+pysubs2             (for subtitles, comes installed)
+yt_dlp              (for streaming Youtube videos)
+decord              (for videos in bytes, best option)
+imageio[pyav]       (for videos in bytes)
+pyglet              (graphics library)
+PySide6             (graphics library)
+PyQt6               (graphics library)
+tkinter             (graphics library, installed as a sys package or with Python installer, not pip)
+raylib              (graphics library)
+wxPython            (graphics library)
 ```
 
 Use `pip install pyvidplayer2[all]` to install all packages required for running the unit tests.

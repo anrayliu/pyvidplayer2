@@ -23,10 +23,12 @@ class IIOReader(VideoReader):
 
         new_gen = iio.imiter(self._path, plugin="pyav", thread_type="FRAME")
         try:
+            # seeking with imageio is very slow
+            # because it has to decode every frame here
             for i in range(int(index)):
                 next(new_gen)
         except StopIteration:
-            index = self.frame_count - 1
+            index = self.frame_count
 
         self.frame = index
         self._gen = new_gen

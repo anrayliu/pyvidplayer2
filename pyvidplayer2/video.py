@@ -485,16 +485,18 @@ class Video:
 
     # not used
     # used to auto detect youtube videos
-    def _test_youtube(self):
-        return YTDLP and next(
-            (ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"),
-            None) is not None
+
+    # def _test_youtube(self):
+    #     return YTDLP and next(
+    #         (ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"),
+    #         None) is not None
 
     # not used, not always accurate
     # used to auto detect vfr videos
-    def _test_vfr(self):
-        min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
-        return (max_ - min_) > 0.1
+
+    # def _test_vfr(self):
+    #     min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
+    #     return (max_ - min_) > 0.1
 
     def _test_no_audio(self):
         """

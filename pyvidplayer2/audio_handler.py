@@ -5,11 +5,6 @@ class AudioHandler(ABC):
     '''
     Interface for audio handlers, used internally to communicate with audio backends
     '''
-
-    @abstractmethod
-    def __init__(self):
-        pass
-
     @abstractmethod
     def get_busy(self) -> bool:
         '''
@@ -38,12 +33,6 @@ class AudioHandler(ABC):
     def load(self, audio_chunk: bytes) -> None:
         '''
         Load an audio chunk into backend.
-        '''
-
-    @abstractmethod
-    def get_loaded(self) -> bool:
-        '''
-        Returns whether an audio chunk is loaded.
         '''
 
     @abstractmethod
@@ -89,12 +78,6 @@ class AudioHandler(ABC):
         '''
 
     @abstractmethod
-    def get_paused(self) -> bool:
-        '''
-        Returns pause status.
-        '''
-
-    @abstractmethod
     def mute(self) -> None:
         '''
         Mutes audio. Does not affect volume.
@@ -104,10 +87,4 @@ class AudioHandler(ABC):
     def unmute(self) -> None:
         '''
         Unmutes audio. Does not affect volume.
-        '''
-
-    @abstractmethod
-    def get_muted(self) -> bool:
-        '''
-        Returns muted status of audio.
         '''

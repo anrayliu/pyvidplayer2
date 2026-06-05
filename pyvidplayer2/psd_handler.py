@@ -190,12 +190,3 @@ class PSDHandler(AudioHandler):
 
     def get_busy(self):
         return self.active
-
-    def get_muted(self):
-        return self.muted
-
-    def get_loaded(self):
-        return self.loaded
-
-    def get_paused(self):
-        return self.paused

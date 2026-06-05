@@ -74,15 +74,3 @@ class MixerHandler(AudioHandler):
     def close(self):
         if self.loaded:
             self.unload()
-
-    # not ideal, should've used properties instead
-    # but now the public interface is already set
-    def get_muted(self):
-        return self.muted
-
-    def get_loaded(self):
-        return self.loaded
-
-    # currently not used
-    def get_paused(self):
-        return self.paused

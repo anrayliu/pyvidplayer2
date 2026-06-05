@@ -84,17 +84,16 @@ class TestPreviews(unittest.TestCase):
         thread.join()
 
     # tests video player preview works and does not close when video ends
-    # broken test
-    @unittest.skip
     def test_video_player_preview(self):
         v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, 1280, 720))
-        v.seek(v.duration)
+        vp = VideoPlayer(v, (0, 0, 1280, 720), interactable=True)
+        v.seek(v.duration - 3)
         thread = Thread(target=lambda: vp.preview())
         thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
+        time.sleep(5)
+        self.assertTrue(thread.is_alive())
+        self.assertFalse(vp.closed)
+        pygame.event.post(pygame.Event(pygame.QUIT))
         thread.join()
 
     # tests that previews start from where the video position is, and that they close the video afterwards
@@ -110,7 +109,10 @@ class TestPreviews(unittest.TestCase):
         ):
             v = lib(VIDEO_PATH)
             v.seek(v.duration - 0.1)
-            v.preview()
+            if lib == Video:
+                v.preview(show_fps=True)
+            else:
+                v.preview()
             self.assertTrue(v.closed)
             v.close()
 

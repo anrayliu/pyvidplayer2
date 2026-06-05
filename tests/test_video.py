@@ -10,6 +10,8 @@ import unittest.mock
 import cv2
 import numpy as np
 import pygame
+import pyray
+
 import pyvidplayer2
 from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           READER_IMAGEIO, READER_OPENCV, AudioDeviceError,
@@ -19,7 +21,7 @@ from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           VideoStreamError, VideoTkinter, VideoWx,
                           get_ffmpeg_path, get_ffprobe_path, get_version_info,
                           set_ffmpeg_loglevel, set_ffmpeg_path,
-                          set_ffprobe_path)
+                          set_ffprobe_path, VideoPlayer, Webcam)
 from sounddevice import query_devices
 
 BIN_OVERRIDE = r""
@@ -2031,6 +2033,71 @@ class TestVideo(unittest.TestCase):
     # test that the proper exception is bubbled up, instead of an audio error
     def test_ffmpeg_reader_exception(self):
         self.assertRaises(VideoStreamError, lambda: Video("resources\\fake.txt", reader=READER_FFMPEG))
+
+    def test_ffmpeg_not_found(self):
+        self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
+        set_ffmpeg_path("badpath")
+        self.assertRaises(FFmpegNotFoundError, lambda: Video(VIDEO_PATH, reader=READER_FFMPEG))
+
+    # might be a good idea to add this test for other readers as well
+    # reader seeking does not have bounds checking
+    # parents are responsible for this check
+    def test_all_readers_seek_to_end(self):
+        v = Video(VIDEO_PATH, reader=READER_IMAGEIO)
+
+        v._vid.seek(v.frame_count - 1)
+        self.assertEqual(v._vid.frame, 1612)
+
+        v._vid.seek(v.frame_count)
+        self.assertEqual(v._vid.frame, 1613)
+
+        v._vid.seek(v.frame_count + 1)
+        self.assertEqual(v._vid.frame, 1613)
+
+        v.close()
+
+    # test no exceptions when closing a raylib video
+    def test_raylib_video_unloads_texture(self):
+        # intuitive mode seeking in raylib requires a window
+        pyray.init_window(100, 100, "test window")
+
+        v = VideoRaylib(VIDEO_PATH)
+        v.seek_frame(0)
+
+        self.assertIsNotNone(v.frame_surf)
+
+        v.close() # no errors
+
+    # test that pygame resources will init pygame automatically
+    def test_pygame_init(self):
+        self.addCleanup(lambda: pygame.init())
+
+        pygame.quit()
+        self.assertFalse(pygame.get_init())
+
+        v = Video(VIDEO_PATH)
+        self.assertTrue(pygame.get_init())
+
+        pygame.quit()
+        self.assertFalse(pygame.get_init())
+
+        Subtitles("resources/subs1.srt")
+        self.assertTrue(pygame.get_init())
+
+        pygame.quit()
+        self.assertFalse(pygame.get_init())
+
+        with VideoPlayer(v, (0, 0, 0, 0)):
+            self.assertTrue(pygame.get_init())
+
+        pygame.quit()
+        self.assertFalse(pygame.get_init())
+
+        Webcam()
+        self.assertTrue(pygame.get_init())
+
+        v.close()
+
 
 
 if __name__ == "__main__":

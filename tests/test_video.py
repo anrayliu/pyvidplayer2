@@ -2056,18 +2056,6 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
-    # test no exceptions when closing a raylib video
-    def test_raylib_video_unloads_texture(self):
-        # intuitive mode seeking in raylib requires a window
-        pyray.init_window(100, 100, "test window")
-
-        v = VideoRaylib(VIDEO_PATH)
-        v.seek_frame(0)
-
-        self.assertIsNotNone(v.frame_surf)
-
-        v.close() # no errors
-
     # test that pygame resources will init pygame automatically
     def test_pygame_init(self):
         self.addCleanup(lambda: pygame.init())

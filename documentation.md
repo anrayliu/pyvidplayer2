@@ -140,8 +140,8 @@ bottom for other supported libraries. Actual class name is `VideoPygame`.
 - `current_size: (int, int)` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
 - `aspect_ratio: float` - Width divided by height of original size.
 - `audio_channels: int` - Number of audio channels in current audio track. May change when the current audio track is
-  switched with
-  `set_audio_track`.
+  switched with `set_audio_track`.
+- `num_audio_tracks: int` - Number of audio tracks in video container.
 - `frame_data: numpy.ndarray` - Current video frame as a NumPy `ndarray`. May be in a variety of colour formats. Will be
   processed using the current post processing function. See `colour_format` attribute
   and `post_process` parameter for more information.

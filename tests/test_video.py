@@ -88,11 +88,14 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.original_size, (1280, 720))
         self.assertEqual(v.current_size, (1280, 720))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
+        self.assertEqual(v.audio_channels, 2)
+        self.assertEqual(v.num_audio_tracks, 1)
         self.assertEqual(type(v._vid).__name__, "CVReader")
         v.close()
 
         with open("resources/trailer1.mp4", "rb") as file:
             v = Video(file.read())
+
         self.assertTrue(type(v.path) == bytes)
         self.assertEqual(v._audio_path, "-")
         self.assertEqual(v.name, "")
@@ -103,6 +106,8 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.original_size, (1280, 720))
         self.assertEqual(v.current_size, (1280, 720))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
+        self.assertEqual(v.audio_channels, 2)
+        self.assertEqual(v.num_audio_tracks, 1)
         self.assertEqual(type(v._vid).__name__, "DecordReader")
         v.close()
 
@@ -122,6 +127,7 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(data["original_size"], v.original_size)
             self.assertEqual(data["aspect_ratio"], v.aspect_ratio)
             self.assertEqual(data["audio_channels"], v.audio_channels)
+            self.assertEqual(data["num_audio_tracks"], v.num_audio_tracks)
             self.assertEqual(data["no_audio"], v.no_audio)
             v.close()
 

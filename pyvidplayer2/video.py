@@ -143,6 +143,7 @@ class Video:
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
         self.audio_channels = 0
+        self.num_audio_tracks = 0
 
         self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
@@ -844,6 +845,7 @@ class Video:
             "aspect_ratio": self.aspect_ratio,
 
             "audio_channels": self.audio_channels,
+            "num_audio_tracks": self.num_audio_tracks,
             "no_audio": self.no_audio
         }
 
@@ -1014,6 +1016,7 @@ class Video:
             raise AudioStreamError(f"Audio index {index} out of range.")
 
         self.audio_channels = info[0]["channels"]
+        self.num_audio_tracks = len(info)
         self.audio_track = index
         self.seek(self.get_pos(), relative=False, intuitive=False)  # reloads current audio chunks
 

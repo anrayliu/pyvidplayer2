@@ -59,4 +59,6 @@ class VideoPyglet(Video):
                                    caption=f"pyglet - {self.name}")
         pyglet.clock.schedule_interval(update, 1 / float(max_fps))
         pyglet.app.run()
+        win.close()
+
         self.close()

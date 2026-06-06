@@ -926,7 +926,6 @@ class Video:
         self._preloaded_frames.clear()
         self.stop()
         self._vid.release()
-        self._audio.unload()
         self._audio.close()
         self.closed = True
 

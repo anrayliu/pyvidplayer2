@@ -66,4 +66,6 @@ class VideoPyQT(Video):
         win.setFixedSize(*self.current_size)
         win.show()
         app.exec()
+        app.quit()
+
         self.close()

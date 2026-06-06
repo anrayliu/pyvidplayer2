@@ -61,4 +61,6 @@ class VideoTkinter(Video):
         canvas.pack()
         update()
         root.mainloop()
+        root.quit()
+
         self.close()

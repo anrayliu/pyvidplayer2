@@ -66,4 +66,6 @@ class VideoPySide(Video):
         win.setFixedSize(self.current_size[0], self.current_size[1])
         win.show()
         app.exec()
+        app.quit()
+
         self.close()

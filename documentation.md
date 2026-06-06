@@ -56,8 +56,9 @@ from YouTube. Decord is required to play videos from RAM.
   `pyvidplayer2.READER_FFMPEG`. There are fundamental
   differences between readers. For example, the colour format
   varies. `READER_OPENCV` and `READER_FFMPEG` use BGR while `READER_IMAGEIO` and `READER_DECORD` use
-  RGB. This information is stored in the `colour_format` attribute. Also, not every feature will work with every reader.
-  Some are specialized for certain tasks, so you can always try a different one if the current one is not working.
+  RGB. This information is stored in the `colour_format` attribute. Not every feature will work with every reader.
+  Some are specialized for certain tasks, so you can always try a different one if the current one is not working. Frame seeking
+  with `READER_IMAGEIO` is significantly slower than the rest.
 - `cuda_device: int = -1` - Specifies which Nvidia GPU to use for hardware acceleration. First GPU device is 0, second
   is 1, and so on. Default is -1, which disables hardware acceleration. Note: this may not result in significant performance gains
   because all the currently supported graphics libraries must convert video frames with CPU for software rendering.
@@ -161,7 +162,7 @@ from YouTube. Decord is required to play videos from RAM.
   seek to the last frame. Remember that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,
   but this will require incrementing `frame` by one extra. To force `frame` to be exactly correct (which is one frame
-  before requested position), set intuitive to `False`.
+  before requested position), set intuitive to `False`. Intuitive seeking does not work for Raylib and wxPython.
 - `seek_frame(index: int, relative: bool = False, intuitive: bool = False) -> None` - Same as `seek()` but seeks to a
   specific frame instead of a
   timestamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on. If the
@@ -169,7 +170,7 @@ from YouTube. Decord is required to play videos from RAM.
   will seek to the last frame. Remember that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,
   but this will require incrementing `frame` by one extra. To force `frame` to be exactly correct (which is one frame
-  before requested position), set intuitive to `False`.
+  before requested position), set intuitive to `False`. Intuitive seeking does not work for Raylib and wxPython.
 - `update() -> bool` - Allows video to perform required calculations. `draw` automatically calls this method, so it
   doesn't need to be explicitly called. Returns `True` if a new frame is ready to be displayed.
 - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto

@@ -71,11 +71,12 @@ class VideoWx(Video):
                 sizer.Fit(self_frame)
 
                 self_frame.timer = wx.Timer(self_frame)
+                self_frame.timer.Start(int(1000 / max_fps))
+
                 self_frame.Bind(wx.EVT_TIMER, self_frame.update, self_frame.timer)
                 self_frame.panel.Bind(wx.EVT_PAINT, self_frame.draw)
 
                 self_video.play()
-                self_frame.timer.Start(int(1000 / self_video.frame_rate))
 
                 self_frame.Show()
 

@@ -193,8 +193,10 @@ class TestYoutubeVideo(unittest.TestCase):
         time.sleep(0.1)
 
         for url in (
-        "https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
-        "https://www.youtube.com/"):
+            "https://www.youtube.com/@joewoobie1155",
+            "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
+            "https://www.youtube.com/"
+        ):
             with self.assertRaises(SubtitleError) as context:
                 Subtitles(url, youtube=True)
             self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")

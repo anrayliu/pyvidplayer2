@@ -1,3 +1,5 @@
 [flake8]
 max-line-length=240
 import-order-style = pep8
+per-file-ignores =
+    ./tests/test_misc.py:F401

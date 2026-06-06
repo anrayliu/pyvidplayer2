@@ -8,8 +8,7 @@ from threading import Thread
 
 import pygame
 from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
-                          VideoPyQT, VideoPySide, VideoRaylib, VideoTkinter,
-                          VideoWx)
+                          VideoPyQT, VideoPySide, VideoTkinter, VideoWx)
 
 from test_video import VIDEO_PATH
 

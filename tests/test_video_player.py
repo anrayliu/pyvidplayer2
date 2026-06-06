@@ -263,7 +263,7 @@ class TestVideoPlayer(unittest.TestCase):
         viewed_thumbnails = []
         for i in range(int(original_video.duration * 10)):
             thumbnail = vp._get_closest_frame(i * 0.1)
-            if not thumbnail in viewed_thumbnails:
+            if thumbnail not in viewed_thumbnails:
                 viewed_thumbnails.append(thumbnail)
 
         # ensures that when preloaded, the preview thumbnails are taken straight from the preloaded frames

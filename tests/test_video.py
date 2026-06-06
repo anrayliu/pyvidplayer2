@@ -10,7 +10,6 @@ import unittest.mock
 import cv2
 import numpy as np
 import pygame
-import pyray
 
 import pyvidplayer2
 from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
@@ -98,7 +97,7 @@ class TestVideo(unittest.TestCase):
         with open("resources/trailer1.mp4", "rb") as file:
             v = Video(file.read())
 
-        self.assertTrue(type(v.path) == bytes)
+        self.assertTrue(isinstance(v.path, bytes))
         self.assertEqual(v._audio_path, "-")
         self.assertEqual(v.name, "")
         self.assertEqual(v.ext, "")
@@ -1237,7 +1236,7 @@ class TestVideo(unittest.TestCase):
         while_loop(lambda: not v.update(), lambda: None, 5, 0)
 
         # check that frame information has been updated
-        self.assertTrue(0 < v.frame - 10 < 3) # if update is slow, may render 2 frames
+        self.assertTrue(0 < v.frame - 10 < 3)  # if update is slow, may render 2 frames
         self.assertIsNot(v.frame_surf, None)
         self.assertIsNot(v.frame_data, None)
 
@@ -1444,7 +1443,7 @@ class TestVideo(unittest.TestCase):
         # test correct args
         v = Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear",
                   False, False, False, 1, False, 1080,
-                  False,0, False, "en", None, READER_AUTO, -1)
+                  False, 0, False, "en", None, READER_AUTO, -1)
         v.close()
         for videoClass in (
                 VideoTkinter,
@@ -1456,14 +1455,14 @@ class TestVideo(unittest.TestCase):
         ):
             v = videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear",
                            False, False, False, 1, False, 1080,
-                           False,0, False, "en", None, READER_AUTO, -1)
+                           False, 0, False, "en", None, READER_AUTO, -1)
             v.close()
 
         # test extra args
         with self.assertRaises(TypeError):
             Video(VIDEO_PATH, 10, 1, 1, None, PostProcessing.none, "linear",
                   False, False, False, 1, False, 1080,
-                  False,0, False, "en", None, READER_AUTO, -1, "extra_arg")
+                  False, 0, False, "en", None, READER_AUTO, -1, "extra_arg")
 
         for videoClass in (
             VideoTkinter,
@@ -1476,7 +1475,7 @@ class TestVideo(unittest.TestCase):
             with self.assertRaises(TypeError):
                 videoClass(VIDEO_PATH, 10, 1, 1, PostProcessing.none, "linear",
                            False, False, False, 1, False, 1080,
-                           False,0, False, "en", None, READER_AUTO, -1,
+                           False, 0, False, "en", None, READER_AUTO, -1,
                            "extra_arg")
 
     # tests that each backend can be forced
@@ -1893,16 +1892,16 @@ class TestVideo(unittest.TestCase):
     def test_frame_data_reset(self):
         v = Video("resources/test.mp4")
 
-        for l in (
-            lambda v: v.stop(),
-            lambda v: v.seek(0, relative=False, intuitive=False),
-            lambda v: v.seek_frame(0, intuitive=False)
+        for func in (
+            lambda v_: v_.stop(),
+            lambda v_: v_.seek(0, relative=False, intuitive=False),
+            lambda v_: v_.seek_frame(0, intuitive=False)
         ):
             v.seek(1)
             self.assertIsNotNone(v.frame_data)
             self.assertIsNotNone(v.frame_surf)
 
-            l(v)
+            func(v)
             self.assertIsNone(v.frame_data)
             self.assertIsNone(v.frame_surf)
 
@@ -2085,7 +2084,6 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(pygame.get_init())
 
         v.close()
-
 
 
 if __name__ == "__main__":

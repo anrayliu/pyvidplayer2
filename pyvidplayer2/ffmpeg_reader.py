@@ -41,8 +41,8 @@ class FFMPEGReader(VideoReader):
         if proc is None:
             return
 
-        # can cause hanging
-        # proc.stdout.close()
+        if proc.stdout:
+            proc.stdout.close()
 
         proc.terminate()
         try:

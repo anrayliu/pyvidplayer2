@@ -102,7 +102,7 @@ class TestPreviews(unittest.TestCase):
             Video,
             VideoTkinter,
             VideoPyglet,
-            VideoRaylib,
+            # VideoRaylib cannot run alongside pyglet anymore
             VideoPyQT,
             VideoPySide,
             VideoWx

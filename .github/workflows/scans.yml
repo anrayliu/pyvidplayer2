@@ -20,7 +20,7 @@ jobs:
 
       - name: run flake8
         run: |
-          flake8 --max-line-length=240 ./pyvidplayer2
+          flake8 ./pyvidplayer2
 
   scan:
     runs-on: ubuntu-latest

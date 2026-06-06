@@ -27,21 +27,21 @@ while True:
         elif event.type == pygame.KEYDOWN:
             key = pygame.key.name(event.key)
 
-    #your program frame rate does not affect video playback
+    # your program frame rate does not affect video playback
     clock.tick(60)
 
     if key == "r":
-        vid.restart()           #rewind video to beginning
+        vid.restart()           # rewind video to beginning
     elif key == "p":
-        vid.toggle_pause()      #pause/plays video
+        vid.toggle_pause()      # pause/plays video
     elif key == "right":
-        vid.seek(15)            #skip 15 seconds in video
+        vid.seek(15)            # skip 15 seconds in video
     elif key == "left":
-        vid.seek(-15)           #rewind 15 seconds in video
+        vid.seek(-15)           # rewind 15 seconds in video
     elif key == "up":
-        vid.set_volume(1.0)     #max volume
+        vid.set_volume(1.0)     # max volume
     elif key == "down":
-        vid.set_volume(0.0)     #min volume
+        vid.set_volume(0.0)     # min volume
 
     # 2. draw the video to the given surface, at the given position
 

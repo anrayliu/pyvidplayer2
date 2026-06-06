@@ -49,7 +49,7 @@ while True:
 
     try:
         touching = pygame.Rect(GetWindowRect(hwnd)).collidepoint(GetCursorPos())
-    except: # windows is buggy
+    except Exception:  # windows is buggy
         touching = False
 
     if touching and GetForegroundWindow() != hwnd:
@@ -59,7 +59,7 @@ while True:
         shell.SendKeys("%")
         try:
             SetForegroundWindow(hwnd)
-        except: # catches weird errors
+        except Exception:  # catches weird errors
             pass
 
     # handles video playback

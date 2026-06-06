@@ -6,7 +6,6 @@ If a subtitle file in the preferred language is not available, automatic caption
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
-import pygame
 from pyvidplayer2 import Subtitles, Video
 
 # if you don't know Google's language code for a particular area, which can be pretty
@@ -18,5 +17,5 @@ from pyvidplayer2 import Subtitles, Video
 # that being said, the default subtitles font cannot display many characters like Korean or Japanese
 
 with Video("https://www.youtube.com/watch?v=qyCVCGg_3Ec", youtube=True, max_res=720,
-      subs=Subtitles("https://www.youtube.com/watch?v=qyCVCGg_3Ec", youtube=True, pref_lang="en")) as v:
-      v.preview()
+           subs=Subtitles("https://www.youtube.com/watch?v=qyCVCGg_3Ec", youtube=True, pref_lang="en")) as v:
+    v.preview()

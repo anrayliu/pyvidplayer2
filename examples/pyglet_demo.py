@@ -10,6 +10,7 @@ from pyvidplayer2 import VideoPyglet
 
 video = VideoPyglet(r"resources\trailer1.mp4")
 
+
 def update(dt):
     # unfortunately, I could not find a way to run force_draw=False without visual jitter,
     # even with double buffering turned off
@@ -20,7 +21,8 @@ def update(dt):
     if not video.active:
         win.close()
 
-win = pyglet.window.Window(width=video.current_size[0], height=video.current_size[1], caption=f"pyglet support demo")
+
+win = pyglet.window.Window(width=video.current_size[0], height=video.current_size[1], caption="pyglet support demo")
 
 pyglet.clock.schedule_interval(update, 1/60.0)
 

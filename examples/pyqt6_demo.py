@@ -28,7 +28,7 @@ video = VideoPyQT(r"resources\trailer1.mp4")
 
 app = QApplication([])
 win = Window()
-win.setWindowTitle(f"pyqt6 support demo")
+win.setWindowTitle("pyqt6 support demo")
 win.setFixedSize(*video.current_size)
 win.show()
 app.exec()

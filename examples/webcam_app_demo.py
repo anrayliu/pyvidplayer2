@@ -26,7 +26,7 @@ clock = pygame.time.Clock()
 dragging = False
 temp_pos = (0, 0)
 window_rect = pygame.Rect(win32api.GetSystemMetrics(0) - win.get_width(), win32api.GetSystemMetrics(1) - win.get_height() - 48, *win.get_size())
-shell = Dispatch("WScript.Shell") # required workaround for a windows bug
+shell = Dispatch("WScript.Shell")  # required workaround for a windows bug
 
 HWND = pygame.display.get_wm_info()["window"]
 
@@ -60,16 +60,16 @@ while True:
     # keeps the webcam focused when hovered over for seamless dragging
     try:
         touching = window_rect.collidepoint(win32api.GetCursorPos())
-    except: # catches access denied when pc goes to sleep
+    except Exception:  # catches access denied when pc goes to sleep
         touching = False
 
     if win32gui.GetForegroundWindow() != HWND and touching:
-        shell.SendKeys("%") # windows is weird
+        shell.SendKeys("%")  # windows is weird
 
         # windows is buggy
         try:
             win32gui.SetForegroundWindow(HWND)
-        except:
+        except Exception:
             pass
 
     clock.tick(60)

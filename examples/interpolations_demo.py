@@ -15,12 +15,12 @@ pygame.display.set_caption("interpolations demo")
 # default interpolation technique
 
 vid1 = Video(r"resources\medic.mov", interp="linear")
-vid1.change_resolution(480) # automatically resizes video to maintain aspect ratio
+vid1.change_resolution(480)  # automatically resizes video to maintain aspect ratio
 
 # sharpest but least performant interpolation technique
 
 vid2 = Video(r"resources\medic.mov", interp="lanczos4")
-vid2.resize((854, 480)) # alternatively, can set a custom size
+vid2.resize((854, 480))  # alternatively, can set a custom size
 
 
 while True:

@@ -14,7 +14,7 @@ video = VideoRaylib("resources/trailer1.mp4")
 # disables logs
 pyray.set_trace_log_level(pyray.TraceLogLevel.LOG_NONE)
 
-pyray.init_window(*video.original_size,f"raylib - {video.name}")
+pyray.init_window(*video.original_size, f"raylib - {video.name}")
 pyray.set_target_fps(60)
 
 while not pyray.window_should_close() and video.active:

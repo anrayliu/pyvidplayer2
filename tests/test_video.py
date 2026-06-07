@@ -419,10 +419,19 @@ class TestVideo(unittest.TestCase):
         v.stop()  # test for exception
         v.close()
 
-    # tests that set_speed is deprecated
+    # tests that speed can be dynamically adjusted
     def test_set_speed_method(self):
         with Video(VIDEO_PATH) as v:
-            self.assertRaises(DeprecationWarning, v.set_speed, 1.0)
+            v.set_speed(0.2)
+            self.assertEqual(v.speed, 0.25)
+
+            v.set_speed(11)
+            self.assertEqual(v.speed, 10.0)
+
+            # test no errors
+            for i in range(20):
+                v.set_speed(random.uniform(0.25, 3.0))
+                timed_loop(0.5, v.update)
 
     # tests that a speed lower than the ffmpeg atempo limit is accounted for
     def test_lowest_speed(self):

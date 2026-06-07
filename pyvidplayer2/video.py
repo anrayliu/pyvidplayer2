@@ -870,10 +870,9 @@ class Video:
         self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
-        """
-        Does nothing because this method is deprecated. Use the speed parameter during Video creation instead.
-        """
-        raise DeprecationWarning("set_speed is deprecated. Use the speed parameter instead.")
+        speed = float(max(0.25, min(10, speed)))
+        self.seek_frame(0, relative=True, intuitive=False)
+        self.speed = speed
 
     def get_speed(self) -> float:
         """
@@ -1045,8 +1044,7 @@ class Video:
         """
         Returns the current video timestamp in seconds (float).
         """
-        return self._starting_time + max(0,
-                                         self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
+        return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True, intuitive: bool = True) -> None:
         """

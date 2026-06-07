@@ -1150,22 +1150,38 @@ class Video:
         This method is called automatically when seeking in v0.9.32 and onwards, so explicit calls should no
         longer be necessary.
         """
-        if self._vid.frame > 0 and (self.frame_data is None or self.frame_surf is None):
-            p = self.get_pos()
+        if self.frame_data is not None and self.frame_surf is not None:
+            return False
+
+        p = self.get_pos()
+        has_frame = False
+        data = None
+
+        if self.reverse:
+            # at least one frame was rendered already - there's something to buffer
+            if self.frame > 0:
+                has_frame = True
+                data = self._preloaded_frames[self.frame_count - self.frame]
+
+        # same check here
+        elif self._vid.frame > 0:
             self._vid.seek(self._vid.frame - 1)
             has_frame, data = self._vid.read()
-            if has_frame:  # should theoretically never be false
-                if self.original_size != self.current_size:
-                    data = self._resize_frame(data, self.current_size, self.interp, not CV)
-                data = self.post_func(data)
 
-                self.frame_data = data
-                self.frame_surf = self._create_frame(data)
+        if has_frame:
+            if self.original_size != self.current_size:
+                data = self._resize_frame(data, self.current_size, self.interp, not CV)
+            data = self.post_func(data)
 
-                if self.subs and not self.subs_hidden:
-                    self._write_subs(p)
-                self._seek_buffered = True
-                return True
+            self.frame_data = data
+            self.frame_surf = self._create_frame(data)
+
+            if self.subs and not self.subs_hidden:
+                self._write_subs(p)
+            self._seek_buffered = True
+
+            return True
+
         return False
 
     # type hints declared by inherited subclasses

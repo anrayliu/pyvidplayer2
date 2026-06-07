@@ -1664,6 +1664,14 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # tests that buffer current works for videos in reverse
+    def test_reverse_buffer_current(self):
+        v = Video("resources\\clip.mp4", reverse=True)
+        self.assertFalse(v.buffer_current())
+        v.seek_frame(0, intuitive=True)
+        self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[-1]))
+        v.close()
+
     # test what seeking buffers current
     def test_buffer_current_called(self):
         v = Video(VIDEO_PATH)

@@ -424,6 +424,20 @@ class TestVideo(unittest.TestCase):
         with Video(VIDEO_PATH) as v:
             self.assertRaises(DeprecationWarning, v.set_speed, 1.0)
 
+    # tests that a speed lower than the ffmpeg atempo limit is accounted for
+    def test_lowest_speed(self):
+        with Video(VIDEO_PATH) as v:
+            v.set_speed(0.25)
+
+            # will otherwise throw an EOFError here
+            timed_loop(0.5, v.update)
+
+        with Video("resources/clip.mp4", reverse=True) as v:
+            v.set_speed(0.25)
+
+            # will otherwise throw an EOFError here
+            timed_loop(0.5, v.update)
+
     # tests that preloading frames is done properly
     def test_preloaded_frames(self):
         v = Video("resources/clip.mp4")

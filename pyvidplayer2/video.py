@@ -580,7 +580,11 @@ class Video:
             if self.reverse:
                 filters += ["-af", "areverse"]
             elif self.speed != 1:
-                filters += ["-af", f"atempo={self.speed}"]
+                filters += ["-af", f"atempo={max(0.5, self.speed)}"]
+                if self.speed < 0.5:
+                    filters[-1] += f",atempo={self.speed/0.5}"
+
+                # rubberband is more intensive
                 # filters += ["-af", f"rubberband=tempo={self.speed}"]
 
             command = command[:7] + filters + command[7:]
@@ -596,11 +600,13 @@ class Video:
                 command = [
                     get_ffmpeg_path(),
                     "-i", "-",
-                    "-af", f"atempo={self.speed}",
+                    "-af", f"atempo={max(0.5, self.speed)}",
                     "-f", "wav",
                     "-loglevel", get_ffmpeg_loglevel(),
                     "-"
                 ]
+                if self.speed < 0.5:
+                    command[4] += f",atempo={self.speed/0.5}"
 
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
                 self._processes.append(process)

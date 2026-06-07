@@ -92,7 +92,7 @@ class TestPreviews(unittest.TestCase):
         time.sleep(5)
         self.assertTrue(thread.is_alive())
         self.assertFalse(vp.closed)
-        pygame.event.post(pygame.Event(pygame.QUIT))
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
         thread.join()
 
     # tests that previews start from where the video position is, and that they close the video afterwards

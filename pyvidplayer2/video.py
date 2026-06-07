@@ -546,8 +546,8 @@ class Video:
                 get_ffmpeg_path(),
                 "-f", "lavfi",
                 "-i", "anullsrc",
-                "-t", str(self._convert_seconds(
-                    min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
+                # if chunk_size==5 and speed==2, 10 seconds of silent audio will be generated
+                "-t", self._convert_seconds(min(self.chunk_size, self.duration - s) / self.speed),
                 "-f", "wav",
                 "-loglevel", get_ffmpeg_loglevel(),
                 "-"

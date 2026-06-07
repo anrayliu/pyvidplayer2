@@ -8,9 +8,7 @@ from .video import READER_AUTO, Video
 
 
 class VideoPygame(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for Pygame."""
 
     # noinspection PyUnresolvedReferences
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
@@ -44,6 +42,12 @@ class VideoPygame(Video):
         return Video.draw(self, surf, pos, force_draw)
 
     def preview(self, show_fps: bool = False, max_fps: int = 60) -> None:
+        """Open a window and play the video. This method will hang until the
+        video finishes. If show_fps is True, a counter will be displayed
+        showing the actual number of new frames being rendered every second.
+        If using a graphics library other than Pygame, this method doesn't
+        accept any arguments."""
+
         win = pygame.display.set_mode(self.current_size)
         clock = pygame.time.Clock()
         pygame.display.set_caption(f"pygame - {self.name}")
@@ -74,6 +78,7 @@ class VideoPygame(Video):
         self.close()
 
     def show_subs(self) -> None:
+        """Display subtitles."""
         self.subs_hidden = False
         if self.frame_data is not None:
             self.frame_surf = self._create_frame(self.frame_data)
@@ -81,10 +86,12 @@ class VideoPygame(Video):
                 self._write_subs(self.frame / self.frame_rate)
 
     def hide_subs(self) -> None:
+        """Hide subtitles."""
         self.subs_hidden = True
         if self.frame_data is not None:
             self.frame_surf = self._create_frame(self.frame_data)
 
     # noinspection PyUnresolvedReferences
     def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:  # noqa: F821
+        """Set the subtitles to use. Works the same as providing subtitles through the subs parameter."""
         self.subs = self._filter_subs(subs)

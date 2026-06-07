@@ -139,6 +139,7 @@ from YouTube. Decord is required to play videos from RAM.
   closing it may lead to unexpected behaviour.
 - `restart() -> None` - Rewinds video to the beginning. Does not change `active` attribute.
 - `get_speed() -> float | int` - Returns `speed` attribute. Only exists for backwards compatibility.
+- `set_speed(speed: float) -> None` - Sets a new speed value (0.25-10.0) just like the parameter.
 - `set_volume(volume: float) -> None` - Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
 - `get_volume() -> float` - Returns `volume` attribute. Only exists for backwards compatibility.
 - `get_paused() -> bool` - Returns `paused` attribute. Only exists for backwards compatibility.
@@ -282,6 +283,8 @@ supported for Pygame.
 - `enqueue(input: pyvidplayer2.VideoPygame | str) -> None` - Same exact method as `queue`, but with a more
   conventionally correct name. Keeping `queue` for backwards compatibility.
 - `get_queue(): list[pyvidplayer2.VideoPygame]` - Returns list of queued video objects.
+- `get_next(): list[str | pyvidplayer2.VideoPygame]` - Return next item in queue.
+- `clear_queue() -> None` - Clears queued items.
 - `resize(size: (int, int)) -> None` - Resizes the video player (specifically `frame_rect`). The contained video will
   automatically re-adjust to fit the player.
 - `move(pos: (int, int), relative: bool = False) -> None` - Moves the VideoPlayer. If `relative` is `True`, the given

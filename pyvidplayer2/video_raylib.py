@@ -10,9 +10,7 @@ from .video import READER_AUTO, Video
 
 
 class VideoRaylib(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for Raylib."""
 
     def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
                  max_threads: int = 1, max_chunks: int = 1,

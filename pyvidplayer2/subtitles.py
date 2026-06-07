@@ -18,9 +18,8 @@ if importlib.util.find_spec("yt_dlp") is not None:
 
 
 class Subtitles:
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Object used for handling subtitles. Pass this into a Video object.
+    Only supported for Pygame."""
 
     def __init__(self, path: str,
                  colour: Union[str, pygame.Color, Tuple[int, int, int, int]] = "white",
@@ -181,16 +180,15 @@ class Subtitles:
         )
 
     def set_font(self, font: Union[pygame.font.SysFont, pygame.font.Font]) -> None:
-        """
-        Accepts a pygame font object to use to render subtitles. Same as font parameter.
-        """
+        """Set the font to use for rendering subtitles. Accepts a pygame Font
+        or SysFont object."""
+
         self.font = font
         if not isinstance(self.font, pygame.font.Font):
             raise ValueError(
                 "Font must be a pygame.font.Font or pygame.font.SysFont object.")
 
     def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
-        """
-        Gets the pygame font object used to render subtitles.
-        """
+        """Return the pygame Font or SysFont object being used."""
+
         return self.font

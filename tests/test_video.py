@@ -21,6 +21,8 @@ from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           get_ffmpeg_path, get_ffprobe_path, get_version_info,
                           set_ffmpeg_loglevel, set_ffmpeg_path,
                           set_ffprobe_path, VideoPlayer, Webcam)
+from pyvidplayer2.mixer_handler import MixerHandler
+
 from sounddevice import query_devices
 
 BIN_OVERRIDE = r""
@@ -2082,6 +2084,10 @@ class TestVideo(unittest.TestCase):
 
         Webcam()
         self.assertTrue(pygame.get_init())
+
+        pygame.quit()
+        MixerHandler()
+        self.assertTrue(pygame.mixer.get_init())
 
         v.close()
 

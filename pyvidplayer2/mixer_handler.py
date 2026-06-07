@@ -12,6 +12,9 @@ class MixerHandler(AudioHandler):
         self.paused = False
         self.volume = 1
 
+        if not pygame.mixer.get_init():
+            pygame.mixer.init()
+
         pygame.mixer.music.unload()
 
     def get_busy(self):

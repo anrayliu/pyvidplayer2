@@ -23,6 +23,7 @@ CV = 0
 if importlib.util.find_spec("cv2") is not None:
     CV = 1
     import cv2
+
     from .cv_reader import CVReader
 
 # pyaudio is obsolete, replaced with python sounddevice

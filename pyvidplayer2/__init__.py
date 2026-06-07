@@ -2,6 +2,7 @@ import importlib.util
 import subprocess
 
 from pyvidplayer2._version import __version__
+
 from .error import (AudioDeviceError, AudioStreamError, FFmpegNotFoundError,
                     OpenCVError, Pyvidplayer2Error, SubtitleError,
                     VideoStreamError, WebcamNotFoundError, YTDLPError)
@@ -29,9 +30,8 @@ def get_ffprobe_path() -> str:
 ##################################################
 
 
-from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG, READER_IMAGEIO,  # noqa: E402
-                    READER_OPENCV)
-
+from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG,  # noqa: E402
+                    READER_IMAGEIO, READER_OPENCV)
 
 if importlib.util.find_spec("tkinter") is not None:
     from .video_tkinter import VideoTkinter
@@ -63,8 +63,9 @@ if importlib.util.find_spec("pygame") is not None:
     # but doing so will cause a circular import
     # keep in current order!
     # --------------------------------------------
-    from .video_pygame import VideoPygame as Video
     from .video_player import VideoPlayer
+    from .video_pygame import VideoPygame as Video
+
     # --------------------------------------------
 
     if importlib.util.find_spec("cv2") is not None:

@@ -2074,7 +2074,7 @@ class TestVideo(unittest.TestCase):
     # might be a good idea to add this test for other readers as well
     # reader seeking does not have bounds checking
     # parents are responsible for this check
-    def test_all_readers_seek_to_end(self):
+    def test_imageio_seek_to_end(self):
         v = Video(VIDEO_PATH, reader=READER_IMAGEIO)
 
         v._vid.seek(v.frame_count - 1)
@@ -2087,6 +2087,46 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._vid.frame, 1613)
 
         v.close()
+
+    # tests that the frame tracker for readers
+    # means "next frame to be rendered", just like the video class
+    def test_readers_frame_counter(self):
+        for reader in (
+            READER_OPENCV,
+            READER_FFMPEG,
+            READER_IMAGEIO,
+            READER_DECORD
+        ):
+            v = Video(VIDEO_PATH, reader=reader)
+            self.assertEqual(v._vid.frame, 0)
+
+            # means second frame will be rendered next
+            v.seek_frame(1, intuitive=False)
+            self.assertEqual(v._vid.frame, 1)
+
+            # seeking in place shouldn't move frame counter in reader
+            v.seek_frame(0, relative=True, intuitive=False)
+            self.assertEqual(v._vid.frame, 1)
+            self.assertTrue(check_same_frames(next(v), v[1]))
+
+            # intuitive, should move frame counter
+            v.seek_frame(0, relative=True, intuitive=True)
+            self.assertEqual(v._vid.frame, 3)
+
+            # non-intuitive, shouldn't move frame counter
+            v.seek_frame(0, relative=True, intuitive=False)
+            self.assertEqual(v._vid.frame, 3)
+
+            # means last frame will be rendered next
+            v.seek_frame(v.frame_count - 1, intuitive=False)
+            self.assertEqual(v._vid.frame, v.frame_count - 1)
+
+            self.assertIsNotNone(next(v))
+
+            v.seek_frame(v.frame_count - 1, intuitive=True)
+            self.assertEqual(v._vid.frame, v.frame_count)
+
+            v.close()
 
     # test that pygame resources will init pygame automatically
     def test_pygame_init(self):

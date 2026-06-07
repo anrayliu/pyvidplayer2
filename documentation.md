@@ -23,8 +23,8 @@ from YouTube. Decord is required to play videos from RAM.
   results but is so much more intensive that it's usually not worth it. Area is a technique that produces the best
   results when downscaling. This parameter can also accept OpenCV constants like `cv2.INTER_LINEAR`. Resizing will use
   OpenCV when available but can fall back on FFmpeg (much slower) if needed.
-- `use_pygame_audio: bool = False` - Chooses Pygame as the audio library. Sounddevice is the default and is almost
-  always the best option. Videos can only be played in parallel when using Sounddevice.
+- `use_pygame_audio: bool = False` - Chooses Pygame as the audio library. Sounddevice is the default and is usually the best option,
+  but Pygame can handle higher-FPS videos. Videos can only be played in parallel when using Sounddevice.
 - `reverse: bool = False` - Plays the video in reverse. Warning: Doing so will load every frame into
   RAM, so videos longer than a few minutes can temporarily brick your computer.
 - `no_audio: bool = False` - Specifies whether the given video has no audio tracks. If not set explicitly, this value

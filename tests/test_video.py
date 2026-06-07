@@ -134,6 +134,14 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(data["no_audio"], v.no_audio)
             v.close()
 
+    # tests that sensible defaults are used when no audio tracks are found
+    def test_no_audio_metadata(self):
+        v = Video(VIDEO_PATH, no_audio=True)
+        self.assertEqual(v.audio_track, 0)
+        self.assertEqual(v.audio_channels, 0)
+        self.assertEqual(v.num_audio_tracks, 0)
+        v.close()
+
     # tests that each chunk setting is working properly
     def test_chunk_settings(self):
         # check that first frame is read correctly
@@ -917,6 +925,7 @@ class TestVideo(unittest.TestCase):
 
     # test playing video in reverse and sped up
     def test_reversed_and_speed(self):
+        # using pygame audio for higher fps limit
         v = Video(VIDEO_PATH, reverse=True, speed=3, use_pygame_audio=True)
         seconds_elapsed = 0
         clock = pygame.time.Clock()
@@ -936,6 +945,31 @@ class TestVideo(unittest.TestCase):
                 frames += 1
                 self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[v.frame_count - v.frame]))
         # check that frame rate kept up
+        self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.9)
+        v.close()
+
+    # test playing video in reverse and sped up and no audio
+    # pretty much a copy and paste of the above test, but
+    # no audio caused bugs in the past, so this test is worth keeping
+    def test_reversed_and_speed_and_silent(self):
+        v = Video(VIDEO_PATH, reverse=True, speed=3, use_pygame_audio=True, no_audio=True)
+        seconds_elapsed = 0
+        clock = pygame.time.Clock()
+        v.play()
+        timer = 0
+        frames = 0
+        avg_fps = 0
+        while v.active:
+            dt = clock.tick(0)
+            timer += dt
+            if timer >= 1000:
+                seconds_elapsed += 1
+                avg_fps += frames
+                timer = 0
+                frames = 0
+            if v.update():
+                frames += 1
+                self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[v.frame_count - v.frame]))
         self.assertGreaterEqual(avg_fps / v.duration, v.frame_rate * 0.9)
         v.close()
 

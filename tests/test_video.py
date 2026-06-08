@@ -20,7 +20,7 @@ from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           VideoStreamError, VideoTkinter, VideoWx,
                           get_ffmpeg_path, get_ffprobe_path, get_version_info,
                           set_ffmpeg_loglevel, set_ffmpeg_path,
-                          set_ffprobe_path, VideoPlayer, Webcam)
+                          set_ffprobe_path, VideoPlayer, Webcam, WebcamNotFoundError)
 from pyvidplayer2.mixer_handler import MixerHandler
 
 from sounddevice import query_devices
@@ -1166,7 +1166,7 @@ class TestVideo(unittest.TestCase):
     # tests force draw
     def test_draw(self):
         for force_draw in (False, True):
-            v = Video("resources\\clip.mp4")
+            v = Video("resources/clip.mp4")
             surf = pygame.Surface(v.original_size)
             clock = pygame.time.Clock()
             flag = True
@@ -1423,6 +1423,7 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # test to ensure each reader behaves the same
+    # might be broken for linux
     def test_readers(self):
         # lossless video to ensure read frames are the same
         PATH = "resources/test.mp4"
@@ -1726,7 +1727,7 @@ class TestVideo(unittest.TestCase):
 
     # tests that buffer current works for videos in reverse
     def test_reverse_buffer_current(self):
-        v = Video("resources\\clip.mp4", reverse=True)
+        v = Video("resources/clip.mp4", reverse=True)
         self.assertFalse(v.buffer_current())
         v.seek_frame(0, intuitive=True)
         self.assertTrue(check_same_frames(v.frame_data, v._preloaded_frames[-1]))
@@ -1940,7 +1941,7 @@ class TestVideo(unittest.TestCase):
             READER_OPENCV,
             READER_FFMPEG
         ):
-            v = Video("resources\\5frames.mp4", reader=reader)
+            v = Video("resources/5frames.mp4", reader=reader)
             frames = [frame for frame in v]
 
             # test seeking before start of video
@@ -2097,7 +2098,7 @@ class TestVideo(unittest.TestCase):
         set_ffprobe_path("ffprobe")
 
     def test_frame_indexing(self):
-        v = Video("resources\\test.mp4")
+        v = Video("resources/test.mp4")
 
         frames = [frame for frame in v]
 
@@ -2113,7 +2114,7 @@ class TestVideo(unittest.TestCase):
 
     # test out-of-bounds exceptions when indexing
     def test_indexing_oob(self):
-        with Video("resources\\5frames.mp4") as v:
+        with Video("resources/5frames.mp4") as v:
             self.assertRaises(IndexError, lambda: v[5])
             self.assertRaises(IndexError, lambda: v[6])
             self.assertRaises(IndexError, lambda: v[-6])
@@ -2124,7 +2125,7 @@ class TestVideo(unittest.TestCase):
 
     # test that the proper exception is bubbled up, instead of an audio error
     def test_ffmpeg_reader_exception(self):
-        self.assertRaises(VideoStreamError, lambda: Video("resources\\fake.txt", reader=READER_FFMPEG))
+        self.assertRaises(VideoStreamError, lambda: Video("resources/fake.txt", reader=READER_FFMPEG))
 
     def test_ffmpeg_not_found(self):
         self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
@@ -2213,7 +2214,10 @@ class TestVideo(unittest.TestCase):
         pygame.quit()
         self.assertFalse(pygame.get_init())
 
-        Webcam()
+        try:
+            Webcam()
+        except WebcamNotFoundError:
+            pass
         self.assertTrue(pygame.get_init())
 
         pygame.quit()

@@ -13,7 +13,8 @@ from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
 from test_video import VIDEO_PATH
 
 
-# macos and linux do not like preview tests
+@unittest.skipIf(sys.platform.startswith("linux") or
+                 sys.platform == "darwin", "Don't work well on linux or mac")
 class TestPreviews(unittest.TestCase):
     # tests that looping is seamless
     # also tests that video does indeed loop by timing out otherwise

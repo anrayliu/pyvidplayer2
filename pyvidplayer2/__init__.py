@@ -1,3 +1,7 @@
+"""
+Comprehensive video playback that integrates easily with existing Python apps.
+"""
+
 import importlib.util
 import subprocess
 

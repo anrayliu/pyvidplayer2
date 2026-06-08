@@ -16,10 +16,10 @@ played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/is
 
 # Features
 
-- Integrates easily with Pygame, PygameCE, Pyglet, Tkinter, PySide6, PyQT6, Raylib, or wxPython
-- Full audio support
-- Lean and modular
-- Supports subtitle files
+- Drop-in integration with only 4 lines of code
+- Lean and modular dependencies
+- Comprehensive audio, video, and subtitle control
+- Supports almost any codec and container
 - Stream videos from Youtube
 - Frame-by-frame iteration and inspection
 - Built-in video player GUI

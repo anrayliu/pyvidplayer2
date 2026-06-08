@@ -1,8 +1,8 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
-
-
+import importlib.util
 import os
 import random
+import sys
 import time
 import unittest
 import unittest.mock
@@ -428,7 +428,7 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # tests that speed can be dynamically adjusted
-    def test_set_speed_method(self):
+    def test_set_speed(self):
         with Video(VIDEO_PATH) as v:
             v.set_speed(0.2)
             self.assertEqual(v.speed, 0.25)
@@ -440,6 +440,32 @@ class TestVideo(unittest.TestCase):
             for i in range(20):
                 v.set_speed(random.uniform(0.25, 3.0))
                 timed_loop(0.5, v.update)
+
+    # tests that the internal seeking used by set_speed
+    # does not actually seek video readers
+    def test_set_speed_seeking(self):
+        v = Video(VIDEO_PATH)
+        v.seek_frame(0)
+
+        self.assertEqual(v.frame, 1)
+        self.assertEqual(v._vid.frame, 1)
+
+        v.set_speed(2.0)
+
+        self.assertEqual(v.frame, 1)
+        self.assertEqual(v._vid.frame, 1)
+
+        v.seek_frame(v.frame_count, intuitive=False)
+
+        self.assertEqual(v.frame, v.frame_count - 1)
+        self.assertEqual(v._vid.frame, v.frame_count - 1)
+
+        v.set_speed(0.3)
+
+        self.assertEqual(v.frame, v.frame_count - 1)
+        self.assertEqual(v._vid.frame, v.frame_count - 1)
+
+        v.close()
 
     # tests that a speed lower than the ffmpeg atempo limit is accounted for
     def test_lowest_speed(self):
@@ -2195,6 +2221,115 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(pygame.mixer.get_init())
 
         v.close()
+
+    # test missing package checks
+    def test_bad_imports(self):
+        real_assertion = importlib.util.find_spec
+
+        missing_packages = []
+
+        def mocked_assertion(name, *args, **kwargs):
+            if name in missing_packages:
+                return None
+            return real_assertion(name, *args, **kwargs)
+
+        def reset_missing(packages):
+            nonlocal missing_packages
+
+            missing_packages.clear()
+            missing_packages += packages
+
+            # stacking should be ok
+            backup = sys.modules.pop("pyvidplayer2", None)
+            self.addCleanup(sys.modules.__setitem__, "pyvidplayer2", backup)
+
+        with unittest.mock.patch("importlib.util.find_spec", side_effect=mocked_assertion):
+            reset_missing(["pygame"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import Video
+            self.assertIn("cannot import name 'Video' from 'pyvidplayer2'",
+                          str(context.exception))
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import Subtitles
+            self.assertIn("cannot import name 'Subtitles' from 'pyvidplayer2'",
+                          str(context.exception))
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoPlayer
+            self.assertIn(
+                "cannot import name 'VideoPlayer' from 'pyvidplayer2'",
+                str(context.exception))
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import Webcam
+            self.assertIn("cannot import name 'Webcam' from 'pyvidplayer2'",
+                          str(context.exception))
+
+            reset_missing(["tkinter"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoTkinter
+            self.assertIn(
+                "cannot import name 'VideoTkinter' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["PySide6"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoPySide
+            self.assertIn(
+                "cannot import name 'VideoPySide' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["PyQt6"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoPyQT
+            self.assertIn(
+                "cannot import name 'VideoPyQT' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["pyray"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoRaylib
+            self.assertIn(
+                "cannot import name 'VideoRaylib' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["wx"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoWx
+            self.assertIn(
+                "cannot import name 'VideoWx' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["pyglet"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import VideoPyglet
+            self.assertIn(
+                "cannot import name 'VideoPyglet' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["cv2"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import Webcam  # noqa: F811
+            self.assertIn(
+                "cannot import name 'Webcam' from 'pyvidplayer2'",
+                str(context.exception))
+
+            reset_missing(["pysubs2"])
+
+            with self.assertRaises(ImportError) as context:
+                from pyvidplayer2 import Subtitles  # noqa: F811
+            self.assertIn(
+                "cannot import name 'Subtitles' from 'pyvidplayer2'",
+                str(context.exception))
 
 
 if __name__ == "__main__":

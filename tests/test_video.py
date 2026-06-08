@@ -1423,6 +1423,7 @@ class TestVideo(unittest.TestCase):
         v.close()
 
     # test to ensure each reader behaves the same
+    # might be broken for linux
     def test_readers(self):
         # lossless video to ensure read frames are the same
         PATH = "resources/test.mp4"

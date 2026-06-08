@@ -7,7 +7,6 @@ This example shows the two ways of seeking
 
 from pyvidplayer2 import Video
 
-
 with Video("resources/billiejean.mp4") as v:
     # skip ahead 60 seconds
     # accepts floats as well

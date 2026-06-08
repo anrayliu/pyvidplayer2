@@ -6,8 +6,8 @@ Pyqt6 and pyside6 have very similar interfaces
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtCore import QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from pyvidplayer2 import VideoPySide
 
 
@@ -29,7 +29,7 @@ video = VideoPySide(r"resources/trailer1.mp4")
 
 app = QApplication([])
 win = Window()
-win.setWindowTitle(f"pyside6 support demo")
+win.setWindowTitle("pyside6 support demo")
 win.setFixedSize(*video.current_size)
 win.show()
 app.exec()

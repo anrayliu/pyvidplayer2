@@ -1,5 +1,3 @@
-Full unit tests for pyvidplayer2
-
 Requires the resources folder which contains all the test videos
 Get the videos by cloning this repo: https://github.com/anrayliu/pyvidplayer2-test-resources
 
@@ -11,6 +9,11 @@ If the installation isn't working, you can remove problematic packages from
 Note: Some tests can be inconsistent, depending on your computer specs
 My 5600x has no issues, while my 7530U sometimes struggles
 
-Problematic tests should have comments next to them.
-
 Feel free to open an issue if needed.
+
+For coverage tests:
+```
+python -m pip install coverage
+python -m coverage run -m unittest discover -s tests
+python -m coverage html -i
+```

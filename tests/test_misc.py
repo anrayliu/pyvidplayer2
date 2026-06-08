@@ -1,20 +1,25 @@
 import subprocess
 import unittest
 
+import numpy as np
+import pygame
 import pyvidplayer2
-from pyvidplayer2 import *
+from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
+                          READER_IMAGEIO, READER_OPENCV, VERSION,
+                          PostProcessing, Video, get_ffmpeg_loglevel,
+                          get_ffmpeg_path, get_version_info,
+                          set_ffmpeg_loglevel)
 
 from test_video import check_same_frames
-import numpy as np
 
 
 class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        VER = "0.9.32"
+        ver = "0.9.33"
 
-        self.assertEqual(VER, VERSION)
-        self.assertEqual(VER, pyvidplayer2.__version__)
+        self.assertEqual(ver, VERSION)
+        self.assertEqual(ver, pyvidplayer2.__version__)
 
         info = get_version_info()
 
@@ -63,43 +68,19 @@ class TestMisc(unittest.TestCase):
     # tests API validity
     # noinspection PyUnresolvedReferences
     def test_library_interface(self):
-        from pyvidplayer2 import Video
-        from pyvidplayer2 import VideoTkinter
-        from pyvidplayer2 import VideoPySide
-        from pyvidplayer2 import VideoPyQT
-        from pyvidplayer2 import VideoPyglet
-        from pyvidplayer2 import VideoRaylib
-        from pyvidplayer2 import VideoWx
-        from pyvidplayer2 import VideoPlayer
-        from pyvidplayer2 import Webcam
-        from pyvidplayer2 import Subtitles
-
-        from pyvidplayer2 import get_version_info
-        from pyvidplayer2 import get_ffmpeg_path
-        from pyvidplayer2 import set_ffmpeg_path
-        from pyvidplayer2 import get_ffprobe_path
-        from pyvidplayer2 import set_ffprobe_path
-        from pyvidplayer2 import get_ffmpeg_loglevel
-        from pyvidplayer2 import set_ffmpeg_loglevel
-
-        from pyvidplayer2 import READER_FFMPEG
-        from pyvidplayer2 import READER_DECORD
-        from pyvidplayer2 import READER_OPENCV
-        from pyvidplayer2 import READER_IMAGEIO
-        from pyvidplayer2 import READER_AUTO
-
-        from pyvidplayer2 import Pyvidplayer2Error
-        from pyvidplayer2 import AudioDeviceError
-        from pyvidplayer2 import AudioStreamError
-        from pyvidplayer2 import SubtitleError
-        from pyvidplayer2 import VideoStreamError
-        from pyvidplayer2 import FFmpegNotFoundError
-        from pyvidplayer2 import OpenCVError
-        from pyvidplayer2 import YTDLPError
-        from pyvidplayer2 import WebcamNotFoundError
-
-        from pyvidplayer2 import PostProcessing
-        from pyvidplayer2 import VERSION
+        from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
+                                  READER_IMAGEIO, READER_OPENCV, VERSION,
+                                  AudioDeviceError, AudioStreamError,
+                                  FFmpegNotFoundError, OpenCVError,
+                                  PostProcessing, Pyvidplayer2Error,
+                                  SubtitleError, Subtitles, Video, VideoPlayer,
+                                  VideoPyglet, VideoPyQT, VideoPySide,
+                                  VideoRaylib, VideoStreamError, VideoTkinter,
+                                  VideoWx, Webcam, WebcamNotFoundError,
+                                  YTDLPError, get_ffmpeg_loglevel,
+                                  get_ffmpeg_path, get_ffprobe_path,
+                                  get_version_info, set_ffmpeg_loglevel,
+                                  set_ffmpeg_path, set_ffprobe_path)
         from pyvidplayer2._version import __version__
 
     # tests each post processing function
@@ -113,10 +94,21 @@ class TestMisc(unittest.TestCase):
         new_frame = next(v2)
         self.assertTrue(check_same_frames(original_frame, new_frame))
 
-        for func in (lambda d: np.fliplr(d), PostProcessing.blur, PostProcessing.sharpen, PostProcessing.greyscale,
-                     PostProcessing.noise, PostProcessing.letterbox, PostProcessing.cel_shading, PostProcessing.flipup,
-                     PostProcessing.fliplr, PostProcessing.rotate90, PostProcessing.rotate270,
-                     PostProcessing.vhs, PostProcessing.emboss):
+        for func in (
+            lambda d: np.fliplr(d),
+            PostProcessing.blur,
+            PostProcessing.sharpen,
+            PostProcessing.greyscale,
+            PostProcessing.noise,
+            PostProcessing.letterbox,
+            PostProcessing.cel_shading,
+            PostProcessing.flipup,
+            PostProcessing.fliplr,
+            PostProcessing.rotate90,
+            PostProcessing.rotate270,
+            PostProcessing.vhs,
+            PostProcessing.emboss
+        ):
             v2.set_post_func(func)
             self.assertFalse(check_same_frames(next(v1), next(v2)))
 

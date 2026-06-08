@@ -1,17 +1,17 @@
 # obsolete class, replaced with psd_handler
 
 import copy
-import wave
 import math
 import time
-from threading import Thread
+import wave
 from io import BytesIO
+from threading import Thread
 
-import pyaudio
 import numpy as np
+import pyaudio
 
-from .error import *
 from .audio_handler import AudioHandler
+from .error import AudioDeviceError
 
 
 class PyaudioHandler(AudioHandler):
@@ -66,10 +66,11 @@ class PyaudioHandler(AudioHandler):
     def _set_device_index(self, index):
         try:
             self.audio_devices[index]
-        except IndexError:
-            raise AudioDeviceError(f"Audio device with index {index} does not exist.")
-        else:
-            self.device_index = index
+        except IndexError as e:
+            raise AudioDeviceError(
+                f"Audio device with index {index} does not exist."
+            ) from e
+        self.device_index = index
 
     def get_busy(self):
         return self.active
@@ -106,26 +107,25 @@ class PyaudioHandler(AudioHandler):
     def find_device_by_name(self, name):
         if self.audio_devices is None:
             raise RuntimeError("find_device_by_name was called before refresh_devices")
-        for i in range(len(self.audio_devices)):
-            info = self.audio_devices[i]
+        for i, info in enumerate(self.audio_devices):
             if info["name"] == name:
                 if info['maxOutputChannels'] > 0:
                     return i
         return -1
 
-    def load(self, bytes_):
+    def load(self, audio_chunk):
         self.unload()
 
         try:
-            self.wave = wave.open(BytesIO(bytes_), "rb")
-        except EOFError:
+            self.wave = wave.open(BytesIO(audio_chunk), "rb")
+        except EOFError as e:
             raise EOFError(
                 "Audio is empty. This may mean the file is corrupted."
                 " If your video has no audio track,"
                 " try initializing it with no_audio=True."
                 " If it has several tracks, make sure the correct one"
                 " is selected with the audio_track parameter."
-            )
+            ) from e
 
         if self.stream is None:
             try:
@@ -140,8 +140,10 @@ class PyaudioHandler(AudioHandler):
                 )
 
             except Exception as e:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}\": {}".format(
-                    self.audio_devices[self.device_index]["name"], e))
+                raise AudioDeviceError(
+                    "Failed to open audio stream with device \"{}\"".format(
+                        self.audio_devices[self.device_index]["name"])
+                ) from e
 
         self.loaded = True
 
@@ -180,13 +182,13 @@ class PyaudioHandler(AudioHandler):
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK_SIZE = 128  # increasing this will reduce get_pos precision
+        chunk_size = 128  # increasing this will reduce get_pos precision
 
         while not self.stop_thread:
             if self.paused:
                 time.sleep(0.01)
             else:
-                data = self.wave.readframes(CHUNK_SIZE)
+                data = self.wave.readframes(chunk_size)
                 if data == b"":
                     break
 
@@ -202,7 +204,7 @@ class PyaudioHandler(AudioHandler):
 
                 self.stream.write(audio.tobytes())
 
-                self.chunks_played += CHUNK_SIZE
+                self.chunks_played += chunk_size
                 self.position = self.chunks_played / float(self.wave.getframerate())
 
         self.active = False
@@ -234,14 +236,3 @@ class PyaudioHandler(AudioHandler):
 
     def unmute(self):
         self.muted = False
-
-    # not ideal, should've used properties instead
-    # still better to be consistent with old patterns until refactors can be made
-    def get_muted(self):
-        return self.muted
-    
-    def get_loaded(self):
-        return self.loaded
-    
-    def get_paused(self):
-        return self.paused

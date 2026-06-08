@@ -1,13 +1,16 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
-import unittest
-import time
 import sys
+import time
+import unittest
 from threading import Thread
-from pyvidplayer2 import *
+
+import pygame
+from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
+                          VideoPyQT, VideoPySide, VideoTkinter, VideoWx)
+
 from test_video import VIDEO_PATH
-from test_youtube import YOUTUBE_PATH
 
 
 # macos and linux do not like preview tests
@@ -16,7 +19,7 @@ class TestPreviews(unittest.TestCase):
     # also tests that video does indeed loop by timing out otherwise
     def test_seamless_loop(self):
         v = Video("resources/loop.mp4")
-        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]), loop=True)
 
         self.assertTrue(v._buffer_first_chunk)
 
@@ -56,7 +59,7 @@ class TestPreviews(unittest.TestCase):
         # pygame.init()
 
         v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, *v.original_size), loop=True)
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]), loop=True)
 
         thread = Thread(target=lambda: vp.preview())
         thread.start()
@@ -80,25 +83,35 @@ class TestPreviews(unittest.TestCase):
         thread.join()
 
     # tests video player preview works and does not close when video ends
-    # broken test
-    @unittest.skip
     def test_video_player_preview(self):
         v = Video(VIDEO_PATH)
-        vp = VideoPlayer(v, (0, 0, 1280, 720))
-        v.seek(v.duration)
+        vp = VideoPlayer(v, (0, 0, 1280, 720), interactable=True)
+        v.seek(v.duration - 3)
         thread = Thread(target=lambda: vp.preview())
         thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
+        time.sleep(5)
+        self.assertTrue(thread.is_alive())
+        self.assertFalse(vp.closed)
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
         thread.join()
 
     # tests that previews start from where the video position is, and that they close the video afterwards
     def test_previews(self):
-        for lib in (Video, VideoTkinter, VideoPyglet, VideoRaylib, VideoPyQT, VideoPySide, VideoWx):
+        for lib in (
+            Video,
+            VideoTkinter,
+            VideoPyglet,
+            # VideoRaylib cannot run alongside pyglet anymore
+            VideoPyQT,
+            VideoPySide,
+            VideoWx
+        ):
             v = lib(VIDEO_PATH)
             v.seek(v.duration - 0.1)
-            v.preview()
+            if lib == Video:
+                v.preview(show_fps=True)
+            else:
+                v.preview()
             self.assertTrue(v.closed)
             v.close()
 
@@ -108,7 +121,7 @@ class TestPreviews(unittest.TestCase):
         dict_ = {key: None for key in sys.modules.keys() if key.startswith("av.")}
         dict_.update({"av": None})
         with unittest.mock.patch.dict("sys.modules", dict_):
-            with self.assertRaises(ImportError) as context:
+            with self.assertRaises(ImportError) as _:
                 Video("resources/clip.mp4", reader=READER_IMAGEIO).preview()
 
     # tests for a bug where the last frame would hang in situations like this

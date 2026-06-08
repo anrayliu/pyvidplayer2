@@ -6,7 +6,7 @@ This example gives a side by side comparison between a few available post proces
 
 
 import pygame
-from pyvidplayer2 import Video, PostProcessing
+from pyvidplayer2 import PostProcessing, Video
 
 PATH = r"resources\ocean.mkv"
 
@@ -19,8 +19,10 @@ pygame.display.set_caption("post processing demo")
 # post processing functions are applied to each frame before rendering
 # both the frame_data and frame_surf properties have post processing applied to them
 
+
 def custom_post_processing(data):
     return data     # do nothing with the frame
+
 
 videos = [Video(PATH, post_process=PostProcessing.sharpen),
           Video(PATH, post_process=custom_post_processing),

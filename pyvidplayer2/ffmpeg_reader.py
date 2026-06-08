@@ -4,8 +4,8 @@ import subprocess
 import numpy as np
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path
+from .error import FFmpegNotFoundError
 from .video_reader import VideoReader
-from .error import *
 
 
 class FFMPEGReader(VideoReader):
@@ -24,8 +24,11 @@ class FFMPEGReader(VideoReader):
             command = self._get_command()
 
             self._process = subprocess.Popen(command, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
+        except FileNotFoundError as e:
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. "
+                "Make sure FFmpeg is installed and accessible via PATH."
+            ) from e
 
     # not guaranteed to be called but since FFmpegReader
     # is more prone to resource leaks than other readers, adding
@@ -38,8 +41,8 @@ class FFMPEGReader(VideoReader):
         if proc is None:
             return
 
-        # can cause hanging
-        # proc.stdout.close()
+        if proc.stdout:
+            proc.stdout.close()
 
         proc.terminate()
         try:
@@ -51,8 +54,10 @@ class FFMPEGReader(VideoReader):
     def _get_command(self, index=None):
         return [
             get_ffmpeg_path(),
-            *(["-hwaccel", "cuda"] if self.cuda_device >= 0 else []),  # nvidia hardware acceleration
-            *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device >= 0 else []), # select device
+            # nvidia hardware acceleration
+            *(["-hwaccel", "cuda"] if self.cuda_device >= 0 else []),
+            # select device
+            *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device >= 0 else []),
             *(["-ss", self._convert_seconds(index / self.frame_rate)] if index is not None else []),
             "-i", self._path,
             "-loglevel", get_ffmpeg_loglevel(),
@@ -81,8 +86,11 @@ class FFMPEGReader(VideoReader):
             has = True
             self.frame += 1
 
-        return (has,
-                np.frombuffer(b, np.uint8).reshape((self.original_size[1], self.original_size[0], 3)) if has else None)
+        frame = None
+        if has:
+            frame = np.frombuffer(b, np.uint8).reshape((self.original_size[1], self.original_size[0], 3))
+
+        return has, frame
 
     def seek(self, index):
         self.frame = index

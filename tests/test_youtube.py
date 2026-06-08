@@ -1,14 +1,20 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
+import random
 import time
 import unittest
 import unittest.mock
-import random
+from threading import Thread
+
+import pygame
 import yt_dlp
+from pyvidplayer2 import (READER_AUTO, READER_FFMPEG, READER_IMAGEIO,
+                          READER_OPENCV, SubtitleError, Subtitles, Video,
+                          VideoPlayer, YTDLPError)
+
 from test_subtitles import SUBS
-from test_video import while_loop, timed_loop, check_same_frames
-from pyvidplayer2 import *
+from test_video import check_same_frames, timed_loop, while_loop
 
 
 def get_youtube_urls(max_results=5):
@@ -27,6 +33,7 @@ def get_youtube_urls(max_results=5):
 
 
 YOUTUBE_PATH = "https://www.youtube.com/watch?v=K8PoK3533es&t=3s"
+
 
 # youtube support just continues to degrade over time...
 # reached a point where I've justified skipping these by default
@@ -129,16 +136,29 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests for errors for unsupported youtube links
     def test_bad_youtube_links(self):
         for url in (
-        "https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
-        "https://www.youtube.com/", "https://www.youtube.com/shorts"):
+            "https://www.youtube.com/@joewoobie1155",
+            "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
+            "https://www.youtube.com/",
+            "https://www.youtube.com/shorts"
+        ):
             with self.assertRaises(YTDLPError):
                 Video(url, youtube=True).close()
             time.sleep(0.1)
 
     # tests that nothing crashes when selecting different languages with Youtube
     def test_youtube_language_tracks(self):
-        for lang in (None, "en-US", "fr-FR", "es-US", "it", "pt-BR", "de-DE", "badcode"):
-            v = Video("https://www.youtube.com/watch?v=v4H2fTgHGuc", youtube=True, pref_lang=lang)
+        for lang in (
+            None,
+            "en-US",
+            "fr-FR",
+            "es-US",
+            "it",
+            "pt-BR",
+            "de-DE",
+            "badcode"
+        ):
+            v = Video("https://www.youtube.com/watch?v=v4H2fTgHGuc",
+                      youtube=True, pref_lang=lang)
             timed_loop(3, v.update)
             v.close()
             time.sleep(0.1)
@@ -173,8 +193,10 @@ class TestYoutubeVideo(unittest.TestCase):
         time.sleep(0.1)
 
         for url in (
-        "https://www.youtube.com/@joewoobie1155", "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
-        "https://www.youtube.com/"):
+            "https://www.youtube.com/@joewoobie1155",
+            "https://www.youtube.com/channel/UCY3Rgenpuy4cY79eGk6DmuA",
+            "https://www.youtube.com/"
+        ):
             with self.assertRaises(SubtitleError) as context:
                 Subtitles(url, youtube=True)
             self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
@@ -215,16 +237,21 @@ class TestYoutubeVideo(unittest.TestCase):
 
                         # check the correct subtitle was generated
                         if not v.subs_hidden:
-                            self.assertTrue(check_same_frames(pygame.surfarray.array3d(v.subs[0]._to_surf(text)),
-                                                              pygame.surfarray.array3d(v.subs[0].surf)))
+                            self.assertTrue(check_same_frames(
+                                pygame.surfarray.array3d(v.subs[0]._to_surf(text)),
+                                pygame.surfarray.array3d(v.subs[0].surf)
+                                )
+                            )
 
                         break
 
                 if not in_interval:
                     self.assertTrue(
-                        check_same_frames(pygame.surfarray.array3d(v.frame_surf),
-                                          pygame.surfarray.array3d(v._create_frame(
-                                              v.frame_data))))
+                        check_same_frames(
+                            pygame.surfarray.array3d(v.frame_surf),
+                            pygame.surfarray.array3d(v._create_frame(v.frame_data))
+                        )
+                    )
 
         self.assertFalse(v.subs_hidden)
 
@@ -284,7 +311,7 @@ class TestYoutubeVideo(unittest.TestCase):
     # tests that video players work with youtube videos
     def test_youtube_player(self):
         v = Video(YOUTUBE_PATH, youtube=True)
-        vp = VideoPlayer(v, (0, 0, *v.original_size))
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
         v.seek(v.duration)
         thread = Thread(target=lambda: vp.preview())
         thread.start()

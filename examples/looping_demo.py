@@ -9,7 +9,7 @@ looping is now much more seamless
 
 
 import pygame
-from pyvidplayer2 import VideoPlayer, Video
+from pyvidplayer2 import Video, VideoPlayer
 
 v = Video(r"resources\loop2.mp4")
 player = VideoPlayer(v, (0, 0, *v.current_size), loop=True)

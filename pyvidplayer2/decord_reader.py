@@ -2,8 +2,8 @@ from io import BytesIO
 
 import decord
 
+from .error import VideoStreamError
 from .video_reader import VideoReader
-from .error import *
 
 
 class DecordReader(VideoReader):
@@ -17,8 +17,8 @@ class DecordReader(VideoReader):
 
         try:
             self._vid_reader = decord.VideoReader(BytesIO(path) if self._as_bytes else path)
-        except RuntimeError:
-            raise VideoStreamError("Could not determine video.")
+        except RuntimeError as e:
+            raise VideoStreamError("Could not determine video.") from e
 
         VideoReader._probe(self, path, self._as_bytes)
 
@@ -26,8 +26,8 @@ class DecordReader(VideoReader):
         try:
             self._vid_reader.seek_accurate(index)
         except AssertionError:
-            pass # index out of bounds
-        self.frame = index # don't put this into an "else" block
+            pass  # index out of bounds
+        self.frame = index  # don't put this into an "else" block
 
     def read(self):
         frame = None

@@ -6,7 +6,7 @@ This is an example of the built in GUI for videos
 
 
 import pygame
-from pyvidplayer2 import VideoPlayer, Video
+from pyvidplayer2 import Video, VideoPlayer
 
 video = Video(r"resources\ocean.mkv")
 

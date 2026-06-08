@@ -1,26 +1,32 @@
-from typing import Callable, Union, Tuple
 import tkinter as tk
+from typing import Callable, Tuple, Union
 
 import numpy as np
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoTkinter(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for Tkinter."""
 
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
+                 max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
-                 no_audio: bool = False, speed: float = 1, youtube: bool = False,
-                 max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
+                 interp: Union[str, int] = "linear",
+                 use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1,
+                 youtube: bool = False,
+                 max_res: int = 720, as_bytes: bool = False,
+                 audio_track: int = 0, vfr: bool = False,
+                 pref_lang: str = "en", audio_index: int = None,
+                 reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None,
+                       post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index,
+                       reader, cuda_device)
 
     def _create_frame(self, data):
         h, w = data.shape[:2]
@@ -29,7 +35,7 @@ class VideoTkinter(Video):
         try:
             return tk.PhotoImage(width=w, height=h, data=f"P6 {w} {h} 255 ".encode() + data.tobytes(), format='PPM')
         except RuntimeError:
-            return None # RunTimeError: Too early to create image: no default root window
+            return None  # RunTimeError: Too early to create image: no default root window
 
     def _render_frame(self, canvas, pos):
         canvas.create_image(*pos, image=self.frame_surf)
@@ -53,4 +59,6 @@ class VideoTkinter(Video):
         canvas.pack()
         update()
         root.mainloop()
+        root.quit()
+
         self.close()

@@ -1,27 +1,36 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
-import pygame
 import numpy as np
+import pygame
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoPygame(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for Pygame."""
 
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
-                 subs: "pyvidplayer2.Subtitles" = None,
+    # noinspection PyUnresolvedReferences
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
+                 max_threads: int = 1, max_chunks: int = 1,
+                 subs: "pyvidplayer2.Subtitles" = None,  # noqa: F821
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
-                 no_audio: bool = False, speed: float = 1, youtube: bool = False, max_res: int = 720,
-                 as_bytes: bool = False, audio_track: int = 0, vfr: bool = False, pref_lang: str = "en",
-                 audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio,
+                 interp: Union[str, int] = "linear",
+                 use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1,
+                 youtube: bool = False, max_res: int = 720,
+                 as_bytes: bool = False, audio_track: int = 0,
+                 vfr: bool = False, pref_lang: str = "en",
+                 audio_index: int = None, reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, subs,
+                       post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index,
+                       reader, cuda_device)
+
+        if not pygame.get_init():
+            pygame.init()
 
     def _create_frame(self, data):
         return pygame.image.frombuffer(data.tobytes(), (data.shape[1], data.shape[0]), self._vid._colour_format)
@@ -33,6 +42,12 @@ class VideoPygame(Video):
         return Video.draw(self, surf, pos, force_draw)
 
     def preview(self, show_fps: bool = False, max_fps: int = 60) -> None:
+        """Open a window and play the video. This method will hang until the
+        video finishes. If show_fps is True, a counter will be displayed
+        showing the actual number of new frames being rendered every second.
+        If using a graphics library other than Pygame, this method doesn't
+        accept any arguments."""
+
         win = pygame.display.set_mode(self.current_size)
         clock = pygame.time.Clock()
         pygame.display.set_caption(f"pygame - {self.name}")
@@ -63,6 +78,7 @@ class VideoPygame(Video):
         self.close()
 
     def show_subs(self) -> None:
+        """Display subtitles."""
         self.subs_hidden = False
         if self.frame_data is not None:
             self.frame_surf = self._create_frame(self.frame_data)
@@ -70,9 +86,12 @@ class VideoPygame(Video):
                 self._write_subs(self.frame / self.frame_rate)
 
     def hide_subs(self) -> None:
+        """Hide subtitles."""
         self.subs_hidden = True
         if self.frame_data is not None:
             self.frame_surf = self._create_frame(self.frame_data)
 
-    def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:
+    # noinspection PyUnresolvedReferences
+    def set_subs(self, subs: "pyvidplayer2.Subtitles") -> None:  # noqa: F821
+        """Set the subtitles to use. Works the same as providing subtitles through the subs parameter."""
         self.subs = self._filter_subs(subs)

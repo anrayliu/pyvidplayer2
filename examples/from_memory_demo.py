@@ -8,7 +8,6 @@ pip install decord before using
 
 from pyvidplayer2 import Video
 
-
 # experimental feature, still a little buggy
 
 with open("resources/ocean.mkv", "rb") as f:

@@ -5,8 +5,8 @@ This is a quick example of integrating a video into a pyqt6 project
 # Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from pyvidplayer2 import VideoPyQT
 
 
@@ -28,7 +28,7 @@ video = VideoPyQT(r"resources\trailer1.mp4")
 
 app = QApplication([])
 win = Window()
-win.setWindowTitle(f"pyqt6 support demo")
+win.setWindowTitle("pyqt6 support demo")
 win.setFixedSize(*video.current_size)
 win.show()
 app.exec()

@@ -12,7 +12,6 @@ Reversing longer videos can temporarily brick your computer if there isn't enoug
 
 from pyvidplayer2 import Video
 
-
 # reversing can also be combined with other video settings like speed changes
 
 with Video(r"resources\birds.avi", reverse=True) as v:

@@ -1,20 +1,23 @@
 import math
-from typing import Tuple, Union, List
+from typing import List, Tuple, Union
 
 import pygame
 
 from . import Video
-from .error import *
+from .error import VideoStreamError
 from .video_pygame import VideoPygame
 
 
 class VideoPlayer:
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """VideoPlayers are GUI containers for videos. They are useful for scaling
+    a video to fit an area or looping videos. Only supported for Pygame."""
 
-    def __init__(self, video: Video, rect: Tuple[int, int, int, int], interactable: bool = False, loop: bool = False,
+    def __init__(self, video: Video, rect: Tuple[int, int, int, int],
+                 interactable: bool = False, loop: bool = False,
                  preview_thumbnails: int = 0, font_size: int = 10):
+        if not pygame.get_init():
+            pygame.init()
+
         self.video = video
         if isinstance(self.video, VideoPygame):
             if self.video.closed:
@@ -113,7 +116,7 @@ class VideoPlayer:
                     self._interval_frames.append(pygame.image.frombuffer(
                         self.video._resize_frame(self.video._vid.read()[1], size, "fast_bilinear", True).tobytes(),
                         size, self.video._vid._colour_format))
-                except:
+                except AttributeError:
                     i += 1
                 else:
                     break
@@ -127,7 +130,9 @@ class VideoPlayer:
         self.frame_rect = rect
         self.zoom_out()
 
-        self._progress_back = pygame.Rect(self.frame_rect.x + 10, self.frame_rect.bottom - 25, self.frame_rect.w - 20,
+        self._progress_back = pygame.Rect(self.frame_rect.x + 10,
+                                          self.frame_rect.bottom - 25,
+                                          self.frame_rect.w - 20,
                                           15)
         self._progress_bar = self._progress_back.copy()
 
@@ -175,26 +180,38 @@ class VideoPlayer:
             self.video.restart()
 
     def zoom_to_fill(self) -> None:
-        s = max(abs(self.frame_rect.w - self.vid_rect.w), abs(self.frame_rect.h - self.vid_rect.h))
+        """Zoom in the video so that the frame_rect is entirely filled in
+        while maintaining aspect ratio."""
+
+        s = max(abs(self.frame_rect.w - self.vid_rect.w),
+                abs(self.frame_rect.h - self.vid_rect.h))
         self.vid_rect.inflate_ip(s, s)
         self.vid_rect.center = self.frame_rect.center  # adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
         self._zoomed = True
 
     def zoom_out(self) -> None:
+        """Revert zoom_to_fill()."""
+
         self.vid_rect = self._best_fit(self.frame_rect, self.video.aspect_ratio)
         self.vid_rect.center = self.frame_rect.center  # adjusts for 1.0 rounding imprecisions
         self.video.resize(self.vid_rect.size)
         self._zoomed = False
 
     def toggle_zoom(self) -> None:
+        """Switch between zoomed in and zoomed out."""
+
         if self._zoomed:
             self.zoom_out()
         else:
             self.zoom_to_fill()
 
     def queue(self, input_: Union[str, Video]) -> None:
-        if type(input_) != str and not isinstance(input_, Video):
+        """Accept a path to a video or a Video object and add it to the queue.
+        Passing a path will not load the video until it becomes the active
+        video."""
+
+        if not isinstance(input_, str) and not isinstance(input_, Video):
             raise ValueError("Can only queue video paths or video objects.")
 
         self.queue_.append(input_)
@@ -207,20 +224,36 @@ class VideoPlayer:
             pass
 
     def enqueue(self, input_: Union[str, Video]) -> None:
+        """Same exact method as queue, but with a more conventionally correct
+        name. Keeping queue for backwards compatibility."""
+
         self.queue(input_)
 
     def resize(self, size: Tuple[int, int]) -> None:
+        """Resize the VideoPlayer. The contained video will automatically
+        re-adjust to fit the player."""
+
         self.frame_rect.size = size
         self._transform(self.frame_rect)
 
     def move(self, pos: Tuple[int, int], relative: bool = False) -> None:
+        """Move the VideoPlayer. If relative is True, the given coordinates
+        will be added onto the current coordinates. Otherwise, the current
+        coordinates will be set to the given coordinates."""
+
         if relative:
-            self.frame_rect.move_ip(*pos)
+            self.frame_rect.move_ip(pos[0], pos[1])
         else:
             self.frame_rect.topleft = pos
         self._transform(self.frame_rect)
 
     def update(self, events: List[pygame.event.Event] = None, show_ui: bool = None, fps: int = 0) -> bool:
+        """Allow the VideoPlayer to make calculations. It must be passed the
+        returns of pygame.event.get(). The GUI automatically shows up when
+        your mouse hovers over the video player, so setting show_ui can be
+        used to override that. The fps parameter can enforce a frame rate to
+        your app. This method also returns whether the UI was shown."""
+
         dt = self._clock.tick(fps)
 
         self.video.update()
@@ -267,12 +300,17 @@ class VideoPlayer:
         return self._show_ui
 
     def draw(self, win: pygame.Surface) -> None:
+        """Draw the video player onto the given Pygame surface."""
+
         pygame.draw.rect(win, "black", self.frame_rect)
         buffer = self.video.frame_surf
         if buffer is not None:
             if self._zoomed:
                 win.blit(buffer, self.frame_rect.topleft, (
-                    self.frame_rect.x - self.vid_rect.x, self.frame_rect.y - self.vid_rect.y, *self.frame_rect.size))
+                    self.frame_rect.x - self.vid_rect.x,
+                    self.frame_rect.y - self.vid_rect.y,
+                    self.frame_rect.size[0],
+                    self.frame_rect.size[1]))
             else:
                 win.blit(buffer, self.vid_rect.topleft)
 
@@ -290,8 +328,10 @@ class VideoPlayer:
             win.blit(f, (self.frame_rect.x + 10, self._progress_bar.top - f.get_height() - 10))
 
             if self._show_seek:
-                pygame.draw.line(win, "white", (self._seek_pos, self._progress_back.top),
-                                 (self._seek_pos, self._progress_back.bottom), 2)
+                pygame.draw.line(win, "white",
+                                 (self._seek_pos, self._progress_back.top),
+                                 (self._seek_pos, self._progress_back.bottom),
+                                 2)
 
                 f = self._font.render(self._convert_seconds(self._seek_time), True, "white")
                 win.blit(f, (self._seek_pos - f.get_width() // 2, self._progress_back.y - 10 - f.get_height()))
@@ -300,9 +340,10 @@ class VideoPlayer:
                     surf = self._get_closest_frame(self._seek_time)
                     x = self._seek_pos - surf.get_width() // 2
                     x = min(max(x, self.frame_rect.x), self.frame_rect.right - surf.get_width())
-                    pygame.draw.rect(win, (0, 0, 0), (
-                        x - 2, self._progress_back.y - 80 - f.get_height() - 2, surf.get_width() + 4,
-                        surf.get_height() + 4), 2)
+                    width = 1
+                    pygame.draw.rect(win, (50, 50, 50), (
+                        x - width, self._progress_back.y - 80 - f.get_height() - width, surf.get_width() + width * 2,
+                        surf.get_height() + width * 2), width)
                     win.blit(surf, (x, self._progress_back.y - 80 - f.get_height()))
 
         if self.interactable:
@@ -318,29 +359,47 @@ class VideoPlayer:
                 pygame.draw.rect(win, "white", (self.frame_rect.centerx + 5, self.frame_rect.centery - 20, 10, 40))
 
     def close(self) -> None:
+        """Release resources. Always recommended to call when done. Using the
+        video player after can lead to unexpected behaviour."""
+
         self.video.close()
         self._close_queue()
         self.closed = True
 
     def skip(self) -> None:
+        """Move onto the next video in the queue."""
+
         if self.queue_:
-            self.video.stop() if self.loop else self.video.close()
+            if self.loop:
+                self.video.stop()
+            else:
+                self.video.close()
             self._handle_on_end()
 
     def get_next(self) -> Union[str, Video]:
+        """Return next item in queue."""
+
         return self.queue_[0] if self.queue_ else None
 
     def clear_queue(self) -> None:
+        """Clear queued items."""
+
         self._close_queue()
         self.queue_.clear()
 
     def get_video(self) -> Video:
+        """Return currently playing video object."""
+
         return self.video
 
     def get_queue(self) -> List[Union[str, Video]]:
+        """Return list of queued video objects."""
+
         return self.queue_
 
     def preview(self, max_fps: int = 60):
+        """Opens a preview window, similar to Video.preview()."""
+
         win = pygame.display.set_mode(self.frame_rect.size, pygame.RESIZABLE)
         pygame.display.set_caption(f"videoplayer - {self.video.name}")
         self.video.play()

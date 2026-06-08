@@ -1,28 +1,29 @@
 # Contains most of the core logic for video playback
 # This project started when I was a lot less experienced,
 # and over the years, it's greatly surpassed my initial scope.
-# As such, the code quality can be lacking - it's an 
+# As such, the code quality can be lacking - it's an
 # active challenge to make better refactors
 
-import subprocess
-import os
+import importlib.util
 import json
+import os
+import subprocess
 from abc import abstractmethod
-from typing import Union, Callable, Tuple
 from threading import Thread
+from typing import Callable, Tuple, Union
 
 import numpy as np
 
-from .ffmpeg_reader import FFMPEGReader
-from .error import *
 from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
+from .error import (AudioStreamError, FFmpegNotFoundError, OpenCVError,
+                    VideoStreamError, YTDLPError)
+from .ffmpeg_reader import FFMPEGReader
 
-try:
-    import cv2
-except ImportError:
-    CV = 0
-else:
+CV = 0
+if importlib.util.find_spec("cv2") is not None:
     CV = 1
+    import cv2
+
     from .cv_reader import CVReader
 
 # pyaudio is obsolete, replaced with python sounddevice
@@ -35,51 +36,35 @@ else:
 #     PYAUDIO = 1
 #     from .pyaudio_handler import PyaudioHandler
 
-try:
-    import sounddevice
-except ImportError:
-    SOUNDDEVICE = 0
-else:
+SOUNDDEVICE = 0
+if importlib.util.find_spec("sounddevice") is not None:
     SOUNDDEVICE = 1
     from .psd_handler import PSDHandler
 
-try:
-    import pygame
-except ImportError:
-    PYGAME = 0
-else:
+PYGAME = 0
+SUBS = 0
+if importlib.util.find_spec("pygame") is not None:
     PYGAME = 1
     from .mixer_handler import MixerHandler
 
-try:
-    import yt_dlp
-except ImportError:
-    YTDLP = 0
-else:
-    YTDLP = 1
+    if importlib.util.find_spec("pysubs2") is not None:
+        SUBS = 1
+        from .subtitles import Subtitles
 
-try:
-    import imageio.v3
-except ImportError:
-    IIO = 0
-else:
+YTDLP = 0
+if importlib.util.find_spec("yt_dlp") is not None:
+    YTDLP = 1
+    import yt_dlp
+
+IIO = 0
+if importlib.util.find_spec("imageio") is not None:
     IIO = 1
     from .imageio_reader import IIOReader
 
-try:
-    import decord
-except ImportError:
-    DECORD = 0
-else:
+DECORD = 0
+if importlib.util.find_spec("decord") is not None:
     DECORD = 1
     from .decord_reader import DecordReader
-
-try:
-    from .subtitles import Subtitles
-except ImportError:
-    SUBS = 0
-else:
-    SUBS = 1
 
 
 # for specifying different reader backends
@@ -91,8 +76,17 @@ READER_DECORD = 4
 
 
 class Video:
-    def __init__(self, path, chunk_size, max_threads, max_chunks, subs, post_process, interp, use_pygame_audio, reverse,
-                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr, pref_lang, audio_index, reader, 
+    """Base class for video playback. Videos can be read from
+    disk, RAM, or streamed from YouTube. Videos can only be played
+    simultaneously if using Sounddevice as the audio library. Pygame or
+    Pygame CE are the only graphics libraries to support subtitles.
+    yt-dlp is required to stream videos from YouTube. Decord is required to
+    play videos from RAM."""
+
+    def __init__(self, path, chunk_size, max_threads, max_chunks, subs,
+                 post_process, interp, use_pygame_audio, reverse,
+                 no_audio, speed, youtube, max_res, as_bytes, audio_track, vfr,
+                 pref_lang, audio_index, reader,
                  cuda_device) -> None:
 
         self._audio_path = path  # used for audio only when streaming
@@ -102,7 +96,7 @@ class Video:
         self.ext = ""
 
         as_bytes = as_bytes or isinstance(path, bytes)
-        
+
         # automatic youtube url detection
         # disabled because it adds too much overhead to be implicit
         # youtube = youtube or self._test_youtube()
@@ -122,15 +116,13 @@ class Video:
             # sets path and audio path for cv2 and ffmpeg
             # also sets name and ext
             self._set_stream_url(path, max_res)
-            
+
             # cannot use ffmpeg reader and therefore cuda device here
             self._vid = reader(self.path)
-                
+
             # having less than 60 hurts performance
-            if chunk_size < 60:
-                chunk_size = 60
-            if max_threads > 1:
-                max_threads = 1
+            chunk_size = max(chunk_size, 60)
+            max_threads = min(max_threads, 1)
 
         elif as_bytes:
             # cannot use ffmpeg reader and therefore cuda device here
@@ -139,7 +131,8 @@ class Video:
 
         else:
             if not os.path.exists(self.path):
-                raise FileNotFoundError(f"[Errno 2] No such file or directory: '{self.path}'")
+                raise FileNotFoundError(
+                    f"[Errno 2] No such file or directory: '{self.path}'")
 
             self._vid = reader(self.path, cuda_device=cuda_device) if reader == FFMPEGReader else reader(self.path)
             self.name, self.ext = os.path.splitext(os.path.basename(self.path))
@@ -159,6 +152,7 @@ class Video:
         self.current_size = self.original_size
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
         self.audio_channels = 0
+        self.num_audio_tracks = 0
 
         self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
@@ -207,7 +201,7 @@ class Video:
         else:
             if not SOUNDDEVICE:
                 raise ModuleNotFoundError(
-                "Python-sounddevice is not installed. Install it via pip or use a different audio backend.")
+                    "Python-sounddevice is not installed. Install it via pip or use a different audio backend.")
 
             # self._audio = PyaudioHandler()
             self._audio = PSDHandler()
@@ -221,7 +215,7 @@ class Video:
 
         self._missing_ffmpeg = False  # for throwing errors
         self._skipped_frame = False  # used when slicing
-        self._skipped_frame_index = 0 # used when slicing
+        self._skipped_frame_index = 0  # used when slicing
         self._seek_buffered = False
         self._preloaded = False
         self._update_time = 0.0  # for testing
@@ -249,13 +243,15 @@ class Video:
     def __str__(self) -> str:
         return f"<{type(self).__name__}(path={self.path if not (self.as_bytes or self.youtube) else ''})>"
 
-    def __enter__(self) -> "pyvidplayer2.Video":
+    # noinspection PyUnresolvedReferences
+    def __enter__(self) -> "pyvidplayer2.Video":  # noqa: F821
         return self
 
     def __exit__(self, type_, value, traceback) -> None:
         self.close()
 
-    def __iter__(self) -> "pyvidplayer2.Video":
+    # noinspection PyUnresolvedReferences
+    def __iter__(self) -> "pyvidplayer2.Video":  # noqa: F821
         self.stop()
         return self
 
@@ -271,7 +267,7 @@ class Video:
         self._skipped_frame_index = self.frame
         self._skipped_frame = True
 
-        self.seek_frame(item) # keep intuitive seeking here
+        self.seek_frame(item)  # keep intuitive seeking here
         return self.frame_data
 
     def __next__(self) -> np.ndarray:
@@ -304,46 +300,51 @@ class Video:
         Decides the best reader to use based on what's installed
         """
         if youtube:
-            if reader == READER_AUTO or reader == READER_OPENCV:
+            if reader in (READER_AUTO, READER_OPENCV):
                 if CV:
                     return CVReader
-                elif reader != READER_AUTO:
-                    ModuleNotFoundError(
+                if reader != READER_AUTO:
+                    raise ModuleNotFoundError(
                         "Unable to stream video because OpenCV is not installed. OpenCV can be installed via pip.")
-            raise ValueError("Only READER_OPENCV is supported for Youtube videos.")
+            raise ValueError(
+                "Only READER_OPENCV is supported for Youtube videos.")
         elif as_bytes:
-            if reader == READER_AUTO or reader == READER_DECORD:
+            if reader in (READER_AUTO, READER_DECORD):
                 if DECORD:
                     return DecordReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError(
                         "Unable to read video from memory because decord is not installed. "
                         "Decord can be installed via pip.")
-            if reader == READER_AUTO or reader == READER_IMAGEIO:
+            if reader in (READER_AUTO, READER_IMAGEIO):
                 if IIO:
                     return IIOReader
-                elif reader != READER_AUTO:
+                if reader != READER_AUTO:
                     raise ModuleNotFoundError(
                         "Unable to read video from memory because IMAGEIO is not installed. "
                         "IMAGEIO can be installed via pip.")
-            raise ValueError("Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
+            raise ValueError(
+                "Only READER_DECORD and READER_IMAGEIO is supported for reading from memory.")
         else:
-            if reader == READER_AUTO or reader == READER_OPENCV:
+            if reader in (READER_AUTO, READER_OPENCV):
                 if CV:
                     return CVReader
-                elif reader != READER_AUTO:
-                    raise ModuleNotFoundError("OpenCV is not installed. OpenCV can be installed through pip.")
-            if reader == READER_AUTO or reader == READER_DECORD:
+                if reader != READER_AUTO:
+                    raise ModuleNotFoundError(
+                        "OpenCV is not installed. OpenCV can be installed through pip.")
+            if reader in (READER_AUTO, READER_DECORD):
                 if DECORD:
                     return DecordReader
-                elif reader != READER_AUTO:
-                    raise ModuleNotFoundError("Decord is not installed. Decord can be installed through pip.")
-            if reader == READER_AUTO or reader == READER_FFMPEG:
+                if reader != READER_AUTO:
+                    raise ModuleNotFoundError(
+                        "Decord is not installed. Decord can be installed through pip.")
+            if reader in (READER_AUTO, READER_FFMPEG):
                 return FFMPEGReader
             if reader == READER_IMAGEIO:
                 if IIO:
                     return IIOReader
-                raise ModuleNotFoundError("ImageIO is not installed. ImageIO can be installed through pip.")
+                raise ModuleNotFoundError(
+                    "ImageIO is not installed. ImageIO can be installed through pip.")
             raise ValueError("Could not identify backend.")
 
     def _filter_subs(self, subs):
@@ -384,13 +385,13 @@ class Video:
                 "-print_format", "json"
             ]
 
-            p = subprocess.Popen(command, stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
+            with subprocess.Popen(
+                    command, stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE) as p:
+                info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+        except FileNotFoundError as e:
             raise FFmpegNotFoundError(
                 "Could not find FFprobe (should be bundled with FFmpeg). "
-                "Make sure FFprobe is installed and accessible via PATH.")
-
-        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+                "Make sure FFprobe is installed and accessible via PATH.") from e
 
         pts = sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
         if pts:
@@ -412,7 +413,7 @@ class Video:
             new_reader.duration = self._vid.duration
             new_reader.frame = self._vid.frame
             new_reader.seek(self._vid.frame)
-        
+
             self.colour_format = new_reader._colour_format
             self._vid.release()
             self._vid = new_reader
@@ -433,13 +434,14 @@ class Video:
                 raise
             except Exception as e:  # something went wrong with yt_dlp
                 if "Requested format is not available" in str(e):
-                    raise YTDLPError("Could not find requested resolution.")
-                raise YTDLPError("yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
-            else:
-                self.path = formats[0]["url"]
-                self._audio_path = formats[1]["url"]
-                self.name = info.get("title", "")
-                self.ext = ".webm"
+                    raise YTDLPError("Could not find requested resolution.") from e
+                raise YTDLPError(
+                    "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.") from e
+
+            self.path = formats[0]["url"]
+            self._audio_path = formats[1]["url"]
+            self.name = info.get("title", "")
+            self.ext = ".webm"
 
     def _preload_frames(self):
         """
@@ -467,15 +469,15 @@ class Video:
         self._vid.seek(0)
 
         counter = 0
-        
+
         has_frame = True
         while has_frame:
             has_frame = self._vid.read()[0]
             if has_frame:
                 counter += 1
-        
+
         self._vid.seek(self.frame)
-        
+
         return counter
 
     def _chunks_len(self, chunks):
@@ -492,16 +494,18 @@ class Video:
 
     # not used
     # used to auto detect youtube videos
-    def _test_youtube(self):
-        return YTDLP and next(
-            (ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"),
-            None) is not None
+
+    # def _test_youtube(self):
+    #     return YTDLP and next(
+    #         (ie.ie_key() for ie in yt_dlp.list_extractors() if ie.suitable(self.path) and ie.ie_key() != "Generic"),
+    #         None) is not None
 
     # not used, not always accurate
     # used to auto detect vfr videos
-    def _test_vfr(self):
-        min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
-        return (max_ - min_) > 0.1
+
+    # def _test_vfr(self):
+    #     min_, max_ = self._get_vfrs(self._get_all_pts())[:2]
+    #     return (max_ - min_) > 0.1
 
     def _test_no_audio(self):
         """
@@ -518,15 +522,17 @@ class Video:
         ]
 
         try:
-            p = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE if self.as_bytes else None)
-            audio = p.communicate(input=self.path if self.as_bytes else None)[0]
+            with subprocess.Popen(command,
+                                  stdout=subprocess.PIPE,
+                                  stdin=subprocess.PIPE if self.as_bytes else None) as p:
+                audio = p.communicate(input=self.path if self.as_bytes else None)[0]
 
         except FileNotFoundError:
             self._missing_ffmpeg = True
             return
 
         return audio == b''
-    
+
     def _get_num_channels_to_process(self):
         return min(self.audio_channels, self._audio.get_num_channels())
 
@@ -548,8 +554,8 @@ class Video:
                 get_ffmpeg_path(),
                 "-f", "lavfi",
                 "-i", "anullsrc",
-                "-t", str(self._convert_seconds(
-                    min(self.chunk_size, self.duration - s) / (self.speed if not self.reverse else 1))),
+                # if chunk_size==5 and speed==2, 10 seconds of silent audio will be generated
+                "-t", self._convert_seconds(min(self.chunk_size, self.duration - s) / self.speed),
                 "-f", "wav",
                 "-loglevel", get_ffmpeg_loglevel(),
                 "-"
@@ -582,7 +588,11 @@ class Video:
             if self.reverse:
                 filters += ["-af", "areverse"]
             elif self.speed != 1:
-                filters += ["-af", f"atempo={self.speed}"]
+                filters += ["-af", f"atempo={max(0.5, self.speed)}"]
+                if self.speed < 0.5:
+                    filters[-1] += f",atempo={self.speed/0.5}"
+
+                # rubberband is more intensive
                 # filters += ["-af", f"rubberband=tempo={self.speed}"]
 
             command = command[:7] + filters + command[7:]
@@ -598,11 +608,13 @@ class Video:
                 command = [
                     get_ffmpeg_path(),
                     "-i", "-",
-                    "-af", f"atempo={self.speed}",
+                    "-af", f"atempo={max(0.5, self.speed)}",
                     "-f", "wav",
                     "-loglevel", get_ffmpeg_loglevel(),
                     "-"
                 ]
+                if self.speed < 0.5:
+                    command[4] += f",atempo={self.speed/0.5}"
 
                 process = subprocess.Popen(command, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
                 self._processes.append(process)
@@ -666,7 +678,8 @@ class Video:
     # driving function behind video playback
     def _update(self):
         if self._missing_ffmpeg:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         self._update_threads()
 
@@ -674,7 +687,7 @@ class Video:
         if self._seek_buffered:
             n = True
             self._seek_buffered = False
-        self.buffering = False # used by video player objects
+        self.buffering = False  # used by video player objects
 
         if self._audio.get_busy() or self.paused:
 
@@ -752,36 +765,37 @@ class Video:
 
         # without opencv, use ffmpeg resizing
 
-        if type(interp) == int:
+        if isinstance(interp, int):
             interp = ("neighbor", "bilinear", "bicubic", "area", "lanczos")[interp]
 
         try:
-            process = subprocess.Popen(
-                [
-                    get_ffmpeg_path(),
-                    "-loglevel", get_ffmpeg_loglevel(),
-                    "-f", "rawvideo",
-                    "-pix_fmt", "rgb24",
-                    "-s", f"{data.shape[1]}x{data.shape[0]}",
-                    "-i", "-",
-                    "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
-                    "-f", "rawvideo",
-                    "-"
-                ],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-            )
-        except FileNotFoundError:
-            raise FFmpegNotFoundError("Could not find FFmpeg. Make sure it's downloaded and accessible via PATH.")
-
-        return np.frombuffer(process.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
+            with subprocess.Popen(
+                    [
+                        get_ffmpeg_path(),
+                        "-loglevel", get_ffmpeg_loglevel(),
+                        "-f", "rawvideo",
+                        "-pix_fmt", "rgb24",
+                        "-s", f"{data.shape[1]}x{data.shape[0]}",
+                        "-i", "-",
+                        "-vf", f"scale={size[0]}:{size[1]}:flags={interp}",
+                        "-f", "rawvideo",
+                        "-"
+                    ],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+            ) as p:
+                return np.frombuffer(p.communicate(input=data.tobytes())[0], np.uint8).reshape((size[1], size[0], 3))
+        except FileNotFoundError as e:
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure it's downloaded and accessible via PATH.") from e
 
     def probe(self) -> None:
-        """
-        Uses FFprobe to find information about the video. When using cv2 to read videos, information such as frame count
-        and frame rate are read through the file headers, which is sometimes incorrect.
-        For more accuracy, call this method to start a probe and update video metadata attributes.
-        """
+        """Use FFprobe to find information about the video. When using OpenCV
+        to read videos, information such as frame count and frame rate are
+        read through the file headers, which is sometimes incorrect.
+        For more accuracy, call this method to start a probe and update video
+        metadata attributes."""
+
         self._vid._probe(self.path, self.as_bytes)
         self.frame_count = self._vid.frame_count
         self.frame_rate = self._vid.frame_rate
@@ -791,10 +805,10 @@ class Video:
         self.aspect_ratio = self.original_size[0] / self.original_size[1]
 
     def update(self) -> bool:
-        """
-        Allows video to perform required operations. The draw method already calls this method, so it's usually not
-        used. Returns True if a new frame is ready to be displayed.
-        """
+        """Allow video to perform required calculations. Draw automatically
+        calls this method, so it doesn't need to be explicitly called.
+        Returns True if a new frame is ready to be displayed."""
+
         return self._update()
 
     @property
@@ -802,10 +816,13 @@ class Video:
         return self.get_volume()
 
     def set_interp(self, interp: Union[str, int]) -> None:
-        """
-        Changes the interpolation technique that OpenCV uses.
-        Works the same as the interp parameter. Does nothing if OpenCV is not installed.
-        """
+        """Set the interpolation technique for frame resizing. Accepts nearest,
+         linear, cubic, lanczos4, area. Nearest is the fastest technique but
+         produces the worst results. Lanczos4 produces the best results but is
+         much more compute-intensive. Area is a technique that produces the
+         best results when downscaling. This parameter can also accept
+         OpenCV constants like cv2.INTER_LINEAR."""
+
         if interp in ("nearest", 0):
             self.interp = 0  # cv2.INTER_NEAREST
         elif interp in ("linear", 1):
@@ -820,16 +837,15 @@ class Video:
             raise ValueError("Interpolation technique not recognized.")
 
     def set_post_func(self, func: Callable[[np.ndarray], np.ndarray]) -> None:
-        """
-        Changes the postprocessing function. Works the same as the post_func parameter.
-        """
+        """Change the post-processing function. Works the same as the
+        post_func parameter."""
+
         self.post_func = func
 
     def get_metadata(self):
-        """
-        Outputs a dictionary with attributes about the file metadata, including frame_count, frame_rate, etc.
-        Can be combined with pprint to quickly see a general overview of a video file.
-        """
+        """Output a dictionary with attributes about the file metadata,
+        including frame_count, frame_rate, etc."""
+
         return {
             "path": self.path,
             "name": self.name,
@@ -846,49 +862,49 @@ class Video:
             "aspect_ratio": self.aspect_ratio,
 
             "audio_channels": self.audio_channels,
+            "num_audio_tracks": self.num_audio_tracks,
             "no_audio": self.no_audio
         }
 
     def mute(self) -> None:
-        """
-        Mutes the video. Does not change volume.
-        """
+        """Mute audio playback. Does not affect volume."""
+
         self.muted = True
         self._audio.mute()
 
     def unmute(self) -> None:
-        """
-        Unmutes the video. Does not change volume.
-        """
+        """Unmute audio playback. Does not affect volume."""
+
         self.muted = False
         self._audio.unmute()
 
     def set_speed(self, speed: float) -> None:
-        """
-        Does nothing because this method is deprecated. Use the speed parameter during Video creation instead.
-        """
-        raise DeprecationWarning("set_speed is deprecated. Use the speed parameter instead.")
+        """Set a new speed value (0.25-10.0)."""
+
+        speed = float(max(0.25, min(10, speed)))
+        self.seek_frame(0, relative=True, intuitive=False)
+        self.speed = speed
 
     def get_speed(self) -> float:
         """
-        Get method for video speed. Remnant from older version.
+        Return current video speed.
         """
+
         return self.speed
 
     def play(self) -> None:
-        """
-        Sets video.active to True.
-        """
+        """Set the video as active and begin playback."""
+
         self.active = True
         if self._skipped_frame:
             self.seek_frame(self._skipped_frame_index, intuitive=False)
-            self._skipped_frame = False # reset flags
+            self._skipped_frame = False  # reset flags
             self._skipped_frame_index = 0
 
     def stop(self) -> None:
-        """
-        Sets video.active to False.
-        """
+        """Stop video playback and rewind to the beginning.
+        Sets active state to False but does not change the paused state."""
+
         self.seek(0, relative=False, intuitive=False)
         self.active = False
         # removing this to prevent flickering during loops
@@ -897,20 +913,18 @@ class Video:
         self.paused = False
 
     def resize(self, size: Tuple[int, int]) -> None:
-        """
-        Sets the current size of the video. This will also resize the current frame, so no need
-        to buffer a new frame.
-        """
+        """Resize video frames to new dimensions. This will also resize the
+        current frame."""
+
         self.current_size = size
         if self.frame_data is not None:
             self.frame_data = self._resize_frame(self.frame_data, self.current_size, self.interp, not CV)
             self.frame_surf = self._create_frame(self.frame_data)
 
     def change_resolution(self, height: int) -> int:
-        """
-        Given a height, the video will scale its dimensions while maintaining aspect ratio.
-        Will scale width to an even number. Otherwise same as resize method.
-        """
+        """Given a height, the video will scale its dimensions while
+        maintaining aspect ratio. Returns the new width."""
+
         w = int(height * self.aspect_ratio)
         if w % 2 == 1:
             w += 1
@@ -919,22 +933,20 @@ class Video:
         return w
 
     def close(self) -> None:
-        """
-        Releases resources. Always recommended to call when done. Attempting to use video after it has been closed
-        may cause unexpected behaviour.
-        """
+        """Release resources and closes the video. Always recommended to call
+        when done. Attempting to use the video after closing may cause
+        unexpected behaviour."""
+
         self._preloaded_frames.clear()
         self.stop()
         self._vid.release()
-        self._audio.unload()
         self._audio.close()
         self.closed = True
 
     def restart(self) -> None:
-        """
-        Rewinds video to the beginning. Does not change video.active.
-        """
-        self.seek(0, relative=False, intuitive=True) # should be intuitive
+        """Rewind video to the beginning. Does not change the active state."""
+
+        self.seek(0, relative=False, intuitive=True)
 
         if self._buffered_chunk is not None:
             self._chunks_claimed = 1
@@ -943,42 +955,40 @@ class Video:
         self.play()
 
     def set_volume(self, vol: float) -> None:
-        """
-        Adjusts the volume of the video, from 0.0 (min) to 1.0 (max).
-        """
+        """Adjust the volume of the video, from 0.0 (min) to 1.0 (max)."""
+
         self._audio.set_volume(vol)
 
     def get_volume(self) -> float:
-        """
-        Get method for video volume. Remnant from older version.
-        """
+        """Return current video volume."""
+
         return self._audio.get_volume()
 
     def get_paused(self) -> bool:
-        """
-        Get method for video pause state. Remnant from older version.
-        """
+        """Return whether the video is paused."""
 
-        # here because the original pyvidplayer had get_paused
         return self.paused
 
     def toggle_pause(self) -> None:
-        """
-        Pauses if the video is playing, and resumes if the video is paused.
-        """
-        self.resume() if self.paused else self.pause()
+        """Toggle between paused and playing states."""
+
+        if self.paused:
+            self.resume()
+        else:
+            self.pause()
 
     def toggle_mute(self) -> None:
-        """
-        Mutes if the video is unmuted, and unmutes if the video is muted.
-        """
-        self.unmute() if self.muted else self.mute()
+        """Toggle between muted and unmuted states."""
+
+        if self.muted:
+            self.unmute()
+        else:
+            self.mute()
 
     def set_audio_track(self, index: int) -> None:
-        """
-        Sets the audio track used. Index 0 corresponds to the first audio track, index 1 is the second, etc.
-        This will re-probe the video for audio channels.
-        """
+        """Select which audio track to use for playback.
+        Index 0 selects the first, 1 the second, etc."""
+
         if self.youtube:
             return
 
@@ -992,15 +1002,16 @@ class Video:
                 "-print_format", "json"
             ]
 
-            p = subprocess.Popen(
-                command,
-                stdin=subprocess.PIPE if self.as_bytes else None, stdout=subprocess.PIPE)
-        except FileNotFoundError:
+            with subprocess.Popen(
+                    command,
+                    stdin=subprocess.PIPE if self.as_bytes else None,
+                    stdout=subprocess.PIPE) as p:
+
+                info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+        except FileNotFoundError as e:
             raise FFmpegNotFoundError(
                 "Could not find FFprobe (should be bundled with FFmpeg). "
-                "Make sure FFprobe is installed and accessible via PATH.")
-
-        info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
+                "Make sure FFprobe is installed and accessible via PATH.") from e
 
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
@@ -1009,41 +1020,41 @@ class Video:
             raise AudioStreamError(f"Audio index {index} out of range.")
 
         self.audio_channels = info[0]["channels"]
+        self.num_audio_tracks = len(info)
         self.audio_track = index
         self.seek(self.get_pos(), relative=False, intuitive=False)  # reloads current audio chunks
 
     def pause(self) -> None:
-        """
-        Pauses the video. Does not change Video active attribute.
-        """
+        """Pause the video."""
+
         if self.active:
             self.paused = True
             self._audio.pause()
 
     def resume(self) -> None:
-        """
-        Unpauses the video. Does not change Video active attribute.
-        """
+        """Resume playback of a paused video."""
+
         if self.active:
             self.paused = False
             self._audio.unpause()
 
     def get_pos(self) -> float:
-        """
-        Returns the current video timestamp in seconds (float).
-        """
+        """Return the current video timestamp/position in decimal seconds."""
+
         return self._starting_time + max(0, self._chunks_played - 1) * self.chunk_size + self._audio.get_pos() * self.speed
 
     def seek(self, time: float, relative: bool = True, intuitive: bool = True) -> None:
-        """
-        Changes the current position in the video. If relative is True, the given time will be added or subtracted to 
-        the current time. Otherwise, the current position will be set to the given time exactly. Time must be given in 
-        seconds, with a precision limit of 3 decimals. If the given value is larger than the video duration,
-        the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
-        that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
-        want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
-        (which is one frame before requested position), set intuitive to False.
-        """
+        """Change the current position in the video. If relative is True,
+        the given time will be added or subtracted to the current time.
+        Otherwise, the current position will be set to the given time exactly.
+        Time must be given in seconds, with a precision limit of 3 decimals.
+        If the given value is larger than the video duration, the video will
+        seek to the last frame. Remember that the frame attribute represents
+        the next frame to be rendered. Most people expect seeking to already
+        display the frame they want, but this will require incrementing frame
+        by one extra. To force frame to be exactly correct (which is one frame
+        before requested position), set intuitive to False. Intuitive seeking
+        does not work for Raylib and wxPython."""
 
         self._starting_time = (self.get_pos() + time) if relative else time
         self._starting_time = round(self._starting_time, 3)
@@ -1082,14 +1093,15 @@ class Video:
         self.buffer_current()
 
     def seek_frame(self, index: int, relative: bool = False, intuitive: bool = True) -> None:
-        """
-        Same as seek method but seeks to a specific frame instead of a time stamp. For example, index 0 will seek to 
-        the first frame, index 1 will seek to the second frame, and so on. If the given index is larger than the total 
-        frames, the video will be seeked to the last frame. To understand the intuitive parameter, it is important to understand
-        that video.frame represents the next frame to be rendered. Most people expect seeking to display the frame they
-        want, but this will require incrementing video.frame by one extra. To force video.frame to be exactly correct
-        (which is one frame before requested position), set intuitive to False.
-        """
+        """Seek to a specific frame. Index 0 will seek to the first frame, 1 to
+         the second, etc. If the given index is larger than the total frames,
+         the video will seek to the last frame. Remember that the frame
+         attribute represents the next frame to be rendered. Most people
+         expect seeking to display the frame they want, but this will require
+         incrementing frame by one extra. To force frame to be exactly correct
+         (which is one frame before requested position), set intuitive to
+         False. Intuitive seeking does not work for Raylib and wxPython."""
+
         index = (self.frame + index) if relative else index
         index = min(max(index, 0), self.frame_count - 1)
 
@@ -1132,40 +1144,52 @@ class Video:
         self.buffer_current()
 
     def buffer_current(self) -> bool:
-        """
-        Whenever frame_surf or frame_data are None, use this method to populate them. This is useful because 
-        seeking does not update frame_data or frame_surf. This method does not increment the frame attribute.
-        This method is called automatically when seeking in v0.9.32 and onwards, so explicit calls should no
-        longer be necessary.
-        """
-        if self._vid.frame > 0 and (self.frame_data is None or self.frame_surf is None):
-            p = self.get_pos()
+        """Populate frame_data and frame_surf if they are currently None.
+        As of v0.9.32, this is automatically called when seeking."""
+
+        if self.frame_data is not None and self.frame_surf is not None:
+            return False
+
+        p = self.get_pos()
+        has_frame = False
+        data = None
+
+        if self.reverse:
+            # at least one frame was rendered already - there's something to buffer
+            if self.frame > 0:
+                has_frame = True
+                data = self._preloaded_frames[self.frame_count - self.frame]
+
+        # same check here
+        elif self._vid.frame > 0:
             self._vid.seek(self._vid.frame - 1)
             has_frame, data = self._vid.read()
-            if has_frame:  # should theoretically never be false
-                if self.original_size != self.current_size:
-                    data = self._resize_frame(data, self.current_size, self.interp, not CV)
-                data = self.post_func(data)
 
-                self.frame_data = data
-                self.frame_surf = self._create_frame(data)
+        if has_frame:
+            if self.original_size != self.current_size:
+                data = self._resize_frame(data, self.current_size, self.interp, not CV)
+            data = self.post_func(data)
 
-                if self.subs and not self.subs_hidden:
-                    self._write_subs(p)
-                self._seek_buffered = True
-                return True
+            self.frame_data = data
+            self.frame_surf = self._create_frame(data)
+
+            if self.subs and not self.subs_hidden:
+                self._write_subs(p)
+            self._seek_buffered = True
+
+            return True
+
         return False
 
     # type hints declared by inherited subclasses
 
     def draw(self, surf, pos, force_draw):
-        """
-        Draws the current video frame onto the given surface, at the given position.
-        If force_draw is True, a surface will be drawn every time this is called.
-        Otherwise, only new frames will be drawn.
-        This reduces CPU usage but will cause flickering if anything is drawn under or above the video.
-        This method also returns whether a frame was drawn.
-        """
+        """Draw the current video frame onto the given surface, at the given
+        position. If force_draw is True, a surface will be drawn every time
+        this is called. Otherwise, only new frames will be drawn. This reduces
+        CPU usage but will cause flickering if anything is drawn under or above
+        the video. This method returns whether a frame was drawn."""
+
         if (self._update() or force_draw) and self.frame_surf is not None:
             self._render_frame(surf, pos)
             return True
@@ -1182,10 +1206,6 @@ class Video:
         pass
 
     @abstractmethod
-    def preview(self):
-        """
-        Opens a window and plays the video. This method will hang until the video finishes. max_fps enforces how many
-        times a second the video is updated. If show_fps is True, a counter will be displayed showing the actual number
-        of new frames being rendered every second.
-        """
-        pass
+    def preview(self, *args):
+        """Open a window and play the video. This method will hang until the
+        video finishes or the window is closed."""

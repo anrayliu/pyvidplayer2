@@ -1,28 +1,34 @@
 import io
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
-import pyray
 import numpy as np
+import pyray
 from PIL import Image
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoRaylib(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for Raylib."""
 
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
+                 max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
-                 no_audio: bool = False, speed: float = 1, youtube: bool = False,
-                 max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
+                 interp: Union[str, int] = "linear",
+                 use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1,
+                 youtube: bool = False,
+                 max_res: int = 720, as_bytes: bool = False,
+                 audio_track: int = 0, vfr: bool = False,
+                 pref_lang: str = "en", audio_index: int = None,
+                 reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None,
+                       post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index,
+                       reader, cuda_device)
 
     def _create_frame(self, data):
         # cannot create textures before window is init
@@ -33,6 +39,7 @@ class VideoRaylib(Video):
             pyray.unload_texture(self.frame_surf)
         buffer = io.BytesIO()
         Image.fromarray(data[..., ::-1]).save(buffer, format="BMP")
+        # bug in pyray: interface requests str but only works with bytes
         img = pyray.load_image_from_memory(".bmp", buffer.getvalue(), len(buffer.getvalue()))
         texture = pyray.load_texture_from_image(img)
         pyray.unload_image(img)

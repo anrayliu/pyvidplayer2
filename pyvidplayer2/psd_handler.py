@@ -1,13 +1,13 @@
-import wave
 import time
-from threading import Thread
+import wave
 from io import BytesIO
+from threading import Thread
 
-import sounddevice as sd
 import numpy as np
+import sounddevice as sd
 
-from .error import *
 from .audio_handler import AudioHandler
+from .error import AudioDeviceError
 
 
 class PSDHandler(AudioHandler):
@@ -57,25 +57,26 @@ class PSDHandler(AudioHandler):
     def _set_device_index(self, index):
         try:
             self.audio_devices[index]
-        except IndexError:
-            raise AudioDeviceError(f"Audio device with index {index} does not exist.")
-        else:
-            self.device_index = index
+        except IndexError as e:
+            raise AudioDeviceError(
+                f"Audio device with index {index} does not exist."
+            ) from e
+        self.device_index = index
 
-    def load(self, bytes_):
+    def load(self, audio_chunk):
         self.unload()
 
         try:
-            self.wave = wave.open(BytesIO(bytes_), "rb")
-        except EOFError:
+            self.wave = wave.open(BytesIO(audio_chunk), "rb")
+        except EOFError as e:
             raise EOFError(
                 "Audio is empty. This may mean the file is corrupted."
                 " If your video has no audio track,"
                 " try initializing it with no_audio=True."
                 " If it has several tracks, make sure the correct one"
                 " is selected with the audio_track parameter."
-            )
-        
+            ) from e
+
         if self.stream is None:
             try:
                 self.stream = sd.OutputStream(
@@ -86,8 +87,10 @@ class PSDHandler(AudioHandler):
                 )
                 self.stream.start()
             except Exception as e:
-                raise AudioDeviceError("Failed to open audio stream with device \"{}\": {}".format(
-                    self.audio_devices[self.device_index]["name"], e))
+                raise AudioDeviceError(
+                    "Failed to open audio stream with device \"{}\"".format(
+                        self.audio_devices[self.device_index]["name"])
+                ) from e
 
         self.loaded = True
 
@@ -105,7 +108,7 @@ class PSDHandler(AudioHandler):
         self.thread.start()
 
     def _threaded_play(self):
-        CHUNK_SIZE = 128
+        chunk_size = 128
         channels = self.wave.getnchannels()
         dtype_val = {1: np.int8, 2: np.int16, 4: np.int32}.get(self.wave.getsampwidth(), np.int16)
 
@@ -113,12 +116,12 @@ class PSDHandler(AudioHandler):
             if self.paused:
                 time.sleep(0.01)
             else:
-                data = self.wave.readframes(CHUNK_SIZE)
+                data = self.wave.readframes(chunk_size)
                 if data == b"":
                     break
 
                 audio = np.frombuffer(data, dtype=dtype_val)
-                
+
                 audio = audio.reshape(-1, channels)
 
                 if self.volume == 0.0 or self.muted:
@@ -135,7 +138,7 @@ class PSDHandler(AudioHandler):
                 except sd.PortAudioError:
                     break
 
-                self.chunks_played += CHUNK_SIZE
+                self.chunks_played += chunk_size
                 self.position = self.chunks_played / float(self.wave.getframerate())
 
         self.active = False
@@ -166,7 +169,7 @@ class PSDHandler(AudioHandler):
         self.volume = min(1.0, max(0.0, vol))
 
     # not ideal, should've used properties instead
-    # still better to be consistent with old patterns until refactors can be made
+    # but now the public interface is already set
     def get_volume(self):
         return self.volume
 
@@ -175,24 +178,15 @@ class PSDHandler(AudioHandler):
 
     def pause(self):
         self.paused = True
-    
+
     def unpause(self):
         self.paused = False
-    
+
     def mute(self):
         self.muted = True
-    
+
     def unmute(self):
         self.muted = False
-    
+
     def get_busy(self):
         return self.active
-
-    def get_muted(self):
-        return self.muted
-    
-    def get_loaded(self):
-        return self.loaded
-    
-    def get_paused(self):
-        return self.paused

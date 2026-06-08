@@ -1,28 +1,34 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
 import numpy as np
-from PyQt6.QtGui import QImage, QPixmap, QPainter
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QImage, QPainter, QPixmap
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
 
 from .post_processing import PostProcessing
-from .video import Video, READER_AUTO
+from .video import READER_AUTO, Video
 
 
 class VideoPyQT(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for PyQt6."""
 
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
+                 max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
-                 no_audio: bool = False, speed: float = 1, youtube: bool = False,
-                 max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
+                 interp: Union[str, int] = "linear",
+                 use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1,
+                 youtube: bool = False,
+                 max_res: int = 720, as_bytes: bool = False,
+                 audio_track: int = 0, vfr: bool = False,
+                 pref_lang: str = "en", audio_index: int = None,
+                 reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None,
+                       post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index,
+                       reader, cuda_device)
 
     def _create_frame(self, data):
         # only BGR and RGB formats in readers right now
@@ -58,4 +64,6 @@ class VideoPyQT(Video):
         win.setFixedSize(*self.current_size)
         win.show()
         app.exec()
+        app.quit()
+
         self.close()

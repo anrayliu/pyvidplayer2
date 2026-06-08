@@ -1,26 +1,32 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
-import wx
 import numpy as np
+import wx
 
-from .video import Video, READER_AUTO
 from .post_processing import PostProcessing
+from .video import READER_AUTO, Video
 
 
 class VideoWx(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for wxPython."""
 
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
+                 max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
-                 no_audio: bool = False, speed: float = 1, youtube: bool = False,
-                 max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
+                 interp: Union[str, int] = "linear",
+                 use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1,
+                 youtube: bool = False,
+                 max_res: int = 720, as_bytes: bool = False,
+                 audio_track: int = 0, vfr: bool = False,
+                 pref_lang: str = "en", audio_index: int = None,
+                 reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None,
+                       post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index,
+                       reader, cuda_device)
 
     def _create_frame(self, data: np.ndarray):
         h, w = data.shape[:2]
@@ -28,8 +34,10 @@ class VideoWx(Video):
             data = data[..., ::-1]  # converts to RGB
         try:
             return wx.Image(w, h, data.flatten().tobytes()).ConvertToBitmap()
-        except wx._core.PyNoAppError:
-            return None # wx.App object hasn't been created first
+        # important Exception here is wx._core.PyNoAppError, but I don't want to couple a protected object
+        # generic exception it is...
+        except Exception:
+            return None  # wx.App object hasn't been created first
 
     def _render_frame(self, panel: wx.Panel, pos: Tuple[int, int]):
         dc = wx.PaintDC(panel)
@@ -61,21 +69,22 @@ class VideoWx(Video):
                 sizer.Fit(self_frame)
 
                 self_frame.timer = wx.Timer(self_frame)
+                self_frame.timer.Start(int(1000 / max_fps))
+
                 self_frame.Bind(wx.EVT_TIMER, self_frame.update, self_frame.timer)
                 self_frame.panel.Bind(wx.EVT_PAINT, self_frame.draw)
 
                 self_video.play()
-                self_frame.timer.Start(int(1000 / self_video.frame_rate))
 
                 self_frame.Show()
 
-            def update(self_frame, event):
+            def update(self_frame, _):
                 if not self_video.active:
                     wx.CallAfter(self_frame.Close)
 
                 self_frame.panel.Refresh(eraseBackground=False)
 
-            def draw(self_frame, event):
+            def draw(self_frame, _):
                 self_video.draw(self_frame.panel, (0, 0), False)
 
         class MyApp(wx.App):

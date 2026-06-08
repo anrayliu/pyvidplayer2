@@ -1,28 +1,34 @@
-from typing import Callable, Union, Tuple
+from typing import Callable, Tuple, Union
 
 import numpy as np
-from PySide6.QtGui import QImage, QPixmap, QPainter
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 from PySide6.QtCore import QTimer
+from PySide6.QtGui import QImage, QPainter, QPixmap
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget
 
 from .post_processing import PostProcessing
-from .video import Video, READER_AUTO
+from .video import READER_AUTO, Video
 
 
 class VideoPySide(Video):
-    """
-    Refer to "https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md" for detailed documentation.
-    """
+    """Video playback class for PySide6."""
 
-    def __init__(self, path: Union[str, bytes], chunk_size: float = 10, max_threads: int = 1, max_chunks: int = 1,
+    def __init__(self, path: Union[str, bytes], chunk_size: float = 10,
+                 max_threads: int = 1, max_chunks: int = 1,
                  post_process: Callable[[np.ndarray], np.ndarray] = PostProcessing.none,
-                 interp: Union[str, int] = "linear", use_pygame_audio: bool = False, reverse: bool = False,
-                 no_audio: bool = False, speed: float = 1, youtube: bool = False,
-                 max_res: int = 720, as_bytes: bool = False, audio_track: int = 0, vfr: bool = False,
-                 pref_lang: str = "en", audio_index: int = None, reader: int = READER_AUTO, cuda_device: int = -1) -> None:
-        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None, post_process, interp, use_pygame_audio,
+                 interp: Union[str, int] = "linear",
+                 use_pygame_audio: bool = False, reverse: bool = False,
+                 no_audio: bool = False, speed: float = 1,
+                 youtube: bool = False,
+                 max_res: int = 720, as_bytes: bool = False,
+                 audio_track: int = 0, vfr: bool = False,
+                 pref_lang: str = "en", audio_index: int = None,
+                 reader: int = READER_AUTO,
+                 cuda_device: int = -1) -> None:
+        Video.__init__(self, path, chunk_size, max_threads, max_chunks, None,
+                       post_process, interp, use_pygame_audio,
                        reverse, no_audio, speed, youtube, max_res,
-                       as_bytes, audio_track, vfr, pref_lang, audio_index, reader, cuda_device)
+                       as_bytes, audio_track, vfr, pref_lang, audio_index,
+                       reader, cuda_device)
 
     def _create_frame(self, data):
         # only BGR and RGB formats in readers right now
@@ -30,7 +36,7 @@ class VideoPySide(Video):
         return QImage(data, data.shape[1], data.shape[0], data.strides[0], f)
 
     def _render_frame(self, win, pos):  # must be called in paintEvent
-        QPainter(win).drawPixmap(*pos, QPixmap.fromImage(self.frame_surf))
+        QPainter(win).drawPixmap(pos[0], pos[1], QPixmap.fromImage(self.frame_surf))
 
     def draw(self, surf: QWidget, pos: Tuple[int, int], force_draw: bool = True) -> bool:
         return Video.draw(self, surf, pos, force_draw)
@@ -55,7 +61,9 @@ class VideoPySide(Video):
         app = QApplication([])
         win = Window()
         win.setWindowTitle(f"pyside6 - {self.name}")
-        win.setFixedSize(*self.current_size)
+        win.setFixedSize(self.current_size[0], self.current_size[1])
         win.show()
         app.exec()
+        app.quit()
+
         self.close()

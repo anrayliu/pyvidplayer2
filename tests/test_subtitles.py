@@ -1,10 +1,13 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
-import unittest
 import random
-from pyvidplayer2 import *
-from test_video import while_loop, timed_loop, check_same_frames
+import unittest
+
+import pygame
+from pyvidplayer2 import SubtitleError, Subtitles, Video
+
+from test_video import check_same_frames, timed_loop, while_loop
 
 SUBS = (
     (0.875, 1.71, "Oh, my God!"),

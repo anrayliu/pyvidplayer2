@@ -1,10 +1,14 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
 
-import unittest
 import time
-from pyvidplayer2 import *
-from test_video import timed_loop, check_same_frames, VIDEO_PATH
+import unittest
+
+import cv2
+from pyvidplayer2 import PostProcessing, Video, Webcam
+
+from test_video import VIDEO_PATH, check_same_frames, timed_loop
+
 
 # enable these if you have a webcam
 
@@ -148,11 +152,25 @@ class TestWebcam(unittest.TestCase):
 
         w = Webcam()
 
-        SIZES = (
-        (426, 240), (640, 360), (854, 480), (1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320))
+        sizes = (
+            (426, 240),
+            (640, 360),
+            (854, 480),
+            (1280, 720),
+            (1920, 1080),
+            (2560, 1440),
+            (3840, 2160),
+            (7680, 4320)
+        )
 
-        for size in SIZES:
-            for flag in (cv2.INTER_LINEAR, cv2.INTER_NEAREST, cv2.INTER_CUBIC, cv2.INTER_LANCZOS4, cv2.INTER_AREA):
+        for size in sizes:
+            for flag in (
+                    cv2.INTER_LINEAR,
+                    cv2.INTER_NEAREST,
+                    cv2.INTER_CUBIC,
+                    cv2.INTER_LANCZOS4,
+                    cv2.INTER_AREA
+            ):
                 new_frame = v._resize_frame(original_frame, size, flag, False)
                 webcam_resized = w._resize_frame(original_frame, size, flag)
                 self.assertTrue(check_same_frames(new_frame, webcam_resized))

@@ -434,8 +434,7 @@ class Video:
                 raise
             except Exception as e:  # something went wrong with yt_dlp
                 if "Requested format is not available" in str(e):
-                    raise YTDLPError(
-                        "Could not find requested resolution.") from e
+                    raise YTDLPError("Could not find requested resolution.") from e
                 raise YTDLPError(
                     "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.") from e
 

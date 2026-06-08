@@ -63,8 +63,8 @@ if importlib.util.find_spec("pygame") is not None:
     # but doing so will cause a circular import
     # keep in current order!
     # --------------------------------------------
-    from .video_player import VideoPlayer
     from .video_pygame import VideoPygame as Video
+    from .video_player import VideoPlayer
 
     # --------------------------------------------
 

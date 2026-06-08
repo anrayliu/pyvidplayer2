@@ -57,8 +57,7 @@ class FFMPEGReader(VideoReader):
             # nvidia hardware acceleration
             *(["-hwaccel", "cuda"] if self.cuda_device >= 0 else []),
             # select device
-            *(["-init_hw_device",
-               f"cuda:{self.cuda_device}"] if self.cuda_device >= 0 else []),
+            *(["-init_hw_device", f"cuda:{self.cuda_device}"] if self.cuda_device >= 0 else []),
             *(["-ss", self._convert_seconds(index / self.frame_rate)] if index is not None else []),
             "-i", self._path,
             "-loglevel", get_ffmpeg_loglevel(),

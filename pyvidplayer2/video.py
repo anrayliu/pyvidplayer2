@@ -90,8 +90,8 @@ class Video:
                  cuda_device) -> None:
 
         self._audio_path = path  # used for audio only when streaming
-        self.path = path
 
+        self.path = path
         self.name = ""
         self.ext = ""
 
@@ -1081,7 +1081,7 @@ class Video:
             frame = int(self._starting_time * self.frame_rate)
             if frame >= self.frame_count:
                 frame = self.frame_count - 1
-        if intuitive:
+        if intuitive and not relative:
             frame += 1
         self._vid.seek(frame)
 
@@ -1131,7 +1131,7 @@ class Video:
         # as if you seek to a frame, you expect to be able to see the frame.
         # Therefore, I'm adding this intuitive parameter so users can choose the behaviour they want.
 
-        if intuitive:
+        if intuitive and not relative:
             index += 1
 
         self._vid.seek(index)

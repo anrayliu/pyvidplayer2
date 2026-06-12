@@ -1930,6 +1930,32 @@ class TestVideo(unittest.TestCase):
 
             v.close()
 
+    # tests that intuitive seeking is disabled for relative seeking
+    def test_relative_intuitive_seeking(self):
+        v = Video(VIDEO_PATH)
+
+        v.seek_frame(5, intuitive=False)
+        self.assertEqual(v.frame, 5)
+
+        # setting intuitive for relative seeking
+        # shouldn't have an effect
+        # otherwise, this frame check will fail
+
+        v.seek_frame(1, relative=True, intuitive=False)
+        self.assertEqual(v.frame, 6)
+        v.seek_frame(1, relative=True, intuitive=True)
+        self.assertEqual(v.frame, 7)
+
+        v.seek_frame(5, intuitive=False)
+        self.assertEqual(v.frame, 5)
+
+        v.seek(v.frame_delay, relative=True, intuitive=True)
+        self.assertEqual(v.frame, 5)
+        v.seek(v.frame_delay / 2, relative=True, intuitive=False)
+        self.assertEqual(v.frame, 6)
+
+        v.close()
+
     # tests edge cases with intuitive seeking
     # very important test!
     def test_intuitive_seeking_ends(self):

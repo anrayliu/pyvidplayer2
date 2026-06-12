@@ -163,7 +163,8 @@ from YouTube. Decord is required to play videos from RAM.
   seek to the last frame. Remember that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,
   but this will require incrementing `frame` by one extra. To force `frame` to be exactly correct (which is one frame
-  before requested position), set intuitive to `False`. Intuitive seeking does not work for Raylib and wxPython.
+  before requested position), set intuitive to `False`. Not applicable for relative seeking. 
+  Intuitive seeking does not work for Raylib and wxPython.
 - `seek_frame(index: int, relative: bool = False, intuitive: bool = False) -> None` - Same as `seek()` but seeks to a
   specific frame instead of a
   timestamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on. If the
@@ -171,7 +172,8 @@ from YouTube. Decord is required to play videos from RAM.
   will seek to the last frame. Remember that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,
   but this will require incrementing `frame` by one extra. To force `frame` to be exactly correct (which is one frame
-  before requested position), set intuitive to `False`. Intuitive seeking does not work for Raylib and wxPython.
+  before requested position), set intuitive to `False`. Not applicable for relative seeking. 
+  Intuitive seeking does not work for Raylib and wxPython.
 - `update() -> bool` - Allows video to perform required calculations. `draw` automatically calls this method, so it
   doesn't need to be explicitly called. Returns `True` if a new frame is ready to be displayed.
 - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto

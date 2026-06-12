@@ -264,15 +264,17 @@ class Video:
         if item < 0:
             item = self.frame_count + item
 
-        self._skipped_frame_index = self.frame
-        self._skipped_frame = True
+        if not self._skipped_frame:
+            self._skipped_frame_index = self.frame
+            self._skipped_frame = True
 
         self.seek_frame(item)  # keep intuitive seeking here
         return self.frame_data
 
     def __next__(self) -> np.ndarray:
-        self._skipped_frame_index = self.frame
-        self._skipped_frame = True
+        if not self._skipped_frame:
+            self._skipped_frame_index = self.frame
+            self._skipped_frame = True
 
         data = None
 
@@ -286,7 +288,6 @@ class Video:
 
         if data is not None:
             self.frame += 1
-            self._skipped_frame_index += 1
             if self.original_size != self.current_size:
                 data = self._resize_frame(data, self.current_size, self.interp, not CV)
             data = self.post_func(data)

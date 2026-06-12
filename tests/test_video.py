@@ -1861,10 +1861,22 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, frame)
 
+        _ = v[100]
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, frame)
+
+        next(v)
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, frame)
+
         v.play()
 
         self.assertEqual(v.frame, frame)
         self.assertEqual(v._vid.frame, frame)
+
+        # flags got reset
         self.assertFalse(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, 0)
 
@@ -1874,20 +1886,16 @@ class TestVideo(unittest.TestCase):
 
         for i in range(120):
             next(v)
-            self.assertEqual(v.frame, v._skipped_frame_index)
+            self.assertEqual(v._skipped_frame_index, frame)
 
         self.assertTrue(v._skipped_frame)
-
-        # next moves along frames
-        # should not reset back to original
-        self.assertNotEqual(v._skipped_frame_index, frame)
-
-        frame = v.frame
 
         v.play()
 
         self.assertEqual(v.frame, frame)
         self.assertEqual(v._vid.frame, frame)
+
+        # flags got reset
         self.assertFalse(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, 0)
 

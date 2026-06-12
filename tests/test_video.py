@@ -1236,10 +1236,11 @@ class TestVideo(unittest.TestCase):
     def test_audio_track(self):
         for audio_handler in (True, False):
             v = Video("resources/manya.mp4", use_pygame_audio=audio_handler)
+            self.assertEqual(v.num_audio_tracks, 3)
             self.assertEqual(v.audio_track, 0)
             with self.assertRaises(AudioStreamError):
                 v.set_audio_track(3)
-            with self.assertRaises(VideoStreamError):  # causes an ffmpeg error instead of a null result
+            with self.assertRaises(AudioStreamError):
                 v.set_audio_track(-1)
             with self.assertRaises(AudioStreamError):
                 v.set_audio_track(100)

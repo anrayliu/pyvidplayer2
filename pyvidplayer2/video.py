@@ -997,7 +997,7 @@ class Video:
                 get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
                 "-show_streams",
-                "-select_streams", f"a:{index}",
+                "-select_streams", "a",
                 "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
@@ -1006,7 +1006,6 @@ class Video:
                     command,
                     stdin=subprocess.PIPE if self.as_bytes else None,
                     stdout=subprocess.PIPE) as p:
-
                 info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
         except FileNotFoundError as e:
             raise FFmpegNotFoundError(
@@ -1016,10 +1015,11 @@ class Video:
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
         info = info["streams"]
-        if len(info) == 0:
+
+        if index < 0 or index > len(info) - 1:
             raise AudioStreamError(f"Audio index {index} out of range.")
 
-        self.audio_channels = info[0]["channels"]
+        self.audio_channels = info[index]["channels"]
         self.num_audio_tracks = len(info)
         self.audio_track = index
         self.seek(self.get_pos(), relative=False, intuitive=False)  # reloads current audio chunks

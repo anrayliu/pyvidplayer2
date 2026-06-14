@@ -4,7 +4,8 @@ This is an example showing off a draggable webcam app
 install pywin32 via pip before using
 '''
 
-# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+# Sample videos can be found here:
+# https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 import pygame

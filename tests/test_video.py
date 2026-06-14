@@ -1766,6 +1766,10 @@ class TestVideo(unittest.TestCase):
         self.assertIsNotNone(v.frame_data)
         self.assertIsNotNone(v.frame_surf)
 
+        v.seek_frame(0, intuitive=False)
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
+
         v.close()
 
     # tests that correct flag is set when seeking
@@ -1861,10 +1865,38 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, frame)
 
+        _ = v[100]
+
+        # _skipped_frame_index should not be updated
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, frame)
+
+        next(v)
+
+        frame += 1
+
+        # next() will set a new point to continue playback from
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, v.frame)
+        self.assertEqual(v._skipped_frame_index, 102)
+
+        _ = v[10]
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v.frame, 11)
+        self.assertEqual(v._skipped_frame_index, 102)
+
+        _ = v[12]
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 102)
+
         v.play()
 
-        self.assertEqual(v.frame, frame)
-        self.assertEqual(v._vid.frame, frame)
+        # should reset all skip flags
+
+        self.assertEqual(v.frame, 102)
+        self.assertEqual(v._vid.frame, 102)
         self.assertFalse(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, 0)
 
@@ -2198,11 +2230,11 @@ class TestVideo(unittest.TestCase):
             self.assertTrue(check_same_frames(next(v), v[1]))
 
             # intuitive, should move frame counter
-            v.seek_frame(0, relative=True, intuitive=True)
+            v.seek_frame(v.frame, intuitive=True)
             self.assertEqual(v._vid.frame, 3)
 
             # non-intuitive, shouldn't move frame counter
-            v.seek_frame(0, relative=True, intuitive=False)
+            v.seek_frame(v.frame, intuitive=False)
             self.assertEqual(v._vid.frame, 3)
 
             # means last frame will be rendered next

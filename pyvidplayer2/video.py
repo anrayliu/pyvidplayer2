@@ -264,8 +264,9 @@ class Video:
         if item < 0:
             item = self.frame_count + item
 
-        self._skipped_frame_index = self.frame
-        self._skipped_frame = True
+        if not self._skipped_frame:
+            self._skipped_frame_index = self.frame
+            self._skipped_frame = True
 
         self.seek_frame(item)  # keep intuitive seeking here
         return self.frame_data

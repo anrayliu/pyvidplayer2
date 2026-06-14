@@ -78,19 +78,30 @@ class PSDHandler(AudioHandler):
             ) from e
 
         if self.stream is None:
-            try:
-                self.stream = sd.OutputStream(
-                    samplerate=self.wave.getframerate(),
-                    channels=self.wave.getnchannels(),
-                    device=self.device_index,
-                    dtype=f'int{self.wave.getsampwidth() * 8}'
-                )
-                self.stream.start()
-            except Exception as e:
+            # order is important
+            sample_rates = [
+                self.wave.getframerate(),
+                int(self.audio_devices[self.device_index]["default_samplerate"])
+            ]
+            psd_exception = None
+
+            for sr in sample_rates:
+                try:
+                    self.stream = sd.OutputStream(
+                        samplerate=sr,
+                        channels=self.wave.getnchannels(),
+                        device=self.device_index,
+                        dtype=f'int{self.wave.getsampwidth() * 8}'
+                    )
+                    self.stream.start()
+                    break
+                except sd.PortAudioError as e:
+                    psd_exception = e
+            else:
                 raise AudioDeviceError(
                     "Failed to open audio stream with device \"{}\"".format(
                         self.audio_devices[self.device_index]["name"])
-                ) from e
+                ) from psd_exception
 
         self.loaded = True
 

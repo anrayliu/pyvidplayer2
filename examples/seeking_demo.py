@@ -22,3 +22,12 @@ with Video("resources/trailer2.mp4") as v:
 
     v.seek_frame(499, relative=False)
     v.preview()
+
+
+# can also access frames by index
+# this only temporarily fetches the frame, does not interrupt playback
+
+with Video("resources/birds.avi") as v:
+    print(v[99]) # 100th frame
+
+    v.preview()

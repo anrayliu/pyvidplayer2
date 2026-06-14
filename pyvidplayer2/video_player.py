@@ -264,9 +264,10 @@ class VideoPlayer:
         if self.interactable:
             mouse = pygame.mouse.get_pos()
             click = False
-            for event in events:
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    click = True
+            if events is not None:
+                for event in events:
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        click = True
 
             self._show_ui = self.frame_rect.collidepoint(mouse) if show_ui is None else show_ui
 

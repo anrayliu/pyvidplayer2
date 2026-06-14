@@ -150,15 +150,15 @@ class Subtitles:
             self.text = ""
             self.surf = pygame.Surface((0, 0))
             return False
-        else:
-            self.start = s.start / 1000 + self.delay
-            self.end = s.end / 1000 + self.delay
-            self.text = (re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "",
-                                s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext).replace(
-                "[&nbsp;__&nbsp;]", "[__]") if self._auto_cap else s.plaintext).strip()
-            if self.text != "":
-                self.surf = self._to_surf(self.text)
-            return True
+
+        self.start = s.start / 1000 + self.delay
+        self.end = s.end / 1000 + self.delay
+        self.text = (re.sub(r"<\b\d+:\d+:\d+(?:\.\d+)?\b>", "",
+                            s.plaintext.split("\n")[1] if "\n" in s.plaintext else s.plaintext).replace(
+            "[&nbsp;__&nbsp;]", "[__]") if self._auto_cap else s.plaintext).strip()
+        if self.text != "":
+            self.surf = self._to_surf(self.text)
+        return True
 
     def _seek(self, time):
         self._subs = self._load()

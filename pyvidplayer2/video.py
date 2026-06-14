@@ -106,7 +106,7 @@ class Video:
         # default -1 for no cuda hw acceleration
         self.cuda_device = cuda_device
         if self.cuda_device >= 0 and reader != READER_FFMPEG:
-                raise Pyvidplayer2Error("Must use FFmpeg reader for cuda devices.")
+            raise Pyvidplayer2Error("Must use FFmpeg reader for cuda devices.")
 
 
         # determines correct video backend here
@@ -489,7 +489,7 @@ class Video:
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
-        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
+        d = str(seconds).rsplit('.', maxsplit=1)[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)

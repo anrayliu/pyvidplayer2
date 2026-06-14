@@ -171,3 +171,6 @@ devnote.txt
 .idea
 .venv/
 .DS_Store
+
+# keeping this for local usage, but I don't want to push it
+.pylintrc

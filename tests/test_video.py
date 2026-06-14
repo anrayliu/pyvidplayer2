@@ -1234,16 +1234,17 @@ class TestVideo(unittest.TestCase):
 
     # tests choosing audio tracks
     def test_audio_track(self):
+        path = "resources/manya.mp4"
+
         for audio_handler in (True, False):
-            v = Video("resources/manya.mp4", use_pygame_audio=audio_handler)
+            v = Video(path, use_pygame_audio=audio_handler)
             self.assertEqual(v.num_audio_tracks, 3)
             self.assertEqual(v.audio_track, 0)
-            with self.assertRaises(AudioStreamError):
-                v.set_audio_track(3)
-            with self.assertRaises(AudioStreamError):
-                v.set_audio_track(-1)
-            with self.assertRaises(AudioStreamError):
-                v.set_audio_track(100)
+
+            for track in (-1, 3, 100):
+                with self.assertRaises(AudioStreamError):
+                    v.set_audio_track(track)
+
             self.assertEqual(v.audio_track, 0)
             v.set_audio_track(1)
             while_loop(lambda: v.frame < 10, v.update, 10)
@@ -1251,6 +1252,14 @@ class TestVideo(unittest.TestCase):
             v.set_audio_track(2)
             self.assertFalse(v._audio.loaded)
             v.close()
+
+            for track in (-1, 3, 100):
+                with self.assertRaises(AudioStreamError):
+                    with Video(path, audio_track=track):
+                        pass
+                # should not have exception if disabling audio tracks
+                with Video(path, audio_track=track, no_audio=True):
+                    pass
 
     # tests that videos properly restart
     def test_restart(self):

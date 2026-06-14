@@ -2,15 +2,16 @@
 This example gives a side by side comparison between a few available post process effects
 '''
 
-# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+# Sample videos can be found here:
+# https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 import pygame
 from pyvidplayer2 import PostProcessing, Video
 
-PATH = r"resources\ocean.mkv"
+PATH = r"resources\birds.avi"
 
-win = pygame.display.set_mode((960, 240))
+win = pygame.display.set_mode((576, 720))
 pygame.display.set_caption("post processing demo")
 
 # supply a post processing function here
@@ -24,32 +25,43 @@ def custom_post_processing(data):
     return data     # do nothing with the frame
 
 
-videos = [Video(PATH, post_process=PostProcessing.sharpen),
-          Video(PATH, post_process=custom_post_processing),
-          Video(PATH, post_process=PostProcessing.blur)]
+def custom_chain(data):
+    return PostProcessing.vhs(
+        PostProcessing.fliplr(
+            PostProcessing.blur(
+                PostProcessing.noise(
+                    data
+                )
+            )
+        )
+    )
+
+
+videos = [Video(PATH, post_process=PostProcessing.emboss),
+          Video(PATH, post_process=custom_chain),
+          Video(PATH, post_process=PostProcessing.greyscale)]
+for vid in videos:
+    vid.change_resolution(240)
 
 font = pygame.font.SysFont("arial", 30)
-surfs = [font.render("Sharpen", True, "white"),
+surfs = [font.render("Emboss", True, "white"),
          font.render("Normal", True, "white"),
-         font.render("Blur", True, "white")]
+         font.render("Greyscale", True, "white")]
 
 
 while True:
-    key = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             [video.close() for video in videos]
             pygame.quit()
             exit()
-        elif event.type == pygame.KEYDOWN:
-            key = pygame.key.name(event.key)
 
     pygame.time.wait(16)
 
     for i, surf in enumerate(surfs):
-        x = 320 * i
-        videos[i].draw(win, (x, 0))
-        pygame.draw.rect(win, "black", (x, 0, *surf.get_size()))
-        win.blit(surf, (x, 0))
+        y = 240 * i
+        videos[i].draw(win, (0, y))
+        pygame.draw.rect(win, "black", (0, y, *surf.get_size()))
+        win.blit(surf, (0, y))
 
     pygame.display.update()

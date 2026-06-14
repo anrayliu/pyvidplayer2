@@ -2,7 +2,8 @@
 This is an example of playing many videos at once
 '''
 
-# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+# Sample videos can be found here:
+# https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 import pygame

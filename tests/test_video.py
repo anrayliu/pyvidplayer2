@@ -19,7 +19,7 @@ from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           VideoPyQT, VideoPySide, VideoRaylib,
                           VideoStreamError, VideoTkinter, VideoWx,
                           get_ffmpeg_path, get_ffprobe_path, get_version_info,
-                          set_ffmpeg_loglevel, set_ffmpeg_path,
+                          set_ffmpeg_loglevel, set_ffmpeg_path, Pyvidplayer2Error,
                           set_ffprobe_path, VideoPlayer, Webcam, WebcamNotFoundError)
 from pyvidplayer2.mixer_handler import MixerHandler
 
@@ -2075,9 +2075,10 @@ class TestVideo(unittest.TestCase):
 
     # tests that cuda device is properly configured
     def test_cuda_device(self):
-        # open video without ffmpeg reader to test for exceptions
-        v = Video(VIDEO_PATH, cuda_device=1)
-        v.close()
+        with self.assertRaises(Pyvidplayer2Error) as ctx:
+            Video(VIDEO_PATH, cuda_device=0)
+        self.assertIn("Must use FFmpeg reader for cuda devices.",
+                      str(ctx.exception))
 
         v = Video(VIDEO_PATH, cuda_device=0, reader=READER_FFMPEG)
 

@@ -16,7 +16,7 @@ import numpy as np
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
 from .error import (AudioStreamError, FFmpegNotFoundError, OpenCVError,
-                    VideoStreamError, YTDLPError)
+                    VideoStreamError, YTDLPError, Pyvidplayer2Error)
 from .ffmpeg_reader import FFMPEGReader
 
 CV = 0
@@ -105,6 +105,9 @@ class Video:
 
         # default -1 for no cuda hw acceleration
         self.cuda_device = cuda_device
+        if self.cuda_device >= 0 and reader != READER_FFMPEG:
+                raise Pyvidplayer2Error("Must use FFmpeg reader for cuda devices.")
+
 
         # determines correct video backend here
         reader = self._get_best_reader(youtube, as_bytes, reader)

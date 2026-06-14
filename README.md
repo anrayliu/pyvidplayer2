@@ -14,6 +14,8 @@ Comprehensive video playback library for Python.
 This library is under active development. If you encounter a bug or a video that cannot be
 played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
+![demo.gif](demo.gif)
+
 # Features
 
 - Drop-in integration with only 4 lines of code

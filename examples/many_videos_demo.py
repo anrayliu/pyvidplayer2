@@ -22,14 +22,11 @@ videos = [VideoPlayer(Video(r"resources\billiejean.mp4"), (0, 0, 426, 240)),
           VideoPlayer(Video(r"resources\ocean.mkv"), (426, 504, 426, 240))]
 
 while True:
-    key = None
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             [video.close() for video in videos]
             pygame.quit()
             exit()
-        elif event.type == pygame.KEYDOWN:
-            key = pygame.key.name(event.key)
 
     pygame.time.wait(16)
 

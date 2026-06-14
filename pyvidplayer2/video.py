@@ -108,7 +108,6 @@ class Video:
         if self.cuda_device >= 0 and reader != READER_FFMPEG:
             raise Pyvidplayer2Error("Must use FFmpeg reader for cuda devices.")
 
-
         # determines correct video backend here
         reader = self._get_best_reader(youtube, as_bytes, reader)
         if youtube:

@@ -2,12 +2,14 @@
 This example shows how you can play videos in reverse
 
 IMPORTANT:
-Playing videos in reverse requires a large amount of memory
+Playing videos in reverse requires a large amount of RAM
 This particular example needs around 1.3gb
-Reversing longer videos can temporarily brick your computer if there isn't enough memory
+Reversing longer videos can temporarily brick your computer
+if there isn't enough RAM
 '''
 
-# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+# Sample videos can be found here:
+# https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 from pyvidplayer2 import Video

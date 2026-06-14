@@ -3,7 +3,8 @@ This demo shows how subtitle files from Youtube can be fetched and used
 If a subtitle file in the preferred language is not available, automatic captions are used
 '''
 
-# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+# Sample videos can be found here:
+# https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 from pyvidplayer2 import Subtitles, Video

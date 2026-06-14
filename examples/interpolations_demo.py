@@ -1,27 +1,37 @@
 '''
-This example compares the default interpolation technique with the best
-Can you tell a difference?
+This example compares area and lanczos4 interpolation in slow motion
 '''
 
-# Sample videos can be found here: https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
+# Sample videos can be found here:
+# https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources
 
 
 import pygame
 from pyvidplayer2 import Video
 
-win = pygame.display.set_mode((1280, 480))
+
+win = pygame.display.set_mode((1708, 480))
 pygame.display.set_caption("interpolations demo")
 
-# default interpolation technique
+PATH = "resources/trailer1.mp4"
 
-vid1 = Video(r"resources\medic.mov", interp="linear")
-vid1.change_resolution(480)  # automatically resizes video to maintain aspect ratio
+# if you change this to the default "linear" technique, you'll notice that
+# it's almost indistinguishable from lanczos4 at low resolutions
+
+vid1 = Video(PATH, interp="area")
+# automatically resizes video to maintain aspect ratio
+vid1.change_resolution(2160)
 
 # sharpest but least performant interpolation technique
+vid2 = Video(PATH, interp="lanczos4")
+vid2.change_resolution(2160)
 
-vid2 = Video(r"resources\medic.mov", interp="lanczos4")
-vid2.resize((854, 480))  # alternatively, can set a custom size
+# can also switch interpolation technique with this method
+vid2.set_interp("lanczos4")
 
+# arbitrary frame
+vid1.seek_frame(1000)
+vid2.seek_frame(1000)
 
 while True:
     for event in pygame.event.get():
@@ -33,7 +43,7 @@ while True:
 
     pygame.time.wait(16)
 
-    vid1.draw(win, (0, 0))
-    vid2.draw(win, (640, 0))
+    win.blit(vid1.frame_surf.subsurface(0, 300, 854, 480), (0, 0))
+    win.blit(vid2.frame_surf.subsurface(0, 300, 854, 480), (854, 0))
 
     pygame.display.update()

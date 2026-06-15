@@ -363,9 +363,10 @@ class VideoPlayer:
         """Release resources. Always recommended to call when done. Using the
         video player after can lead to unexpected behaviour."""
 
-        self.video.close()
-        self._close_queue()
-        self.closed = True
+        if not self.closed:
+            self.video.close()
+            self._close_queue()
+            self.closed = True
 
     def skip(self) -> None:
         """Move onto the next video in the queue."""

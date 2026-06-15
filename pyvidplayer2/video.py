@@ -941,12 +941,13 @@ class Video:
         when done. Attempting to use the video after closing may cause
         unexpected behaviour."""
 
-        self._preloaded_frames.clear()
-        self.path = ""  # clears byte buffer
-        self.stop()
-        self._vid.release()
-        self._audio.close()
-        self.closed = True
+        if not self.closed:
+            self._preloaded_frames.clear()
+            self.path = ""  # clears byte buffer
+            self.stop()
+            self._vid.release()
+            self._audio.close()
+            self.closed = True
 
     def restart(self) -> None:
         """Rewind video to the beginning. Does not change the active state."""

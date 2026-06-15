@@ -65,7 +65,8 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertFalse(vp.interactable)
         self.assertFalse(vp.loop)
         self.assertEqual(vp.preview_thumbnails, 0)
-        self.assertEqual(vp._font.get_height(), 12)  # point size 10 should result in 12 height
+        # point size 10 should result in 12 height
+        self.assertEqual(vp._font.get_height(), 12)
         vp.close()
 
     # tests queue system
@@ -280,6 +281,21 @@ class TestVideoPlayer(unittest.TestCase):
             self.assertTrue(check_same_frames(pygame.surfarray.array3d(f1), pygame.surfarray.array3d(f2)))
 
         self.assertEqual(original_video._vid._vidcap.get(cv2.CAP_PROP_POS_FRAMES), 0)
+
+        vp.close()
+
+    # tests requested preview thumbnails is bounded
+    def test_preview_thumbnails_bounds(self):
+        v = Video("resources/myGif.gif")
+        player = VideoPlayer(v,
+                             (0, 0, v.current_size[0], v.current_size[1]),
+                             preview_thumbnails=-1)
+        self.assertEqual(player.preview_thumbnails, 0)
+        player = VideoPlayer(v,
+                             (0, 0, v.current_size[0], v.current_size[1]),
+                             preview_thumbnails=100)
+        self.assertEqual(player.preview_thumbnails, 16)
+        v.close()
 
     # tests the _best_fit method for videoplayer
     def test_best_fit(self):

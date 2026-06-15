@@ -280,26 +280,26 @@ class TestVideo(unittest.TestCase):
             v.seek(0.5, intuitive=False)
             self.assertEqual(v.get_pos(), 1.5)
 
-            FRAME = int(1.5 * v.frame_rate)
-            self.assertEqual(v.frame, FRAME)
+            frame = int(1.5 * v.frame_rate)
+            self.assertEqual(v.frame, frame)
             original_frame = next(v)
 
-            # testing non relative time seek
+            # testing non-relative time seek
             v.seek(0, relative=False, intuitive=False)
             self.assertEqual(v.get_pos(), 0.0)
             self.assertEqual(v.frame, 0)
 
-            # testing non relative frame seek
-            v.seek_frame(FRAME, intuitive=False)
-            self.assertEqual(v.get_pos(), FRAME / v.frame_rate)
-            self.assertEqual(v.frame, FRAME)
+            # testing non-relative frame seek
+            v.seek_frame(frame, intuitive=False)
+            self.assertEqual(v.get_pos(), frame / v.frame_rate)
+            self.assertEqual(v.frame, frame)
 
             new_frame = next(v)
 
             self.assertTrue(check_same_frames(original_frame, new_frame))
 
             # testing relative frame seek
-            v.seek_frame(-FRAME, relative=True, intuitive=False)
+            v.seek_frame(-frame, relative=True, intuitive=False)
             self.assertEqual(v.get_pos(), 1 / v.frame_rate)
             self.assertEqual(v.frame, 1)
 
@@ -635,6 +635,9 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.speed, 2.0)
         v.close()
         v = Video(VIDEO_PATH, speed=0)
+        self.assertEqual(v.speed, 0.25)
+        v.close()
+        v = Video(VIDEO_PATH, speed=-1)
         self.assertEqual(v.speed, 0.25)
         v.close()
         v = Video(VIDEO_PATH, speed=100)
@@ -1014,9 +1017,9 @@ class TestVideo(unittest.TestCase):
     # test fails if no input devices are found
     def test_audio_device(self):
         # test that an error is raised if opened using an input device
-        index = find_device(lambda d: d["max_output_channels"] == 0)
-        v = Video(VIDEO_PATH, audio_index=index, use_pygame_audio=False)
-        self.assertEqual(v._audio.device_index, index)
+        bad_index = find_device(lambda d: d["max_output_channels"] == 0)
+        v = Video(VIDEO_PATH, audio_index=bad_index)
+        self.assertEqual(v._audio.device_index, bad_index)
         self.assertRaises(AudioDeviceError, while_loop, lambda: v.frame < 10, v.update, 10)
         self.assertRaises(AudioDeviceError, lambda: v._audio._set_device_index(9999999999999))
         v.close()
@@ -1029,6 +1032,10 @@ class TestVideo(unittest.TestCase):
                 self.assertEqual(v._audio.device_index, index)
                 while_loop(lambda: v.frame < 10, v.update, 3)
                 v.close()
+
+        # test that exceptions will not be thrown when using pygame audio
+        with Video(VIDEO_PATH, audio_index=bad_index, use_pygame_audio=True) as v:
+            while_loop(lambda: v.frame < 10, v.update, 10)
 
     # tests that each video can be opened in vfr mode
     def test_open_vfr(self):
@@ -1689,10 +1696,34 @@ class TestVideo(unittest.TestCase):
             timed_loop(1, v.update)
             v.close()
 
+    # tests that gifs can be played
+    def test_gif(self):
+        with Video("resources/myGif.gif") as v:
+            info = v.get_metadata()
+
+            self.assertEqual(info["aspect_ratio"], 1.3333333333333333)
+            self.assertEqual(info["audio_channels"], 0)
+            self.assertEqual(info["avg_fr"], 14.25)
+            self.assertEqual(info["duration"], 1.1228070175438596)
+            self.assertEqual(info["ext"], '.gif')
+            self.assertEqual(info["frame_count"], 16)
+            self.assertEqual(info["frame_rate"], 14.25)
+            self.assertEqual(info["max_fr"], 14.25)
+            self.assertEqual(info["min_fr"], 14.25)
+            self.assertEqual(info["name"], 'myGif')
+            self.assertEqual(info["no_audio"], True)
+            self.assertEqual(info["num_audio_tracks"], 0)
+            self.assertEqual(info["original_size"], (500, 375))
+            self.assertEqual(info["path"], 'resources/myGif.gif')
+            self.assertEqual(info["vfr"], False)
+
+            # no exceptions
+            while_loop(lambda: v.active, v.update, 10)
+
     # test that each frame is rendered
     # can fail if cpu stutters, resulting in dropped frames
     def test_all_frames_reached(self):
-        v = Video("resources//myGif.gif", speed=0.25)
+        v = Video("resources/myGif.gif", speed=0.25)
         frames = 0
         while v.active:
             if v.update():
@@ -2434,6 +2465,32 @@ class TestVideo(unittest.TestCase):
             self.assertIn(
                 "cannot import name 'Subtitles' from 'pyvidplayer2'",
                 str(context.exception))
+
+    # tests that __next__ applies post-processing
+    def test_next_post_processing(self):
+        with Video(VIDEO_PATH, post_process=PostProcessing.blur) as v:
+            v.seek_frame(10)
+
+            base = v.frame_data
+
+            v.seek_frame(9)
+
+            target = next(v)
+
+            self.assertTrue(check_same_frames(base, target))
+
+    # tests that frame indexing applies post-processing
+    def test_indexing_post_processing(self):
+        with Video(VIDEO_PATH, post_process=PostProcessing.blur) as v:
+            v.seek_frame(10)
+
+            base = v.frame_data
+
+            v.restart()
+
+            target = v[10]
+
+            self.assertTrue(check_same_frames(base, target))
 
 
 if __name__ == "__main__":

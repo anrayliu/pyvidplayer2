@@ -628,6 +628,8 @@ class Video:
             self._missing_ffmpeg = True
             return
 
+        # print(subprocess.list2cmdline(command))
+
         self._processes.remove(p)
         self._chunks[i - self._chunks_played - 1] = audio
 
@@ -955,6 +957,7 @@ class Video:
         self._skipped_frame = False
         self._skipped_frame_index = 0
 
+        # intuitive=True very important for VideoPlayer seamless loops
         self.seek(0, relative=False, intuitive=True)
 
         if self._buffered_chunk is not None:

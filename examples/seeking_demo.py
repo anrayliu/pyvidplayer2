@@ -1,5 +1,5 @@
 '''
-This example shows the two ways of seeking
+This example shows the different ways of seeking
 '''
 
 # Sample videos can be found here:

@@ -908,11 +908,12 @@ class Video:
         """Stop video playback and rewind to the beginning.
         Sets active state to False but does not change the paused state."""
 
+        self._skipped_frame = False
+        self._skipped_frame_index = 0
+
         self.seek(0, relative=False, intuitive=False)
         self.active = False
-        # removing this to prevent flickering during loops
-        # self.frame_data = None
-        # self.frame_surf = None
+
         self.paused = False
 
     def resize(self, size: Tuple[int, int]) -> None:
@@ -949,6 +950,9 @@ class Video:
 
     def restart(self) -> None:
         """Rewind video to the beginning. Does not change the active state."""
+
+        self._skipped_frame = False
+        self._skipped_frame_index = 0
 
         self.seek(0, relative=False, intuitive=True)
 

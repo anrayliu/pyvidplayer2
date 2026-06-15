@@ -1948,6 +1948,27 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # test that certain methods will reset skipped frame flags
+    def test_reset_skipped_frame_flag(self):
+        with Video(VIDEO_PATH) as v:
+            v.seek_frame(15)
+            _ = v[10]
+            self.assertTrue(v._skipped_frame)
+
+            v.restart()
+            self.assertFalse(v._skipped_frame)
+            self.assertEqual(v._skipped_frame_index, 0)
+            self.assertEqual(v.frame, 1)  # intuitive=True
+
+            v.seek_frame(15)
+            _ = v[10]
+            self.assertTrue(v._skipped_frame)
+
+            v.stop()
+            self.assertFalse(v._skipped_frame)
+            self.assertEqual(v._skipped_frame_index, 0)
+            self.assertEqual(v.frame, 0)  # intuitive=False
+
     # test intuitive seeking properly skips ahead one frame
     def test_intuitive_seeking(self):
         for vfr in (True, False):

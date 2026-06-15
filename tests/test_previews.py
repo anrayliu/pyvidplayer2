@@ -8,7 +8,8 @@ from threading import Thread
 
 import pygame
 from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
-                          VideoPyQT, VideoPySide, VideoTkinter, VideoWx)
+                          VideoPyQT, VideoPySide, VideoTkinter, VideoWx,
+                          VideoRaylib)
 
 from test_video import VIDEO_PATH
 
@@ -115,6 +116,15 @@ class TestPreviews(unittest.TestCase):
                 v.preview()
             self.assertTrue(v.closed)
             v.close()
+
+    # tests raylib separately, because for some reason it cannot be
+    # paired with pyglet
+    @unittest.skip
+    def test_raylib(self):
+        with VideoRaylib(VIDEO_PATH) as v:
+            v.seek(v.duration - 0.1)
+            v.preview()
+        self.assertTrue(v.closed)
 
     # tests pyav dependency message
     def test_imageio_needs_pyav(self):

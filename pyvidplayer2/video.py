@@ -941,6 +941,7 @@ class Video:
         unexpected behaviour."""
 
         self._preloaded_frames.clear()
+        self.path = ""  # clears byte buffer
         self.stop()
         self._vid.release()
         self._audio.close()

@@ -1661,6 +1661,16 @@ class TestVideo(unittest.TestCase):
                         self.assertEqual(type(v._vid).__name__, "DecordReader")
                         v.close()
 
+    # tests that bytes buffers are cleared when video is closed
+    # don't want it taking up precious ram
+    def test_bytes_released(self):
+        with open(VIDEO_PATH, "rb") as f:
+            bytes_ = f.read()
+            v = Video(bytes_)
+            self.assertEqual(len(v.path), len(bytes_))
+            v.close()
+            self.assertEqual(len(v.path), 0)
+
     def test_random_read(self):
         for file in PATHS:
             for reader in (READER_FFMPEG,):

@@ -425,6 +425,13 @@ class TestVideoPlayer(unittest.TestCase):
         self.assertEqual("<VideoPlayer(path=resources/trailer1.mp4)>", str(vp))
         vp.close()
 
+    # tests for bug where events was not checked for None
+    def test_empty_events(self):
+        v = Video(VIDEO_PATH)
+        vp = VideoPlayer(v, (0, 0, 1280, 720), interactable=True)
+        vp.update(events=None)
+        vp.close()
+
 
 if __name__ == "__main__":
     unittest.main()

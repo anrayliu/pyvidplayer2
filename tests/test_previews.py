@@ -12,6 +12,7 @@ from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
                           VideoRaylib)
 
 from test_video import VIDEO_PATH
+from test_youtube import YOUTUBE_PATH
 
 
 @unittest.skipIf(sys.platform.startswith("linux") or
@@ -131,6 +132,30 @@ class TestPreviews(unittest.TestCase):
         self.assertTrue(thread.is_alive())
         self.assertFalse(vp.closed)
         pygame.event.post(pygame.event.Event(pygame.QUIT))
+        thread.join()
+
+    # tests that video players work with youtube videos
+    def test_youtube_player(self):
+        v = Video(YOUTUBE_PATH, youtube=True)
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
+        v.seek(v.duration - 1)
+        thread = Thread(target=lambda: vp.preview())
+        thread.start()
+        time.sleep(5)
+        self.assertTrue(thread.is_alive())
+        self.assertFalse(vp.closed)
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+        thread.join()
+
+    # tests video preview with Youtube
+    def test_youtube_preview(self):
+        v = Video(YOUTUBE_PATH, youtube=True)
+        v.seek(v.duration - 1)
+        thread = Thread(target=lambda: v.preview())
+        thread.start()
+        time.sleep(5)
+        self.assertFalse(thread.is_alive())
+        self.assertTrue(v.closed)
         thread.join()
 
     # tests that previews start from where the video position is, and that they close the video afterwards

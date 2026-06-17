@@ -108,8 +108,8 @@ from YouTube. Decord is required to play videos from RAM.
 - `current_size: (int, int)` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
 - `aspect_ratio: float` - Width divided by height of original size.
 - `audio_channels: int` - Number of audio channels in current audio track. May change when the current audio track is
-  switched with `set_audio_track`. Defaults to `0` if `no_audio=True`.
-- `num_audio_tracks: int` - Number of audio tracks in video container. Defaults to `0` if `no_audio=True`.
+  switched with `set_audio_track`. Defaults to `0` if `no_audio=True` or `youtube=True`.
+- `num_audio_tracks: int` - Number of audio tracks in video container. Defaults to `0` if `no_audio=True` or `youtube=True`.
 - `frame_data: numpy.ndarray` - Current video frame as a NumPy `ndarray`. May be in a variety of colour formats. Will be
   processed using the current post-processing function.
 - `frame_surf: pygame.Surface` - Current video frame as a Pygame `Surface`. Will be rendered in RGB. This may also

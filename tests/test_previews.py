@@ -25,14 +25,45 @@ class TestPreviews(unittest.TestCase):
 
         self.assertTrue(v._buffer_first_chunk)
 
-        thread = Thread(target=lambda: vp.preview())
+        end_of_video = False
+        stop_loop = False
+
+        def modified_preview():
+            nonlocal end_of_video, stop_loop
+
+            win = pygame.display.set_mode(vp.frame_rect.size, pygame.RESIZABLE)
+            v.play()
+            stop = False
+            while not stop:
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.QUIT:
+                        v.stop()
+                        stop = True
+                vp.update(events, False, 60)
+                vp.draw(win)
+
+                if end_of_video:
+                    if v.frame_surf is None:
+                        stop_loop = True
+                        break
+                    else:
+                        end_of_video = False
+                elif v.frame == 60:
+                    end_of_video = True
+
+                pygame.display.update()
+            pygame.display.quit()
+            vp.close()
+
+        thread = Thread(target=modified_preview)
         thread.start()
 
         t = 0
         track = False
         buffers = []
         timeout = time.time()
-        while True:
+        while not stop_loop:
             if time.time() - timeout > 30:
                 raise TimeoutError("Test timed out.")
             if not v.active and not track:
@@ -49,6 +80,11 @@ class TestPreviews(unittest.TestCase):
         vp.loop = False
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         thread.join()
+
+        # preview stopped unexpectedly because these are None
+        if stop_loop:
+            self.assertIsNotNone(v.frame_data)
+            self.assertIsNotNone(v.frame_surf)
 
         vp.close()
 

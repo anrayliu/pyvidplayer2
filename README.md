@@ -63,9 +63,9 @@ Still requires one graphics library and one audio library of your choice.
 
 ```
 opencv_python       (efficiency improvements and more features, comes installed)
-pygame/pygame-ce    (graphics and audio library, comes installed)
+pygame/pygame-ce    (graphics and audio library)
 sounddevice         (better audio library, comes installed)
-pysubs2             (for subtitles, comes installed)
+pysubs2             (for subtitles)
 yt_dlp[default]     (for streaming Youtube videos)
 decord              (for videos in bytes, best option)
 imageio[pyav]       (for videos in bytes)

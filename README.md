@@ -18,17 +18,20 @@ played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/is
   <img src="demo.gif" />
 </p>
 
-# Features
+## Features
 
-- Drop-in integration with only 4 lines of code
-- Lean and modular dependencies
-- Comprehensive audio, video, and subtitle control
-- Supports almost any codec and container
-- Stream videos from Youtube
-- Frame-by-frame iteration and inspection
-- Built-in video player GUI
+- **Easy integration**: Add a video to an existing app with just 4 lines of code
+- **Lightweight**: Almost every dependency is optional
+- **Feature-rich**: Seamless loops, custom playback speed, reverse playback, parallel playback, and more
+- **Full audio support**: Adjust audio track, output device, volume, and more
+- **Full subtitle support**: Parse subtitles from files or embedded subtitle tracks
+- **Play any format**: Supports almost every codec and container, VFR videos, even GIFs
+- **YouTube integration**: Stream videos and subtitles directly from YouTube
+- **Low-level control**: Frame-by-frame iteration and inspection
+- **High compatibility**: Integrates with 7 graphics libraries (some features limited to Pygame)
+- **Extra features**: Built-in video player GUI, post-processing effects, and webcam features
 
-# Installation
+## Installation
 
 ```
 pip install pyvidplayer2
@@ -38,7 +41,7 @@ Windows users can go to the [official website](https://www.ffmpeg.org/) to downl
 Add the bin folder location to the PATH environment variable. There's plenty of tutorials online for this.
 Linux and MacOS users can use their package manager of choice.
 
-## Legacy Installations
+### Legacy Installations
 
 Versions prior to v0.9.31 have a PyAudio dependency. To build the wheel for it, some system packages must be present.
 Install them with your package manager before running `pip install pyvidplayer2`.
@@ -47,7 +50,7 @@ Install them with your package manager before running `pip install pyvidplayer2`
 - Fedora/RHEL: `sudo dnf install python3-devel portaudio-devel`
 - MacOS: `brew install portaudio`
 
-# Dependencies
+## Dependencies
 
 ```
 numpy
@@ -56,7 +59,7 @@ FFmpeg and FFprobe (binaries, not Python packages)
 
 Still requires one graphics library and one audio library of your choice.
 
-## Optional Packages
+### Optional Packages
 
 ```
 opencv_python       (efficiency improvements and more features, comes installed)
@@ -81,7 +84,7 @@ Not required or recommended for regular users.
 
 Refer to the [examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) folder for more basic examples.
 
-## Pygame Integration
+### Pygame Integration
 
 Refer to the [examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) folder for integrations with other graphics libraries.
 
@@ -135,14 +138,14 @@ vid.close()
 pygame.quit()
 ```
 
-# Documentation
+## Documentation
 
 To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
 For more detailed information, read the [documentation](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md).
 If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
 open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
-# Known Bugs
+## Known Bugs
 
 For a list of known bugs, refer to [this page](https://github.com/anrayliu/pyvidplayer2/issues/53).
 If you see an issue not listed, please open a new issue.

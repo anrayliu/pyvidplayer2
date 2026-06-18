@@ -158,7 +158,7 @@ class Video:
 
         self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
-        self.max_threads = max_threads
+        self.max_threads = 1  # locked to 1, max_threads param is deprecated
 
         self._chunks = []
         self._threads = []
@@ -539,11 +539,18 @@ class Video:
     def _get_num_channels_to_process(self):
         return min(self.audio_channels, self._audio.get_num_channels())
 
-    def _threaded_load(self, index):
-        i = index  # assigned to variable so another thread does not change it
+    # I wrote this method a long time ago when I didn't have
+    # much experience with concurrent programming
+    # currently, it is not thread safe
 
-        # save a spot in the list to prevent other threads from messing up the order
-        # append is atomic
+    # luckily, there's no benefit for having more than
+    # one thread here, so I'm locking max_threads to 1
+    # in _update_threads()
+    # TODO: remove max_threads param and clean up dead code
+
+    def _threaded_load(self, index):
+        i = index
+
         self._chunks.append(None)
 
         s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / (
@@ -634,6 +641,10 @@ class Video:
         self._chunks[i - self._chunks_played - 1] = audio
 
     def _update_threads(self):
+        # forcing this to be 1 because it's both obsolete and not thread safe
+        if self.max_threads != 1:
+            self.max_threads = 1
+
         for t in self._threads:
             if not t.is_alive():
                 self._threads.remove(t)
@@ -642,7 +653,8 @@ class Video:
         if not self._stop_loading and (len(self._threads) < self.max_threads) and (
                 (self._chunks_len(self._chunks) + len(self._threads)) < self.max_chunks):
             self._chunks_claimed += 1
-            self._threads.append(Thread(target=self._threaded_load, args=(self._chunks_claimed,)))
+            self._threads.append(Thread(target=self._threaded_load,
+                                        args=(self._chunks_claimed,)))
             self._threads[-1].start()
 
     def _write_subs(self, p):

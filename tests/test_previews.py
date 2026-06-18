@@ -185,6 +185,7 @@ class TestPreviews(unittest.TestCase):
         with VideoRaylib(VIDEO_PATH) as v:
             v.seek(v.duration - 0.1)
             v.preview()
+        # raylib overrides close method
         self.assertTrue(v.closed)
 
     # tests pyav dependency message

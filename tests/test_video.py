@@ -161,19 +161,28 @@ class TestVideo(unittest.TestCase):
         v1.update()
         self.assertEqual(len(v1._threads), 1)
         v2.update()
-        self.assertEqual(len(v2._threads), 2)
+        self.assertEqual(len(v2._threads), 1)
+
+        # threads locked to 1 now
+        # self.assertEqual(len(v2._threads), 2)
 
         # check that third thread is handled properly
         v1.update()
         self.assertEqual(len(v1._threads), 1)
         v2.update()
-        self.assertEqual(len(v2._threads), 3)
+        self.assertEqual(len(v2._threads), 1)
+
+        # threads locked to 1 now
+        # self.assertEqual(len(v2._threads), 3)
 
         # check that fourth thread is handled properly
         v1.update()
         self.assertEqual(len(v1._threads), 1)
         v2.update()
-        self.assertEqual(len(v2._threads), 3)
+        self.assertEqual(len(v2._threads), 1)
+
+        # threads locked to 1 now
+        # self.assertEqual(len(v2._threads), 3)
 
         # update both videos for 5 seconds
         timed_loop(3, lambda: (v1.update(), v2.update()))
@@ -2491,6 +2500,24 @@ class TestVideo(unittest.TestCase):
             target = v[10]
 
             self.assertTrue(check_same_frames(base, target))
+
+    # max threads param is deprecated and should be locked to 1
+    def test_max_threads_deprecation(self):
+        v = Video(VIDEO_PATH, max_threads=5)
+        self.assertEqual(v.max_threads, 1)
+
+        v.max_threads = 5
+        v.update()
+        self.assertEqual(v.max_threads, 1)
+
+        def loop():
+            v.max_threads = 5
+            v.update()
+            self.assertLessEqual(len(v._threads), 1)
+
+        while_loop(lambda: v.frame < 10, loop, 10)
+
+        v.close()
 
 
 if __name__ == "__main__":

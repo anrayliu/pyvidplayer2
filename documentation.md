@@ -12,7 +12,7 @@ from YouTube. Decord is required to play videos from RAM.
 - `chunk_size: float = 10` - Playable audio is extracted in chunks. This parameter dictates the size of
   each chunk, in seconds. Increasing this value will slow the
   initial loading of video, but may be necessary to prevent stuttering. When streaming from YouTube, this will be automatically set to a higher value.
-- `max_threads: int = 1` - Maximum number of chunks that can be simultaneously extracted. When streaming from YouTube, this will be locked to 1.
+- `max_threads: int = 1` - Obsolete and deprecated. Will be locked to 1. Maximum number of chunks that can be simultaneously extracted. When streaming from YouTube, this will be locked to 1.
 - `max_chunks: int = 1` - Maximum number of chunks allowed to be extracted and queued for playback.
 - `subs: pyvidplayer2.Subtitles = None` - Pass a `Subtitles` object or a list of them to display during playback.
 - `post_process: function(numpy.ndarray) -> numpy.ndarray = PostProcessing.none` - Post processing function to be
@@ -68,7 +68,7 @@ from YouTube. Decord is required to play videos from RAM.
 
 - `path: str | bytes` - Same as given argument.
 - `chunk_size: float` - Same as given argument. May be overridden if `youtube` is `True`.
-- `max_threads: int` - Same as given argument. May be overridden if `youtube` is `True`.
+- `max_threads: int` - Deprecated. Will be locked to 1. Same as given argument. May be overridden if `youtube` is `True`.
 - `max_chunks: int` - Same as given argument.
 - `subs: pyvidplayer2.Subtitles` - Same as given argument.
 - `post_func: callable(numpy.ndarray) -> numpy.ndarray` - Same as given argument. Can be changed with `set_post_func`.

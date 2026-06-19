@@ -16,7 +16,7 @@ import numpy as np
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
 from .error import (AudioStreamError, FFmpegNotFoundError, OpenCVError,
-                    VideoStreamError, YTDLPError, Pyvidplayer2Error)
+                    Pyvidplayer2Error, VideoStreamError, YTDLPError)
 from .ffmpeg_reader import FFMPEGReader
 
 CV = 0

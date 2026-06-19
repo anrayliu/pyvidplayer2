@@ -8,7 +8,7 @@ jobs:
   run-flake8:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.13'
@@ -25,7 +25,7 @@ jobs:
   run-isort:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.13'
@@ -42,7 +42,7 @@ jobs:
   run-bandit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6.2.0
         with:
           python-version: '3.13'

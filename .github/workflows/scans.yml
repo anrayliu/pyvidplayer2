@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  run-flake8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
@@ -20,9 +20,26 @@ jobs:
 
       - name: run flake8
         run: |
-          flake8 ./pyvidplayer2
+          flake8 ./pyvidplayer2 ./tests ./examples
 
-  scan:
+  run-isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.13'
+
+      - name: install isort
+        run: |
+          python -m pip install --upgrade pip
+          pip install isort
+
+      - name: run isort
+        run: |
+          isort ./pyvidplayer2 --diff
+
+  run-bandit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2

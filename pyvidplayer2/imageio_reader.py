@@ -25,7 +25,7 @@ class IIOReader(VideoReader):
         try:
             # seeking with imageio is very slow
             # because it has to decode every frame here
-            for i in range(int(index)):
+            for _ in range(int(index)):
                 next(new_gen)
         except StopIteration:
             index = self.frame_count

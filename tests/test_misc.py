@@ -16,7 +16,7 @@ from test_video import check_same_frames
 class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        ver = "0.9.33"
+        ver = "0.9.34"
 
         self.assertEqual(ver, VERSION)
         self.assertEqual(ver, pyvidplayer2.__version__)
@@ -82,6 +82,8 @@ class TestMisc(unittest.TestCase):
                                   get_version_info, set_ffmpeg_loglevel,
                                   set_ffmpeg_path, set_ffprobe_path)
         from pyvidplayer2._version import __version__
+        import pyvidplayer2
+        self.assertEqual(len(pyvidplayer2.__all__), 33)
 
     # tests each post processing function
     def test_post_processing(self):

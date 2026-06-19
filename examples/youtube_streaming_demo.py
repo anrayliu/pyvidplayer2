@@ -14,7 +14,6 @@ To use this feature, you must follow the steps outlined here: https://github.com
 from pyvidplayer2 import Video
 
 # chunk_size must be at least 60 for a smooth experience
-# max_threads is forced to 1
 
 Video("https://www.youtube.com/watch?v=K8PoK3533es", youtube=True, max_res=720, chunk_size=60).preview()
 

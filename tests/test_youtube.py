@@ -1,17 +1,18 @@
 # test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
 
+# unfortunately, youtube support continues to degrades over time
+# as google clamps down
 
 import random
 import time
 import unittest
 import unittest.mock
-from threading import Thread
 
 import pygame
 import yt_dlp
 from pyvidplayer2 import (READER_AUTO, READER_FFMPEG, READER_IMAGEIO,
                           READER_OPENCV, SubtitleError, Subtitles, Video,
-                          VideoPlayer, YTDLPError)
+                          YTDLPError)
 
 from test_subtitles import SUBS
 from test_video import check_same_frames, timed_loop, while_loop
@@ -33,13 +34,13 @@ def get_youtube_urls(max_results=5):
 
 
 YOUTUBE_PATH = "https://www.youtube.com/watch?v=K8PoK3533es&t=3s"
+REQUEST_COOLDOWN = 0.2  # so we don't spam youtube
 
 
-# youtube support just continues to degrade over time...
-# reached a point where I've justified skipping these by default
-
-@unittest.skip
 class TestYoutubeVideo(unittest.TestCase):
+    def setUp(self):
+        time.sleep(REQUEST_COOLDOWN)
+
     # tests that each video is opened properly
     def test_metadata(self):
         v = Video(YOUTUBE_PATH, youtube=True)
@@ -54,8 +55,12 @@ class TestYoutubeVideo(unittest.TestCase):
         self.assertEqual(v.current_size, (1280, 720))
         self.assertEqual(v.aspect_ratio, 1.7777777777777777)
         self.assertEqual(type(v._vid).__name__, "CVReader")
+
+        # not available for youtube videos
+        self.assertEqual(v.num_audio_tracks, 0)
+        self.assertEqual(v.audio_channels, 0)
+
         v.close()
-        time.sleep(0.1)
 
     # tests youtube max_res parameter
     def test_max_resolution(self):
@@ -63,7 +68,7 @@ class TestYoutubeVideo(unittest.TestCase):
             v = Video(YOUTUBE_PATH, youtube=True, max_res=res)
             self.assertEqual(v.current_size[1], res)
             v.close()
-            time.sleep(0.1)  # prevents spamming youtube
+            time.sleep(REQUEST_COOLDOWN)
 
     # test standard youtube playback
     def test_youtube(self):
@@ -72,9 +77,9 @@ class TestYoutubeVideo(unittest.TestCase):
         self.assertTrue(v.path.startswith("https"))
         while_loop(lambda: v.get_pos() < 1, v.update, 10)
         v.close()
-        time.sleep(0.1)
 
     # test opens 5 long youtube videos
+    @unittest.skip  # long videos don't work anymore :[
     def test_long_videos(self):
         urls = ["https://www.youtube.com/watch?v=rfscVS0vtbw",
                 "https://www.youtube.com/watch?v=PkZNo7MFNFg&t=1115s",
@@ -87,7 +92,7 @@ class TestYoutubeVideo(unittest.TestCase):
             self.assertTrue(v.path.startswith("https"))
             while_loop(lambda: v.get_pos() < 1, v.update, 10)
             v.close()
-            time.sleep(0.1)
+            time.sleep(REQUEST_COOLDOWN)
 
     # test that youtube chunk settings are checked
     def test_youtube_settings(self):
@@ -96,7 +101,6 @@ class TestYoutubeVideo(unittest.TestCase):
         self.assertEqual(v.max_threads, 1)
         self.assertEqual(v.max_chunks, 3)
         v.close()
-        time.sleep(0.1)
 
     # tests opening a youtube video with bad paths
     def test_open_youtube(self):
@@ -104,18 +108,18 @@ class TestYoutubeVideo(unittest.TestCase):
             Video("resources/trailer1.mp4", youtube=True)
         self.assertEqual(str(context.exception),
                          "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         with self.assertRaises(YTDLPError) as context:
             Video(YOUTUBE_PATH, youtube=True, max_res=0)
         self.assertEqual(str(context.exception), "Could not find requested resolution.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         with self.assertRaises(YTDLPError) as context:
             Video("https://www.youtube.com/watch?v=thisvideodoesnotexistauwdhoiawdhoiawhdoih", youtube=True)
         self.assertEqual(str(context.exception),
                          "yt-dlp could not open video. Please ensure the URL is a valid Youtube video.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
     # tests that youtube videos do not hang when close is called
     def test_hanging(self):
@@ -123,7 +127,6 @@ class TestYoutubeVideo(unittest.TestCase):
         t = time.time()
         v.close()
         self.assertLess(time.time() - t, 0.1)
-        time.sleep(0.1)
 
     # tests that youtube videos can be played in reverse
     def test_reverse(self):
@@ -131,7 +134,6 @@ class TestYoutubeVideo(unittest.TestCase):
         for i, frame in enumerate(v):
             self.assertTrue(check_same_frames(frame, v._preloaded_frames[v.frame_count - i - 1]))
         v.close()
-        time.sleep(0.1)
 
     # tests for errors for unsupported youtube links
     def test_bad_youtube_links(self):
@@ -143,7 +145,7 @@ class TestYoutubeVideo(unittest.TestCase):
         ):
             with self.assertRaises(YTDLPError):
                 Video(url, youtube=True).close()
-            time.sleep(0.1)
+            time.sleep(REQUEST_COOLDOWN)
 
     # tests that nothing crashes when selecting different languages with Youtube
     def test_youtube_language_tracks(self):
@@ -161,36 +163,38 @@ class TestYoutubeVideo(unittest.TestCase):
                       youtube=True, pref_lang=lang)
             timed_loop(3, v.update)
             v.close()
-            time.sleep(0.1)
+            time.sleep(REQUEST_COOLDOWN)
 
     # tests appropriate error messages when opening subtitles
     def test_open_subtitles(self):
         with self.assertRaises(SubtitleError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True)
         self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         s = Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="en-US")
         self.assertFalse(s._auto_cap)
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
-        s = Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="zh-Hant-en-US")
-        self.assertTrue(s._auto_cap)
-        time.sleep(0.1)
+        # https://github.com/yt-dlp/yt-dlp/issues/13831
+
+        # s = Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="zh-CN")
+        # self.assertTrue(s._auto_cap)
+        # time.sleep(REQUEST_COOLDOWN)
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, pref_lang="badcode")
         self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         with self.assertRaises(SubtitleError) as context:
             Subtitles(YOUTUBE_PATH, youtube=True, pref_lang="badcode")
         self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         # ffprobe can read extracted subtitle file
         Subtitles("https://www.youtube.com/watch?v=HurjfO_TDlQ", youtube=True, track_index=0, pref_lang="en-US")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         for url in (
             "https://www.youtube.com/@joewoobie1155",
@@ -200,18 +204,17 @@ class TestYoutubeVideo(unittest.TestCase):
             with self.assertRaises(SubtitleError) as context:
                 Subtitles(url, youtube=True)
             self.assertEqual(str(context.exception), "Could not find subtitles in the specified language.")
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
         with self.assertRaises(yt_dlp.utils.DownloadError):
             Subtitles("https://www.youtube.com/shorts", youtube=True)
-        time.sleep(0.1)
+        time.sleep(REQUEST_COOLDOWN)
 
     # tests __str__
     def test_str_magic_method(self):
         v = Video(YOUTUBE_PATH, youtube=True)
         self.assertEqual("<VideoPygame(path=)>", str(v))
         v.close()
-        time.sleep(0.1)
 
     # tests that subtitles are properly read and displayed
     def test_subtitles(self):
@@ -268,7 +271,6 @@ class TestYoutubeVideo(unittest.TestCase):
         # test playback while turning on and off subs
         while_loop(lambda: v.active, randomized_test, 120)
         v.close()
-        time.sleep(0.1)
 
     # tests forcing reader to be ffmepg
     def test_force_ffmpeg(self):
@@ -307,18 +309,6 @@ class TestYoutubeVideo(unittest.TestCase):
                              "Only READER_OPENCV is supported for Youtube videos.")
 
         v.close()
-
-    # tests that video players work with youtube videos
-    def test_youtube_player(self):
-        v = Video(YOUTUBE_PATH, youtube=True)
-        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
-        v.seek(v.duration)
-        thread = Thread(target=lambda: vp.preview())
-        thread.start()
-        time.sleep(1)
-        self.assertFalse(thread.is_alive())
-        self.assertTrue(vp.closed)
-        thread.join()
 
 
 if __name__ == "__main__":

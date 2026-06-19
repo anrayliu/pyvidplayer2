@@ -5,14 +5,21 @@ import time
 import unittest
 
 import cv2
-from pyvidplayer2 import PostProcessing, Video, Webcam
+from pyvidplayer2 import PostProcessing, Video, Webcam, WebcamNotFoundError
 
 from test_video import VIDEO_PATH, check_same_frames, timed_loop
 
 
 # enable these if you have a webcam
 
-@unittest.skip
+skip = False
+try:
+    Webcam().close()
+except WebcamNotFoundError:
+    skip = True
+
+
+@unittest.skipIf(skip, "Webcam not found")
 class TestWebcam(unittest.TestCase):
     # tests default webcam
     def test_open_webcam(self):

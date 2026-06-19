@@ -12,7 +12,7 @@ from YouTube. Decord is required to play videos from RAM.
 - `chunk_size: float = 10` - Playable audio is extracted in chunks. This parameter dictates the size of
   each chunk, in seconds. Increasing this value will slow the
   initial loading of video, but may be necessary to prevent stuttering. When streaming from YouTube, this will be automatically set to a higher value.
-- `max_threads: int = 1` - Maximum number of chunks that can be simultaneously extracted. When streaming from YouTube, this will be locked to 1.
+- `max_threads: int = 1` - Obsolete and deprecated. Will be locked to 1. Maximum number of chunks that can be simultaneously extracted. When streaming from YouTube, this will be locked to 1.
 - `max_chunks: int = 1` - Maximum number of chunks allowed to be extracted and queued for playback.
 - `subs: pyvidplayer2.Subtitles = None` - Pass a `Subtitles` object or a list of them to display during playback.
 - `post_process: function(numpy.ndarray) -> numpy.ndarray = PostProcessing.none` - Post processing function to be
@@ -68,7 +68,7 @@ from YouTube. Decord is required to play videos from RAM.
 
 - `path: str | bytes` - Same as given argument.
 - `chunk_size: float` - Same as given argument. May be overridden if `youtube` is `True`.
-- `max_threads: int` - Same as given argument. May be overridden if `youtube` is `True`.
+- `max_threads: int` - Deprecated. Will be locked to 1. Same as given argument. May be overridden if `youtube` is `True`.
 - `max_chunks: int` - Same as given argument.
 - `subs: pyvidplayer2.Subtitles` - Same as given argument.
 - `post_func: callable(numpy.ndarray) -> numpy.ndarray` - Same as given argument. Can be changed with `set_post_func`.
@@ -108,8 +108,8 @@ from YouTube. Decord is required to play videos from RAM.
 - `current_size: (int, int)` - Tuple containing the width and height of each frame being rendered. Affected by resizing.
 - `aspect_ratio: float` - Width divided by height of original size.
 - `audio_channels: int` - Number of audio channels in current audio track. May change when the current audio track is
-  switched with `set_audio_track`.
-- `num_audio_tracks: int` - Number of audio tracks in video container.
+  switched with `set_audio_track`. Defaults to `0` if `no_audio=True` or `youtube=True`.
+- `num_audio_tracks: int` - Number of audio tracks in video container. Defaults to `0` if `no_audio=True` or `youtube=True`.
 - `frame_data: numpy.ndarray` - Current video frame as a NumPy `ndarray`. May be in a variety of colour formats. Will be
   processed using the current post-processing function.
 - `frame_surf: pygame.Surface` - Current video frame as a Pygame `Surface`. Will be rendered in RGB. This may also
@@ -163,7 +163,8 @@ from YouTube. Decord is required to play videos from RAM.
   seek to the last frame. Remember that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,
   but this will require incrementing `frame` by one extra. To force `frame` to be exactly correct (which is one frame
-  before requested position), set intuitive to `False`. Intuitive seeking does not work for Raylib and wxPython.
+  before requested position), set intuitive to `False`. Not applicable for relative seeking. 
+  Intuitive seeking does not work for Raylib and wxPython.
 - `seek_frame(index: int, relative: bool = False, intuitive: bool = False) -> None` - Same as `seek()` but seeks to a
   specific frame instead of a
   timestamp. For example, index 0 will seek to the first frame, index 1 will seek to the second frame, and so on. If the
@@ -171,7 +172,8 @@ from YouTube. Decord is required to play videos from RAM.
   will seek to the last frame. Remember that the `frame`
   attribute represents the next frame to be rendered. Most people expect seeking to already display the frame they want,
   but this will require incrementing `frame` by one extra. To force `frame` to be exactly correct (which is one frame
-  before requested position), set intuitive to `False`. Intuitive seeking does not work for Raylib and wxPython.
+  before requested position), set intuitive to `False`. Not applicable for relative seeking. 
+  Intuitive seeking does not work for Raylib and wxPython.
 - `update() -> bool` - Allows video to perform required calculations. `draw` automatically calls this method, so it
   doesn't need to be explicitly called. Returns `True` if a new frame is ready to be displayed.
 - `draw(surf: pygame.Surface, pos: (int, int), force_draw: bool = True) -> bool` - Draws the current video frame onto

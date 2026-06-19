@@ -1,5 +1,5 @@
 '''
-This example shows the two ways of seeking
+This example shows the different ways of seeking
 '''
 
 # Sample videos can be found here:
@@ -28,6 +28,6 @@ with Video("resources/trailer2.mp4") as v:
 # this only temporarily fetches the frame, does not interrupt playback
 
 with Video("resources/birds.avi") as v:
-    print(v[99]) # 100th frame
+    print(v[99])  # 100th frame
 
     v.preview()

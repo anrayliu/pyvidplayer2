@@ -16,7 +16,7 @@ import numpy as np
 
 from . import get_ffmpeg_loglevel, get_ffmpeg_path, get_ffprobe_path
 from .error import (AudioStreamError, FFmpegNotFoundError, OpenCVError,
-                    VideoStreamError, YTDLPError)
+                    Pyvidplayer2Error, VideoStreamError, YTDLPError)
 from .ffmpeg_reader import FFMPEGReader
 
 CV = 0
@@ -90,8 +90,8 @@ class Video:
                  cuda_device) -> None:
 
         self._audio_path = path  # used for audio only when streaming
-        self.path = path
 
+        self.path = path
         self.name = ""
         self.ext = ""
 
@@ -105,6 +105,8 @@ class Video:
 
         # default -1 for no cuda hw acceleration
         self.cuda_device = cuda_device
+        if self.cuda_device >= 0 and reader != READER_FFMPEG:
+            raise Pyvidplayer2Error("Must use FFmpeg reader for cuda devices.")
 
         # determines correct video backend here
         reader = self._get_best_reader(youtube, as_bytes, reader)
@@ -156,7 +158,7 @@ class Video:
 
         self.chunk_size = 0 if chunk_size < 0 else chunk_size
         self.max_chunks = max_chunks
-        self.max_threads = max_threads
+        self.max_threads = 1  # locked to 1, max_threads param is deprecated
 
         self._chunks = []
         self._threads = []
@@ -264,8 +266,9 @@ class Video:
         if item < 0:
             item = self.frame_count + item
 
-        self._skipped_frame_index = self.frame
-        self._skipped_frame = True
+        if not self._skipped_frame:
+            self._skipped_frame_index = self.frame
+            self._skipped_frame = True
 
         self.seek_frame(item)  # keep intuitive seeking here
         return self.frame_data
@@ -485,7 +488,7 @@ class Video:
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
-        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
+        d = str(seconds).rsplit('.', maxsplit=1)[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)
@@ -536,11 +539,18 @@ class Video:
     def _get_num_channels_to_process(self):
         return min(self.audio_channels, self._audio.get_num_channels())
 
-    def _threaded_load(self, index):
-        i = index  # assigned to variable so another thread does not change it
+    # I wrote this method a long time ago when I didn't have
+    # much experience with concurrent programming
+    # currently, it is not thread safe
 
-        # save a spot in the list to prevent other threads from messing up the order
-        # append is atomic
+    # luckily, there's no benefit for having more than
+    # one thread here, so I'm locking max_threads to 1
+    # in _update_threads()
+    # TODO: remove max_threads param and clean up dead code
+
+    def _threaded_load(self, index):
+        i = index
+
         self._chunks.append(None)
 
         s = (self._starting_time + (self._chunks_claimed - 1) * self.chunk_size) / (
@@ -625,10 +635,16 @@ class Video:
             self._missing_ffmpeg = True
             return
 
+        # print(subprocess.list2cmdline(command))
+
         self._processes.remove(p)
         self._chunks[i - self._chunks_played - 1] = audio
 
     def _update_threads(self):
+        # forcing this to be 1 because it's both obsolete and not thread safe
+        if self.max_threads != 1:
+            self.max_threads = 1
+
         for t in self._threads:
             if not t.is_alive():
                 self._threads.remove(t)
@@ -637,7 +653,8 @@ class Video:
         if not self._stop_loading and (len(self._threads) < self.max_threads) and (
                 (self._chunks_len(self._chunks) + len(self._threads)) < self.max_chunks):
             self._chunks_claimed += 1
-            self._threads.append(Thread(target=self._threaded_load, args=(self._chunks_claimed,)))
+            self._threads.append(Thread(target=self._threaded_load,
+                                        args=(self._chunks_claimed,)))
             self._threads[-1].start()
 
     def _write_subs(self, p):
@@ -905,11 +922,12 @@ class Video:
         """Stop video playback and rewind to the beginning.
         Sets active state to False but does not change the paused state."""
 
+        self._skipped_frame = False
+        self._skipped_frame_index = 0
+
         self.seek(0, relative=False, intuitive=False)
         self.active = False
-        # removing this to prevent flickering during loops
-        # self.frame_data = None
-        # self.frame_surf = None
+
         self.paused = False
 
     def resize(self, size: Tuple[int, int]) -> None:
@@ -937,15 +955,21 @@ class Video:
         when done. Attempting to use the video after closing may cause
         unexpected behaviour."""
 
-        self._preloaded_frames.clear()
-        self.stop()
-        self._vid.release()
-        self._audio.close()
-        self.closed = True
+        if not self.closed:
+            self._preloaded_frames.clear()
+            self.path = ""  # clears byte buffer
+            self.stop()
+            self._vid.release()
+            self._audio.close()
+            self.closed = True
 
     def restart(self) -> None:
         """Rewind video to the beginning. Does not change the active state."""
 
+        self._skipped_frame = False
+        self._skipped_frame_index = 0
+
+        # intuitive=True very important for VideoPlayer seamless loops
         self.seek(0, relative=False, intuitive=True)
 
         if self._buffered_chunk is not None:
@@ -997,7 +1021,7 @@ class Video:
                 get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
                 "-show_streams",
-                "-select_streams", f"a:{index}",
+                "-select_streams", "a",
                 "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"
             ]
@@ -1006,7 +1030,6 @@ class Video:
                     command,
                     stdin=subprocess.PIPE if self.as_bytes else None,
                     stdout=subprocess.PIPE) as p:
-
                 info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
         except FileNotFoundError as e:
             raise FFmpegNotFoundError(
@@ -1016,10 +1039,11 @@ class Video:
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
         info = info["streams"]
-        if len(info) == 0:
+
+        if index < 0 or index > len(info) - 1:
             raise AudioStreamError(f"Audio index {index} out of range.")
 
-        self.audio_channels = info[0]["channels"]
+        self.audio_channels = info[index]["channels"]
         self.num_audio_tracks = len(info)
         self.audio_track = index
         self.seek(self.get_pos(), relative=False, intuitive=False)  # reloads current audio chunks
@@ -1081,7 +1105,7 @@ class Video:
             frame = int(self._starting_time * self.frame_rate)
             if frame >= self.frame_count:
                 frame = self.frame_count - 1
-        if intuitive:
+        if intuitive and not relative:
             frame += 1
         self._vid.seek(frame)
 
@@ -1131,7 +1155,7 @@ class Video:
         # as if you seek to a frame, you expect to be able to see the frame.
         # Therefore, I'm adding this intuitive parameter so users can choose the behaviour they want.
 
-        if intuitive:
+        if intuitive and not relative:
             index += 1
 
         self._vid.seek(index)

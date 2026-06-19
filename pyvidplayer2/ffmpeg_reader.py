@@ -71,7 +71,7 @@ class FFMPEGReader(VideoReader):
 
     def _convert_seconds(self, seconds):
         seconds = abs(seconds)
-        d = str(seconds).split('.')[-1] if '.' in str(seconds) else 0
+        d = str(seconds).rsplit('.', maxsplit=1)[-1] if '.' in str(seconds) else 0
         h = int(seconds // 3600)
         seconds = seconds % 3600
         m = int(seconds // 60)

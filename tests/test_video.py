@@ -19,7 +19,7 @@ from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           VideoPyQT, VideoPySide, VideoRaylib,
                           VideoStreamError, VideoTkinter, VideoWx,
                           get_ffmpeg_path, get_ffprobe_path, get_version_info,
-                          set_ffmpeg_loglevel, set_ffmpeg_path,
+                          set_ffmpeg_loglevel, set_ffmpeg_path, Pyvidplayer2Error,
                           set_ffprobe_path, VideoPlayer, Webcam, WebcamNotFoundError)
 from pyvidplayer2.mixer_handler import MixerHandler
 
@@ -161,19 +161,28 @@ class TestVideo(unittest.TestCase):
         v1.update()
         self.assertEqual(len(v1._threads), 1)
         v2.update()
-        self.assertEqual(len(v2._threads), 2)
+        self.assertEqual(len(v2._threads), 1)
+
+        # threads locked to 1 now
+        # self.assertEqual(len(v2._threads), 2)
 
         # check that third thread is handled properly
         v1.update()
         self.assertEqual(len(v1._threads), 1)
         v2.update()
-        self.assertEqual(len(v2._threads), 3)
+        self.assertEqual(len(v2._threads), 1)
+
+        # threads locked to 1 now
+        # self.assertEqual(len(v2._threads), 3)
 
         # check that fourth thread is handled properly
         v1.update()
         self.assertEqual(len(v1._threads), 1)
         v2.update()
-        self.assertEqual(len(v2._threads), 3)
+        self.assertEqual(len(v2._threads), 1)
+
+        # threads locked to 1 now
+        # self.assertEqual(len(v2._threads), 3)
 
         # update both videos for 5 seconds
         timed_loop(3, lambda: (v1.update(), v2.update()))
@@ -280,26 +289,26 @@ class TestVideo(unittest.TestCase):
             v.seek(0.5, intuitive=False)
             self.assertEqual(v.get_pos(), 1.5)
 
-            FRAME = int(1.5 * v.frame_rate)
-            self.assertEqual(v.frame, FRAME)
+            frame = int(1.5 * v.frame_rate)
+            self.assertEqual(v.frame, frame)
             original_frame = next(v)
 
-            # testing non relative time seek
+            # testing non-relative time seek
             v.seek(0, relative=False, intuitive=False)
             self.assertEqual(v.get_pos(), 0.0)
             self.assertEqual(v.frame, 0)
 
-            # testing non relative frame seek
-            v.seek_frame(FRAME, intuitive=False)
-            self.assertEqual(v.get_pos(), FRAME / v.frame_rate)
-            self.assertEqual(v.frame, FRAME)
+            # testing non-relative frame seek
+            v.seek_frame(frame, intuitive=False)
+            self.assertEqual(v.get_pos(), frame / v.frame_rate)
+            self.assertEqual(v.frame, frame)
 
             new_frame = next(v)
 
             self.assertTrue(check_same_frames(original_frame, new_frame))
 
             # testing relative frame seek
-            v.seek_frame(-FRAME, relative=True, intuitive=False)
+            v.seek_frame(-frame, relative=True, intuitive=False)
             self.assertEqual(v.get_pos(), 1 / v.frame_rate)
             self.assertEqual(v.frame, 1)
 
@@ -635,6 +644,9 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v.speed, 2.0)
         v.close()
         v = Video(VIDEO_PATH, speed=0)
+        self.assertEqual(v.speed, 0.25)
+        v.close()
+        v = Video(VIDEO_PATH, speed=-1)
         self.assertEqual(v.speed, 0.25)
         v.close()
         v = Video(VIDEO_PATH, speed=100)
@@ -1014,9 +1026,9 @@ class TestVideo(unittest.TestCase):
     # test fails if no input devices are found
     def test_audio_device(self):
         # test that an error is raised if opened using an input device
-        index = find_device(lambda d: d["max_output_channels"] == 0)
-        v = Video(VIDEO_PATH, audio_index=index, use_pygame_audio=False)
-        self.assertEqual(v._audio.device_index, index)
+        bad_index = find_device(lambda d: d["max_output_channels"] == 0)
+        v = Video(VIDEO_PATH, audio_index=bad_index)
+        self.assertEqual(v._audio.device_index, bad_index)
         self.assertRaises(AudioDeviceError, while_loop, lambda: v.frame < 10, v.update, 10)
         self.assertRaises(AudioDeviceError, lambda: v._audio._set_device_index(9999999999999))
         v.close()
@@ -1029,6 +1041,10 @@ class TestVideo(unittest.TestCase):
                 self.assertEqual(v._audio.device_index, index)
                 while_loop(lambda: v.frame < 10, v.update, 3)
                 v.close()
+
+        # test that exceptions will not be thrown when using pygame audio
+        with Video(VIDEO_PATH, audio_index=bad_index, use_pygame_audio=True) as v:
+            while_loop(lambda: v.frame < 10, v.update, 10)
 
     # tests that each video can be opened in vfr mode
     def test_open_vfr(self):
@@ -1234,15 +1250,17 @@ class TestVideo(unittest.TestCase):
 
     # tests choosing audio tracks
     def test_audio_track(self):
+        path = "resources/manya.mp4"
+
         for audio_handler in (True, False):
-            v = Video("resources/manya.mp4", use_pygame_audio=audio_handler)
+            v = Video(path, use_pygame_audio=audio_handler)
+            self.assertEqual(v.num_audio_tracks, 3)
             self.assertEqual(v.audio_track, 0)
-            with self.assertRaises(AudioStreamError):
-                v.set_audio_track(3)
-            with self.assertRaises(VideoStreamError):  # causes an ffmpeg error instead of a null result
-                v.set_audio_track(-1)
-            with self.assertRaises(AudioStreamError):
-                v.set_audio_track(100)
+
+            for track in (-1, 3, 100):
+                with self.assertRaises(AudioStreamError):
+                    v.set_audio_track(track)
+
             self.assertEqual(v.audio_track, 0)
             v.set_audio_track(1)
             while_loop(lambda: v.frame < 10, v.update, 10)
@@ -1250,6 +1268,14 @@ class TestVideo(unittest.TestCase):
             v.set_audio_track(2)
             self.assertFalse(v._audio.loaded)
             v.close()
+
+            for track in (-1, 3, 100):
+                with self.assertRaises(AudioStreamError):
+                    with Video(path, audio_track=track):
+                        pass
+                # should not have exception if disabling audio tracks
+                with Video(path, audio_track=track, no_audio=True):
+                    pass
 
     # tests that videos properly restart
     def test_restart(self):
@@ -1651,6 +1677,16 @@ class TestVideo(unittest.TestCase):
                         self.assertEqual(type(v._vid).__name__, "DecordReader")
                         v.close()
 
+    # tests that bytes buffers are cleared when video is closed
+    # don't want it taking up precious ram
+    def test_bytes_released(self):
+        with open(VIDEO_PATH, "rb") as f:
+            bytes_ = f.read()
+            v = Video(bytes_)
+            self.assertEqual(len(v.path), len(bytes_))
+            v.close()
+            self.assertEqual(len(v.path), 0)
+
     def test_random_read(self):
         for file in PATHS:
             for reader in (READER_FFMPEG,):
@@ -1669,10 +1705,34 @@ class TestVideo(unittest.TestCase):
             timed_loop(1, v.update)
             v.close()
 
+    # tests that gifs can be played
+    def test_gif(self):
+        with Video("resources/myGif.gif") as v:
+            info = v.get_metadata()
+
+            self.assertEqual(info["aspect_ratio"], 1.3333333333333333)
+            self.assertEqual(info["audio_channels"], 0)
+            self.assertEqual(info["avg_fr"], 14.25)
+            self.assertEqual(info["duration"], 1.1228070175438596)
+            self.assertEqual(info["ext"], '.gif')
+            self.assertEqual(info["frame_count"], 16)
+            self.assertEqual(info["frame_rate"], 14.25)
+            self.assertEqual(info["max_fr"], 14.25)
+            self.assertEqual(info["min_fr"], 14.25)
+            self.assertEqual(info["name"], 'myGif')
+            self.assertEqual(info["no_audio"], True)
+            self.assertEqual(info["num_audio_tracks"], 0)
+            self.assertEqual(info["original_size"], (500, 375))
+            self.assertEqual(info["path"], 'resources/myGif.gif')
+            self.assertEqual(info["vfr"], False)
+
+            # no exceptions
+            while_loop(lambda: v.active, v.update, 10)
+
     # test that each frame is rendered
     # can fail if cpu stutters, resulting in dropped frames
     def test_all_frames_reached(self):
-        v = Video("resources//myGif.gif", speed=0.25)
+        v = Video("resources/myGif.gif", speed=0.25)
         frames = 0
         while v.active:
             if v.update():
@@ -1764,6 +1824,10 @@ class TestVideo(unittest.TestCase):
         v.seek_frame(0)
         self.assertIsNotNone(v.frame_data)
         self.assertIsNotNone(v.frame_surf)
+
+        v.seek_frame(0, intuitive=False)
+        self.assertIsNone(v.frame_data)
+        self.assertIsNone(v.frame_surf)
 
         v.close()
 
@@ -1860,10 +1924,38 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, frame)
 
+        _ = v[100]
+
+        # _skipped_frame_index should not be updated
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, frame)
+
+        next(v)
+
+        frame += 1
+
+        # next() will set a new point to continue playback from
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, v.frame)
+        self.assertEqual(v._skipped_frame_index, 102)
+
+        _ = v[10]
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v.frame, 11)
+        self.assertEqual(v._skipped_frame_index, 102)
+
+        _ = v[12]
+
+        self.assertTrue(v._skipped_frame)
+        self.assertEqual(v._skipped_frame_index, 102)
+
         v.play()
 
-        self.assertEqual(v.frame, frame)
-        self.assertEqual(v._vid.frame, frame)
+        # should reset all skip flags
+
+        self.assertEqual(v.frame, 102)
+        self.assertEqual(v._vid.frame, 102)
         self.assertFalse(v._skipped_frame)
         self.assertEqual(v._skipped_frame_index, 0)
 
@@ -1895,6 +1987,27 @@ class TestVideo(unittest.TestCase):
         self.assertEqual(v._audio.get_pos(), 0)
 
         v.close()
+
+    # test that certain methods will reset skipped frame flags
+    def test_reset_skipped_frame_flag(self):
+        with Video(VIDEO_PATH) as v:
+            v.seek_frame(15)
+            _ = v[10]
+            self.assertTrue(v._skipped_frame)
+
+            v.restart()
+            self.assertFalse(v._skipped_frame)
+            self.assertEqual(v._skipped_frame_index, 0)
+            self.assertEqual(v.frame, 1)  # intuitive=True
+
+            v.seek_frame(15)
+            _ = v[10]
+            self.assertTrue(v._skipped_frame)
+
+            v.stop()
+            self.assertFalse(v._skipped_frame)
+            self.assertEqual(v._skipped_frame_index, 0)
+            self.assertEqual(v.frame, 0)  # intuitive=False
 
     # test intuitive seeking properly skips ahead one frame
     def test_intuitive_seeking(self):
@@ -1929,6 +2042,32 @@ class TestVideo(unittest.TestCase):
             self.assertTrue(check_same_frames(v.frame_data, frames[10]))
 
             v.close()
+
+    # tests that intuitive seeking is disabled for relative seeking
+    def test_relative_intuitive_seeking(self):
+        v = Video(VIDEO_PATH)
+
+        v.seek_frame(5, intuitive=False)
+        self.assertEqual(v.frame, 5)
+
+        # setting intuitive for relative seeking
+        # shouldn't have an effect
+        # otherwise, this frame check will fail
+
+        v.seek_frame(1, relative=True, intuitive=False)
+        self.assertEqual(v.frame, 6)
+        v.seek_frame(1, relative=True, intuitive=True)
+        self.assertEqual(v.frame, 7)
+
+        v.seek_frame(5, intuitive=False)
+        self.assertEqual(v.frame, 5)
+
+        v.seek(v.frame_delay, relative=True, intuitive=True)
+        self.assertEqual(v.frame, 5)
+        v.seek(v.frame_delay / 2, relative=True, intuitive=False)
+        self.assertEqual(v.frame, 6)
+
+        v.close()
 
     # tests edge cases with intuitive seeking
     # very important test!
@@ -2016,9 +2155,10 @@ class TestVideo(unittest.TestCase):
 
     # tests that cuda device is properly configured
     def test_cuda_device(self):
-        # open video without ffmpeg reader to test for exceptions
-        v = Video(VIDEO_PATH, cuda_device=1)
-        v.close()
+        with self.assertRaises(Pyvidplayer2Error) as ctx:
+            Video(VIDEO_PATH, cuda_device=0)
+        self.assertIn("Must use FFmpeg reader for cuda devices.",
+                      str(ctx.exception))
 
         v = Video(VIDEO_PATH, cuda_device=0, reader=READER_FFMPEG)
 
@@ -2171,11 +2311,11 @@ class TestVideo(unittest.TestCase):
             self.assertTrue(check_same_frames(next(v), v[1]))
 
             # intuitive, should move frame counter
-            v.seek_frame(0, relative=True, intuitive=True)
+            v.seek_frame(v.frame, intuitive=True)
             self.assertEqual(v._vid.frame, 3)
 
             # non-intuitive, shouldn't move frame counter
-            v.seek_frame(0, relative=True, intuitive=False)
+            v.seek_frame(v.frame, intuitive=False)
             self.assertEqual(v._vid.frame, 3)
 
             # means last frame will be rendered next
@@ -2334,6 +2474,50 @@ class TestVideo(unittest.TestCase):
             self.assertIn(
                 "cannot import name 'Subtitles' from 'pyvidplayer2'",
                 str(context.exception))
+
+    # tests that __next__ applies post-processing
+    def test_next_post_processing(self):
+        with Video(VIDEO_PATH, post_process=PostProcessing.blur) as v:
+            v.seek_frame(10)
+
+            base = v.frame_data
+
+            v.seek_frame(9)
+
+            target = next(v)
+
+            self.assertTrue(check_same_frames(base, target))
+
+    # tests that frame indexing applies post-processing
+    def test_indexing_post_processing(self):
+        with Video(VIDEO_PATH, post_process=PostProcessing.blur) as v:
+            v.seek_frame(10)
+
+            base = v.frame_data
+
+            v.restart()
+
+            target = v[10]
+
+            self.assertTrue(check_same_frames(base, target))
+
+    # max threads param is deprecated and should be locked to 1
+    def test_max_threads_deprecation(self):
+        v = Video(VIDEO_PATH, max_threads=5)
+        self.assertEqual(v.max_threads, 1)
+
+        v.max_threads = 5
+        v.update()
+        self.assertEqual(v.max_threads, 1)
+
+        def loop():
+            v.max_threads = 5
+            v.update()
+            self.assertLessEqual(len(v._threads), 1)
+
+        while_loop(lambda: v.frame < 10, loop, 10)
+
+        v.close()
 
 
 if __name__ == "__main__":

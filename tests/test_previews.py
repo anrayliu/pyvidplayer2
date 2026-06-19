@@ -8,9 +8,11 @@ from threading import Thread
 
 import pygame
 from pyvidplayer2 import (READER_IMAGEIO, Video, VideoPlayer, VideoPyglet,
-                          VideoPyQT, VideoPySide, VideoTkinter, VideoWx)
+                          VideoPyQT, VideoPySide, VideoTkinter, VideoWx,
+                          VideoRaylib)
 
 from test_video import VIDEO_PATH
+from test_youtube import YOUTUBE_PATH
 
 
 @unittest.skipIf(sys.platform.startswith("linux") or
@@ -24,14 +26,45 @@ class TestPreviews(unittest.TestCase):
 
         self.assertTrue(v._buffer_first_chunk)
 
-        thread = Thread(target=lambda: vp.preview())
+        end_of_video = False
+        stop_loop = False
+
+        def modified_preview():
+            nonlocal end_of_video, stop_loop
+
+            win = pygame.display.set_mode(vp.frame_rect.size, pygame.RESIZABLE)
+            v.play()
+            stop = False
+            while not stop:
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.QUIT:
+                        v.stop()
+                        stop = True
+                vp.update(events, False, 60)
+                vp.draw(win)
+
+                if end_of_video:
+                    if v.frame_surf is None:
+                        stop_loop = True
+                        break
+                    else:
+                        end_of_video = False
+                elif v.frame == 60:
+                    end_of_video = True
+
+                pygame.display.update()
+            pygame.display.quit()
+            vp.close()
+
+        thread = Thread(target=modified_preview)
         thread.start()
 
         t = 0
         track = False
         buffers = []
         timeout = time.time()
-        while True:
+        while not stop_loop:
             if time.time() - timeout > 30:
                 raise TimeoutError("Test timed out.")
             if not v.active and not track:
@@ -48,6 +81,11 @@ class TestPreviews(unittest.TestCase):
         vp.loop = False
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         thread.join()
+
+        # preview stopped unexpectedly because these are None
+        if stop_loop:
+            self.assertIsNotNone(v.frame_data)
+            self.assertIsNotNone(v.frame_surf)
 
         vp.close()
 
@@ -96,6 +134,30 @@ class TestPreviews(unittest.TestCase):
         pygame.event.post(pygame.event.Event(pygame.QUIT))
         thread.join()
 
+    # tests that video players work with youtube videos
+    def test_youtube_player(self):
+        v = Video(YOUTUBE_PATH, youtube=True)
+        vp = VideoPlayer(v, (0, 0, v.original_size[0], v.original_size[1]))
+        v.seek(v.duration - 1)
+        thread = Thread(target=lambda: vp.preview())
+        thread.start()
+        time.sleep(5)
+        self.assertTrue(thread.is_alive())
+        self.assertFalse(vp.closed)
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+        thread.join()
+
+    # tests video preview with Youtube
+    def test_youtube_preview(self):
+        v = Video(YOUTUBE_PATH, youtube=True)
+        v.seek(v.duration - 1)
+        thread = Thread(target=lambda: v.preview())
+        thread.start()
+        time.sleep(5)
+        self.assertFalse(thread.is_alive())
+        self.assertTrue(v.closed)
+        thread.join()
+
     # tests that previews start from where the video position is, and that they close the video afterwards
     def test_previews(self):
         for lib in (
@@ -115,6 +177,16 @@ class TestPreviews(unittest.TestCase):
                 v.preview()
             self.assertTrue(v.closed)
             v.close()
+
+    # tests raylib separately, because for some reason it cannot be
+    # paired with pyglet
+    @unittest.skip
+    def test_raylib(self):
+        with VideoRaylib(VIDEO_PATH) as v:
+            v.seek(v.duration - 0.1)
+            v.preview()
+        # raylib overrides close method
+        self.assertTrue(v.closed)
 
     # tests pyav dependency message
     def test_imageio_needs_pyav(self):

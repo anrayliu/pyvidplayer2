@@ -1,2 +1,2 @@
-# false positives
+# just warnings
 skips: [B404, B603]

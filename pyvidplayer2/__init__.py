@@ -7,10 +7,20 @@ import subprocess
 
 from pyvidplayer2._version import __version__
 
+
 from .error import (AudioDeviceError, AudioStreamError, FFmpegNotFoundError,
                     OpenCVError, Pyvidplayer2Error, SubtitleError,
                     VideoStreamError, WebcamNotFoundError, YTDLPError)
+
+# bug on linux: importing cv2 or pygame before decord
+# causes locking
+try:
+    import decord  # noqa: F401
+except ImportError:
+    pass
+
 from .post_processing import PostProcessing
+
 
 VERSION = __version__  # for older versions of pyvidplayer2
 
@@ -56,13 +66,6 @@ if importlib.util.find_spec("pyglet") is not None:
     from .video_pyglet import VideoPyglet
 
 if importlib.util.find_spec("pygame") is not None:
-    # bug on linux: importing pygame before decord results
-    # in display.set_mode deadlocking
-    try:
-        import decord  # noqa: F401
-    except ImportError:
-        pass
-
     # isort will try and change the order of these 2 imports,
     # but doing so will cause a circular import
     # keep in current order!

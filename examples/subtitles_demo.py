@@ -1,6 +1,9 @@
 '''
 This is an example showing how to add subtitles to a video
+pip install pysubs2
 '''
+
+# requires the package pysubs2
 
 # Sample videos can be found here:
 # https://github.com/anrayliu/pyvidplayer2-test-resources/tree/main/resources

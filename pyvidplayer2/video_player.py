@@ -236,6 +236,9 @@ class VideoPlayer:
         self.frame_rect.size = size
         self._transform(self.frame_rect)
 
+        # instantly adjust progress bar to avoid smooth animation on resize
+        self._smooth_bar = self._progress_back.w * (self.video.get_pos() / self.video.duration)
+
     def move(self, pos: Tuple[int, int], relative: bool = False) -> None:
         """Move the VideoPlayer. If relative is True, the given coordinates
         will be added onto the current coordinates. Otherwise, the current

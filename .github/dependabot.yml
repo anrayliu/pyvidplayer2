@@ -6,3 +6,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+
+    # allowing only security updates for the time being
+
+    open-pull-requests-limit: 0

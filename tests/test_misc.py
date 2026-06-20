@@ -73,8 +73,8 @@ class TestMisc(unittest.TestCase):
                                   AudioDeviceError, AudioStreamError,
                                   FFmpegNotFoundError, OpenCVError,
                                   PostProcessing, Pyvidplayer2Error,
-                                  SubtitleError, Subtitles, Video, VideoPlayer,
-                                  VideoPyglet, VideoPyQT, VideoPySide,
+                                  SubtitleError, Subtitles, Video, VideoCustom,
+                                  VideoPlayer, VideoPyglet, VideoPyQT, VideoPySide,
                                   VideoRaylib, VideoStreamError, VideoTkinter,
                                   VideoWx, Webcam, WebcamNotFoundError,
                                   YTDLPError, get_ffmpeg_loglevel,
@@ -83,7 +83,7 @@ class TestMisc(unittest.TestCase):
                                   set_ffmpeg_path, set_ffprobe_path)
         from pyvidplayer2._version import __version__
         import pyvidplayer2
-        self.assertEqual(len(pyvidplayer2.__all__), 33)
+        self.assertEqual(len(pyvidplayer2.__all__), 34)
 
     # tests each post processing function
     def test_post_processing(self):

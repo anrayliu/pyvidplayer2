@@ -205,6 +205,7 @@ from YouTube. Decord is required to play videos from RAM.
 - PyQT6 (`VideoPyQT`)
 - RayLib (`VideoRayLib`)
 - WxPython (`VideoWx`)
+- Custom integration (`VideoCustom`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their
 respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`,

@@ -15,8 +15,8 @@ import pyvidplayer2
 from pyvidplayer2 import (READER_AUTO, READER_DECORD, READER_FFMPEG,
                           READER_IMAGEIO, READER_OPENCV, AudioDeviceError,
                           AudioStreamError, FFmpegNotFoundError, OpenCVError,
-                          PostProcessing, Subtitles, Video, VideoPyglet,
-                          VideoPyQT, VideoPySide, VideoRaylib,
+                          PostProcessing, Subtitles, Video, VideoCustom,
+                          VideoPyglet, VideoPyQT, VideoPySide, VideoRaylib,
                           VideoStreamError, VideoTkinter, VideoWx,
                           get_ffmpeg_path, get_ffprobe_path, get_version_info,
                           set_ffmpeg_loglevel, set_ffmpeg_path, Pyvidplayer2Error,
@@ -2516,6 +2516,47 @@ class TestVideo(unittest.TestCase):
             self.assertLessEqual(len(v._threads), 1)
 
         while_loop(lambda: v.frame < 10, loop, 10)
+
+        v.close()
+
+    # test custom video
+    def test_custom_video(self):
+        v = VideoCustom(VIDEO_PATH)
+
+        self.assertEqual(str(v),
+                         "<VideoCustom(path=resources/trailer1.mp4)>")
+
+        self.assertIsNone(v.frame_surf)
+        self.assertIsNone(v.frame_data)
+
+        new_frame = False
+
+        def loop():
+            nonlocal new_frame
+
+            if v.update():
+                new_frame = True  # update should still return True on new data
+
+                self.assertIsNone(v.frame_surf)
+                self.assertIsNotNone(v.frame_data)
+                self.assertIsNone(v._create_frame(v.frame_data))
+
+                # should accept *args
+                self.assertIsNone(v._render_frame(1, 2, 3, 4, 5, 6, 7))
+
+                # should accept *args and **kwargs
+                # should always return False
+                self.assertFalse(v.draw(1, 2, 3, 4, 5, foo=1, bar=2))
+
+        while_loop(lambda: v.frame < 10, loop, 10)
+
+        self.assertTrue(new_frame)
+
+        self.assertIsNone(v.frame_surf)
+        self.assertIsNotNone(v.frame_data)
+
+        # should accept *args and **kwargs
+        v.preview(1, 2, 3, 4, 5, 6, foo=1, bar=2, baz=3)
 
         v.close()
 

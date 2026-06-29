@@ -37,6 +37,7 @@ YOUTUBE_PATH = "https://www.youtube.com/watch?v=K8PoK3533es&t=3s"
 REQUEST_COOLDOWN = 0.2  # so we don't spam youtube
 
 
+# these tests can be flaky
 class TestYoutubeVideo(unittest.TestCase):
     def setUp(self):
         time.sleep(REQUEST_COOLDOWN)

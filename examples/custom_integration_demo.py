@@ -7,16 +7,14 @@ pip install matplotlib
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from pyvidplayer2.video_custom import VideoCustom
+from pyvidplayer2 import VideoCustom, PostProcessing
 
 
-# processed video frames are BGR format
-def bgr2rgb(data):
-    return data[:, :, ::-1]
+# opencv processes raw frames in BGR, so we use post-processing
+# to display them as rgb
 
-
-v = VideoCustom("resources/billiejean.mp4", post_process=bgr2rgb)
-v.seek_frame(0)  # load in first frame
+v = VideoCustom("resources/birds.avi", post_process=PostProcessing.bgr2rgb)
+v.seek_frame(0)  # preload first frame
 
 fig, ax = plt.subplots()
 plt.subplots_adjust(bottom=0.2)
@@ -42,7 +40,9 @@ def update_func(_):
     return [frame]
 
 
-ani = animation.FuncAnimation(fig, update_func, interval=5, blit=True, save_count=0)
+# 17ms frame interval is around 60 fps
+
+ani = animation.FuncAnimation(fig, update_func, interval=17, blit=True, save_count=0)
 plt.show()
 
 v.close()

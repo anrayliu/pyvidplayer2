@@ -132,6 +132,9 @@ class TestVideo(unittest.TestCase):
             self.assertEqual(data["audio_channels"], v.audio_channels)
             self.assertEqual(data["num_audio_tracks"], v.num_audio_tracks)
             self.assertEqual(data["no_audio"], v.no_audio)
+
+            self.assertEqual(len(data), 15)
+
             v.close()
 
     # tests that sensible defaults are used when no audio tracks are found

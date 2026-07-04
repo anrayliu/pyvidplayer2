@@ -125,3 +125,8 @@ class PostProcessing:
                                [-1, 5, -1],
                                [0, -1, 0]], dtype=np.float32)
             return np.clip(cv2.filter2D(data, -1, kernel), 0, 255).astype(np.uint8)
+
+        @staticmethod
+        def bgr2rgb(data: np.ndarray) -> np.ndarray:
+            """Converts BGR frames to RGB frames."""
+            return data[:, :, ::-1]

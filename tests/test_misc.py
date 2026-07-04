@@ -96,8 +96,7 @@ class TestMisc(unittest.TestCase):
         new_frame = next(v2)
         self.assertTrue(check_same_frames(original_frame, new_frame))
 
-        for func in (
-            lambda d: np.fliplr(d),
+        methods = [
             PostProcessing.blur,
             PostProcessing.sharpen,
             PostProcessing.greyscale,
@@ -109,10 +108,22 @@ class TestMisc(unittest.TestCase):
             PostProcessing.rotate90,
             PostProcessing.rotate270,
             PostProcessing.vhs,
-            PostProcessing.emboss
-        ):
+            PostProcessing.emboss,
+            PostProcessing.bgr2rgb
+        ]
+
+        # add a custom func to tested methods
+        for func in methods + [lambda d: np.fliplr(d)]:
             v2.set_post_func(func)
             self.assertFalse(check_same_frames(next(v1), next(v2)))
+
+        methods.append(PostProcessing.none)
+
+        # test that all post-processing methods have been tested
+
+        for k, v in PostProcessing.__dict__.items():
+            if isinstance(v, staticmethod):
+                self.assertTrue(getattr(PostProcessing, k) in methods)
 
         v1.close()
         v2.close()

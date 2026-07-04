@@ -423,6 +423,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 - `rotate270` - Essentially just rotate90 but in the other direction.
 - `vhs` - Old tv effect.
 - `emboss` - 3d paper-like effect.
+- `bgr2rgb` - Converts colour formats in frames from BGR to RGB.
 
 # Exceptions
 

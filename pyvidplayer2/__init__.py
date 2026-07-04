@@ -47,6 +47,8 @@ def get_ffprobe_path() -> str:
 from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG,  # noqa: E402
                     READER_IMAGEIO, READER_OPENCV)
 
+from .video_custom import VideoCustom  # noqa: E402
+
 if importlib.util.find_spec("tkinter") is not None:
     from .video_tkinter import VideoTkinter
 
@@ -137,7 +139,7 @@ __all__ = ["READER_AUTO", "READER_DECORD", "READER_FFMPEG", "READER_IMAGEIO",
            "AudioDeviceError", "AudioStreamError", "FFmpegNotFoundError",
            "OpenCVError", "PostProcessing",
            "Pyvidplayer2Error", "SubtitleError", "Subtitles", "Video",
-           "VideoPlayer", "VideoPyglet", "VideoPyQT",
+           "VideoPlayer", "VideoPyglet", "VideoPyQT", "VideoCustom",
            "VideoPySide", "VideoRaylib", "VideoStreamError", "VideoTkinter",
            "VideoWx", "Webcam", "WebcamNotFoundError",
            "YTDLPError", "get_ffmpeg_loglevel", "get_ffmpeg_path",

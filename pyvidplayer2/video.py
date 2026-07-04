@@ -191,6 +191,9 @@ class Video:
         self.as_bytes = as_bytes
         self.audio_track = audio_track
         self.vfr = vfr  # or self._test_vfr()
+
+        # this was such a horrible name, I should named it device_index
+        # right now it's too easily confused with audio_track
         self.audio_index = audio_index
 
         # select correct audio backend
@@ -382,7 +385,10 @@ class Video:
             command = [
                 get_ffprobe_path(),
                 "-i", "-" if self.as_bytes else self.path,
+
+                # pyvidplayer2 only supports the first video track
                 "-select_streams", "v:0",
+
                 "-show_entries", "packet=pts_time",
                 "-loglevel", get_ffmpeg_loglevel(),
                 "-print_format", "json"

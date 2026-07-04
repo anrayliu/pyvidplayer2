@@ -16,7 +16,7 @@ from test_video import check_same_frames
 class TestMisc(unittest.TestCase):
     # tests get_version_info
     def test_version_metadata(self):
-        ver = "0.9.34"
+        ver = "0.9.35"
 
         self.assertEqual(ver, VERSION)
         self.assertEqual(ver, pyvidplayer2.__version__)
@@ -73,8 +73,8 @@ class TestMisc(unittest.TestCase):
                                   AudioDeviceError, AudioStreamError,
                                   FFmpegNotFoundError, OpenCVError,
                                   PostProcessing, Pyvidplayer2Error,
-                                  SubtitleError, Subtitles, Video, VideoPlayer,
-                                  VideoPyglet, VideoPyQT, VideoPySide,
+                                  SubtitleError, Subtitles, Video, VideoCustom,
+                                  VideoPlayer, VideoPyglet, VideoPyQT, VideoPySide,
                                   VideoRaylib, VideoStreamError, VideoTkinter,
                                   VideoWx, Webcam, WebcamNotFoundError,
                                   YTDLPError, get_ffmpeg_loglevel,
@@ -83,7 +83,7 @@ class TestMisc(unittest.TestCase):
                                   set_ffmpeg_path, set_ffprobe_path)
         from pyvidplayer2._version import __version__
         import pyvidplayer2
-        self.assertEqual(len(pyvidplayer2.__all__), 33)
+        self.assertEqual(len(pyvidplayer2.__all__), 34)
 
     # tests each post processing function
     def test_post_processing(self):
@@ -96,8 +96,7 @@ class TestMisc(unittest.TestCase):
         new_frame = next(v2)
         self.assertTrue(check_same_frames(original_frame, new_frame))
 
-        for func in (
-            lambda d: np.fliplr(d),
+        methods = [
             PostProcessing.blur,
             PostProcessing.sharpen,
             PostProcessing.greyscale,
@@ -109,10 +108,22 @@ class TestMisc(unittest.TestCase):
             PostProcessing.rotate90,
             PostProcessing.rotate270,
             PostProcessing.vhs,
-            PostProcessing.emboss
-        ):
+            PostProcessing.emboss,
+            PostProcessing.bgr2rgb
+        ]
+
+        # add a custom func to tested methods
+        for func in methods + [lambda d: np.fliplr(d)]:
             v2.set_post_func(func)
             self.assertFalse(check_same_frames(next(v1), next(v2)))
+
+        methods.append(PostProcessing.none)
+
+        # test that all post-processing methods have been tested
+
+        for k, v in PostProcessing.__dict__.items():
+            if isinstance(v, staticmethod):
+                self.assertTrue(getattr(PostProcessing, k) in methods)
 
         v1.close()
         v2.close()

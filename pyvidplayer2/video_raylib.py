@@ -39,7 +39,12 @@ class VideoRaylib(Video):
             pyray.unload_texture(self.frame_surf)
         buffer = io.BytesIO()
         Image.fromarray(data[..., ::-1]).save(buffer, format="BMP")
-        # bug in pyray: interface requests str but only works with bytes
+
+        # do not convert the second arg to a string
+        # if your compiler is telling you to, update raylib-python-cffi
+        # to the latest version
+        # https://github.com/electronstudio/raylib-python-cffi/issues/210
+
         img = pyray.load_image_from_memory(".bmp", buffer.getvalue(), len(buffer.getvalue()))
         texture = pyray.load_texture_from_image(img)
         pyray.unload_image(img)

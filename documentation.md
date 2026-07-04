@@ -205,6 +205,7 @@ from YouTube. Decord is required to play videos from RAM.
 - PyQT6 (`VideoPyQT`)
 - RayLib (`VideoRayLib`)
 - WxPython (`VideoWx`)
+- Custom integration (`VideoCustom`)
 
 To use other libraries instead of Pygame, use their respective video object. Each preview method will use their
 respective graphics API to create a window and draw frames. See the examples folder for details. Note that `Subtitles`,
@@ -422,6 +423,7 @@ Used to apply various filters to video playback. Mostly for fun. Works across al
 - `rotate270` - Essentially just rotate90 but in the other direction.
 - `vhs` - Old tv effect.
 - `emboss` - 3d paper-like effect.
+- `bgr2rgb` - Converts colour formats in frames from BGR to RGB.
 
 # Exceptions
 

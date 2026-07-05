@@ -49,23 +49,39 @@ from .video import (READER_AUTO, READER_DECORD, READER_FFMPEG,  # noqa: E402
 
 from .video_custom import VideoCustom  # noqa: E402
 
+__all__ = ["READER_AUTO", "READER_DECORD", "READER_FFMPEG", "READER_IMAGEIO",
+           "READER_OPENCV", "VERSION",
+           "AudioDeviceError", "AudioStreamError", "FFmpegNotFoundError",
+           "OpenCVError", "PostProcessing",
+           "Pyvidplayer2Error", "SubtitleError", "VideoCustom",
+           "VideoStreamError", "WebcamNotFoundError",
+           "YTDLPError", "get_ffmpeg_loglevel", "get_ffmpeg_path",
+           "get_ffprobe_path", "get_version_info",
+           "set_ffmpeg_loglevel", "set_ffmpeg_path", "set_ffprobe_path"]
+
 if importlib.util.find_spec("tkinter") is not None:
     from .video_tkinter import VideoTkinter
+    __all__.append("VideoTkinter")
 
 if importlib.util.find_spec("PySide6") is not None:
     from .video_pyside import VideoPySide
+    __all__.append("VideoPySide")
 
 if importlib.util.find_spec("PyQt6") is not None:
     from .video_pyqt import VideoPyQT
+    __all__.append("VideoPyQT")
 
 if importlib.util.find_spec("pyray") is not None:
     from .video_raylib import VideoRaylib
+    __all__.append("VideoRaylib")
 
 if importlib.util.find_spec("wx") is not None:
     from .video_wx import VideoWx
+    __all__.append("VideoWx")
 
 if importlib.util.find_spec("pyglet") is not None:
     from .video_pyglet import VideoPyglet
+    __all__.append("VideoPyglet")
 
 if importlib.util.find_spec("pygame") is not None:
     # isort will try and change the order of these 2 imports,
@@ -75,13 +91,18 @@ if importlib.util.find_spec("pygame") is not None:
     from .video_pygame import VideoPygame as Video
     from .video_player import VideoPlayer
 
+    __all__.append("VideoPlayer")
+    __all__.append("Video")
+
     # --------------------------------------------
 
     if importlib.util.find_spec("cv2") is not None:
         from .webcam import Webcam
+        __all__.append("Webcam")
 
     if importlib.util.find_spec("pysubs2") is not None:
         from .subtitles import Subtitles
+        __all__.append("Subtitles")
 
 
 def get_version_info():
@@ -133,15 +154,3 @@ def set_ffprobe_path(path: str) -> None:
 
 
 # cv2.setLogLevel(0) # silent
-
-__all__ = ["READER_AUTO", "READER_DECORD", "READER_FFMPEG", "READER_IMAGEIO",
-           "READER_OPENCV", "VERSION",
-           "AudioDeviceError", "AudioStreamError", "FFmpegNotFoundError",
-           "OpenCVError", "PostProcessing",
-           "Pyvidplayer2Error", "SubtitleError", "Subtitles", "Video",
-           "VideoPlayer", "VideoPyglet", "VideoPyQT", "VideoCustom",
-           "VideoPySide", "VideoRaylib", "VideoStreamError", "VideoTkinter",
-           "VideoWx", "Webcam", "WebcamNotFoundError",
-           "YTDLPError", "get_ffmpeg_loglevel", "get_ffmpeg_path",
-           "get_ffprobe_path", "get_version_info",
-           "set_ffmpeg_loglevel", "set_ffmpeg_path", "set_ffprobe_path"]

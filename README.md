@@ -11,7 +11,7 @@
 
 Comprehensive video playback library for Python.
 
-The latest version (v0.9.35) is a release candidate. If you encounter a bug or a video that cannot be
+The latest version (v0.9.36) is a release candidate. If you encounter a bug or a video that cannot be
 played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
 <p align="center">

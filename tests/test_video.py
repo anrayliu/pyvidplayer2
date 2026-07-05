@@ -2478,6 +2478,67 @@ class TestVideo(unittest.TestCase):
                 "cannot import name 'Subtitles' from 'pyvidplayer2'",
                 str(context.exception))
 
+    # tests that __all__ is only populated with available classes
+    def test_star_import(self):
+        real_assertion = importlib.util.find_spec
+
+        missing_packages = []
+
+        def mocked_assertion(name, *args, **kwargs):
+            if name in missing_packages:
+                return None
+            return real_assertion(name, *args, **kwargs)
+
+        def reset_missing(packages):
+            nonlocal missing_packages
+
+            missing_packages.clear()
+            missing_packages += packages
+
+            # stacking should be ok
+            backup = sys.modules.pop("pyvidplayer2", None)
+            self.addCleanup(sys.modules.__setitem__, "pyvidplayer2", backup)
+
+        with unittest.mock.patch("importlib.util.find_spec", side_effect=mocked_assertion):
+            reset_missing(["pygame"])
+            import pyvidplayer2
+            self.assertFalse("Video" in pyvidplayer2.__all__)
+            self.assertFalse("Subtitles" in pyvidplayer2.__all__)
+            self.assertFalse("VideoPlayer" in pyvidplayer2.__all__)
+            self.assertFalse("Webcam" in pyvidplayer2.__all__)
+
+            reset_missing(["tkinter"])
+            import pyvidplayer2
+            self.assertFalse("VideoTkinter" in pyvidplayer2.__all__)
+
+            reset_missing(["PySide6"])
+            import pyvidplayer2
+            self.assertFalse("VideoPySide" in pyvidplayer2.__all__)
+
+            reset_missing(["PyQt6"])
+            import pyvidplayer2
+            self.assertFalse("VideoPyQT" in pyvidplayer2.__all__)
+
+            reset_missing(["pyray"])
+            import pyvidplayer2
+            self.assertFalse("VideoRaylib" in pyvidplayer2.__all__)
+
+            reset_missing(["wx"])
+            import pyvidplayer2
+            self.assertFalse("VideoWx" in pyvidplayer2.__all__)
+
+            reset_missing(["pyglet"])
+            import pyvidplayer2
+            self.assertFalse("VideoPyglet" in pyvidplayer2.__all__)
+
+            reset_missing(["cv2"])
+            import pyvidplayer2
+            self.assertFalse("Webcam" in pyvidplayer2.__all__)
+
+            reset_missing(["pysubs2"])
+            import pyvidplayer2
+            self.assertFalse("Subtitles" in pyvidplayer2.__all__)
+
     # tests that __next__ applies post-processing
     def test_next_post_processing(self):
         with Video(VIDEO_PATH, post_process=PostProcessing.blur) as v:

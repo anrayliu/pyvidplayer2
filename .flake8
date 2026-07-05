@@ -2,7 +2,7 @@
 max-line-length=240
 import-order-style = pep8
 per-file-ignores =
+    ./pyvidplayer2/__init__.py:F401
     ./tests/test_misc.py:F401
     ./tests/test_video.py:F401
     ./examples/all_previews_demo.py:F401
-

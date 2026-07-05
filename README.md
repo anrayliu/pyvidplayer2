@@ -149,3 +149,8 @@ open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
 For a list of known bugs, refer to [this page](https://github.com/anrayliu/pyvidplayer2/issues/53).
 If you see an issue not listed, please open a new issue.
+
+## About Versioning
+
+This project currently uses pre-1.0 versioning in the form of `0.9.x`.
+After v1.0, it will follow standard Semantic Versioning.

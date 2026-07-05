@@ -3,7 +3,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/pyvidplayer2?logo=pypi&logoColor=white)](https://pypi.org/project/pyvidplayer2/)
 [![PyPI Downloads](https://static.pepy.tech/badge/pyvidplayer2)](https://pepy.tech/projects/pyvidplayer2)
 [![Status](https://img.shields.io/pypi/status/pyvidplayer2)](https://pypi.org/project/pyvidplayer2/)
-![Coverage](https://img.shields.io/badge/Coverage-94%25-red)
+![Coverage](https://img.shields.io/badge/Coverage-96%25-red)
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fanrayliu%2Fpyvidplayer2%2Frefs%2Fheads%2Fmain%2Fpyproject.toml)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anrayliu/pyvidplayer2)
@@ -11,7 +11,7 @@
 
 Comprehensive video playback library for Python.
 
-This library is under active development. If you encounter a bug or a video that cannot be
+The latest version (v0.9.35) is a release candidate. If you encounter a bug or a video that cannot be
 played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
 <p align="center">

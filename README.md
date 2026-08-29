@@ -138,19 +138,14 @@ vid.close()
 pygame.quit()
 ```
 
-## Documentation
+# Documentation
 
+Refer to this [page](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md) for detailed information.
 To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
-For more detailed information, read the [documentation](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md).
 If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
 open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
-## Known Bugs
-
-For a list of known bugs, refer to [this page](https://github.com/anrayliu/pyvidplayer2/issues/53).
-If you see an issue not listed, please open a new issue.
-
-## About Versioning
+# About Versioning
 
 This project currently uses pre-1.0 versioning in the form of `0.9.x`.
 After v1.0, it will follow standard Semantic Versioning.

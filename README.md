@@ -9,10 +9,11 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anrayliu/pyvidplayer2)
 [![Made with ❤️](https://img.shields.io/badge/Made_with-❤️-blue?style=round-square)](https://github.com/anrayliu/pyvidplayer2)
 
-Comprehensive video playback library for Python.
+Featureful library for embedding videos into Python apps.
 
-The latest version (v0.9.36) is a release candidate. If you encounter a bug or a video that cannot be
-played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
+The latest version (v0.9.36) is a release candidate. This project currently uses pre-1.0 versioning in the form of `0.9.x`.
+After v1.0, it will follow standard Semantic Versioning.
+
 
 <p align="center">
   <img src="demo.gif" />
@@ -80,7 +81,15 @@ wxPython            (graphics library)
 Use `pip install pyvidplayer2[all]` to install all packages required for running the unit tests.
 Not required or recommended for regular users.
 
-# Quickstart
+# Documentation
+
+Refer to this [page](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md) for detailed information.
+To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
+If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
+open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
+
+
+## Quickstart
 
 Refer to the [examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) folder for more basic examples.
 
@@ -137,20 +146,3 @@ while vid.active:
 vid.close()
 pygame.quit()
 ```
-
-## Documentation
-
-To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
-For more detailed information, read the [documentation](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md).
-If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
-open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
-
-## Known Bugs
-
-For a list of known bugs, refer to [this page](https://github.com/anrayliu/pyvidplayer2/issues/53).
-If you see an issue not listed, please open a new issue.
-
-## About Versioning
-
-This project currently uses pre-1.0 versioning in the form of `0.9.x`.
-After v1.0, it will follow standard Semantic Versioning.

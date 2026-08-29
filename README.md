@@ -81,6 +81,14 @@ wxPython            (graphics library)
 Use `pip install pyvidplayer2[all]` to install all packages required for running the unit tests.
 Not required or recommended for regular users.
 
+# Documentation
+
+Refer to this [page](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md) for detailed information.
+To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
+If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
+open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
+
+
 # Quickstart
 
 Refer to the [examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) folder for more basic examples.
@@ -138,10 +146,3 @@ while vid.active:
 vid.close()
 pygame.quit()
 ```
-
-# Documentation
-
-Refer to this [page](https://github.com/anrayliu/pyvidplayer2/blob/main/documentation.md) for detailed information.
-To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
-If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
-open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).

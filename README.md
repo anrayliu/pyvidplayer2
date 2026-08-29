@@ -9,10 +9,11 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/anrayliu/pyvidplayer2)
 [![Made with ❤️](https://img.shields.io/badge/Made_with-❤️-blue?style=round-square)](https://github.com/anrayliu/pyvidplayer2)
 
-Comprehensive video playback library for Python.
+Featureful library for embedding videos into Python apps.
 
-The latest version (v0.9.36) is a release candidate. If you encounter a bug or a video that cannot be
-played, please open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
+The latest version (v0.9.36) is a release candidate. This project currently uses pre-1.0 versioning in the form of `0.9.x`.
+After v1.0, it will follow standard Semantic Versioning.
+
 
 <p align="center">
   <img src="demo.gif" />
@@ -144,8 +145,3 @@ Refer to this [page](https://github.com/anrayliu/pyvidplayer2/blob/main/document
 To get started quickly, you can browse the many [code examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples).
 If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anrayliu/pyvidplayer2). If you still have questions, 
 open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
-
-# About Versioning
-
-This project currently uses pre-1.0 versioning in the form of `0.9.x`.
-After v1.0, it will follow standard Semantic Versioning.

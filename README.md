@@ -89,7 +89,7 @@ If you prefer natural language, try asking [DeepWiki](https://deepwiki.com/anray
 open an [issues page](https://github.com/anrayliu/pyvidplayer2/issues).
 
 
-# Quickstart
+## Quickstart
 
 Refer to the [examples](https://github.com/anrayliu/pyvidplayer2/tree/main/examples) folder for more basic examples.
 

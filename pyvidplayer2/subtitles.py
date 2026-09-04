@@ -182,10 +182,10 @@ class Subtitles:
         """Set the font to use for rendering subtitles. Accepts a pygame Font
         or SysFont object."""
 
-        self.font = font
         if not isinstance(self.font, pygame.font.Font):
             raise ValueError(
                 "Font must be a pygame.font.Font or pygame.font.SysFont object.")
+        self.font = font
 
     def get_font(self) -> Union[pygame.font.SysFont, pygame.font.Font]:
         """Return the pygame Font or SysFont object being used."""

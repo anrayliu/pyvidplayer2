@@ -907,7 +907,7 @@ class Video:
         """Set a new speed value (0.25-10.0)."""
 
         speed = float(max(0.25, min(10, speed)))
-        self.seek(0, relative=True, intuitive=False)
+        self.seek_frame(0, relative=True, intuitive=False)
         self.speed = speed
 
     def get_speed(self) -> float:
@@ -1044,7 +1044,7 @@ class Video:
                 "Could not find FFprobe (should be bundled with FFmpeg). "
                 "Make sure FFprobe is installed and accessible via PATH.") from e
 
-        if len(info) == 0 or len(info["streams"]) == 0:
+        if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
         info = info["streams"]
 

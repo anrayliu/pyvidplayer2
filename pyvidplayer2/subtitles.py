@@ -182,7 +182,7 @@ class Subtitles:
         """Set the font to use for rendering subtitles. Accepts a pygame Font
         or SysFont object."""
 
-        if not isinstance(self.font, pygame.font.Font):
+        if not isinstance(font, pygame.font.Font):
             raise ValueError(
                 "Font must be a pygame.font.Font or pygame.font.SysFont object.")
         self.font = font

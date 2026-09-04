@@ -11,7 +11,7 @@
 
 Featureful library for embedding videos into Python apps.
 
-The latest version (v0.9.36) is a release candidate. This project currently uses pre-1.0 versioning in the form of `0.9.x`.
+The latest version (v0.9.37) is a release candidate. This project currently uses pre-1.0 versioning in the form of `0.9.x`.
 After v1.0, it will follow standard Semantic Versioning.
 
 

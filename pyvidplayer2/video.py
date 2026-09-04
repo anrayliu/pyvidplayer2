@@ -1044,7 +1044,7 @@ class Video:
                 "Could not find FFprobe (should be bundled with FFmpeg). "
                 "Make sure FFprobe is installed and accessible via PATH.") from e
 
-        if len(info) == 0:
+        if len(info) == 0 or len(info["streams"]) == 0:
             raise VideoStreamError("Could not determine video.")
         info = info["streams"]
 
@@ -1166,8 +1166,8 @@ class Video:
         if intuitive and not relative:
             index += 1
 
+        # TODO: could diverge here
         self._vid.seek(index)
-
         self.frame = index
 
         for sub in self.subs:

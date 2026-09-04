@@ -1722,6 +1722,9 @@ class TestVideo(unittest.TestCase):
             info = v.get_metadata()
             v.probe()
 
+            # strangely, the duration isn't always consistent, even though
+            # it should be deterministic
+
             self.assertEqual(info["aspect_ratio"], 1.3333333333333333)
             self.assertEqual(info["audio_channels"], 0)
             self.assertEqual(info["avg_fr"], 14.285714285714286)

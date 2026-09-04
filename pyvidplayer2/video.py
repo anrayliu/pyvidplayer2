@@ -157,7 +157,7 @@ class Video:
         self.num_audio_tracks = 0
 
         self.chunk_size = max(chunk_size, 0.1)
-        self.max_chunks = max_chunks
+        self.max_chunks = max(max_chunks, 1)
         self.max_threads = 1  # locked to 1, max_threads param is deprecated
 
         self._chunks = []

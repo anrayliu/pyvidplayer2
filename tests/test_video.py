@@ -211,6 +211,17 @@ class TestVideo(unittest.TestCase):
         with Video(VIDEO_PATH, chunk_size=10) as v:
             self.assertEqual(v.chunk_size, 10)
 
+    # tests that max_chunks cannot be smaller than 1
+    def test_max_chunks_clamp(self):
+        with Video(VIDEO_PATH, max_chunks=-1) as v:
+            self.assertEqual(v.max_chunks, 1)
+
+        with Video(VIDEO_PATH, max_chunks=0) as v:
+            self.assertEqual(v.max_chunks, 1)
+
+        with Video(VIDEO_PATH, max_chunks=2) as v:
+            self.assertEqual(v.max_chunks, 2)
+
     # test the set_interp method
     def test_set_interp(self):
         v = Video(VIDEO_PATH, interp="linear")

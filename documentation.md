@@ -13,7 +13,7 @@ from YouTube. Decord is required to play videos from RAM.
   each chunk, in seconds. Increasing this value will slow the
   initial loading of video, but may be necessary to prevent stuttering. When streaming from YouTube, this will be automatically set to a higher value. Cannot be lower than 0.1 seconds.
 - `max_threads: int = 1` - Obsolete and deprecated. Will be locked to 1. Maximum number of chunks that can be simultaneously extracted. When streaming from YouTube, this will be locked to 1.
-- `max_chunks: int = 1` - Maximum number of chunks allowed to be extracted and queued for playback.
+- `max_chunks: int = 1` - Maximum number of chunks allowed to be extracted and queued for playback. Cannot be lower than 1.
 - `subs: pyvidplayer2.Subtitles = None` - Pass a `Subtitles` object or a list of them to display during playback.
 - `post_process: function(numpy.ndarray) -> numpy.ndarray = PostProcessing.none` - Post processing function to be
   applied whenever a frame is rendered. Functions should accept a NumPy image and return the processed image. There are also a few pre-made post-processing functions.

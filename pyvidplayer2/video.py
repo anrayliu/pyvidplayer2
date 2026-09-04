@@ -907,7 +907,7 @@ class Video:
         """Set a new speed value (0.25-10.0)."""
 
         speed = float(max(0.25, min(10, speed)))
-        self.seek_frame(0, relative=True, intuitive=False)
+        self.seek(0, relative=True, intuitive=False)
         self.speed = speed
 
     def get_speed(self) -> float:

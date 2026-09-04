@@ -197,6 +197,20 @@ class TestVideo(unittest.TestCase):
         v1.close()
         v2.close()
 
+    # tests that a floor of 0.1 seconds is enforced for chunk_size
+    def test_chunk_size_clamp(self):
+        with Video(VIDEO_PATH, chunk_size=0) as v:
+            self.assertEqual(v.chunk_size, 0.1)
+
+        with Video(VIDEO_PATH, chunk_size=0.05) as v:
+            self.assertEqual(v.chunk_size, 0.1)
+
+        with Video(VIDEO_PATH, chunk_size=0.1) as v:
+            self.assertEqual(v.chunk_size, 0.1)
+
+        with Video(VIDEO_PATH, chunk_size=10) as v:
+            self.assertEqual(v.chunk_size, 10)
+
     # test the set_interp method
     def test_set_interp(self):
         v = Video(VIDEO_PATH, interp="linear")

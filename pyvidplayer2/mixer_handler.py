@@ -39,8 +39,8 @@ class MixerHandler(AudioHandler):
         pygame.mixer.music.play()
 
     def set_volume(self, vol):
-        self.volume = vol
-        pygame.mixer.music.set_volume(min(1.0, max(0.0, vol)))
+        self.volume = min(1.0, max(0.0, vol))
+        pygame.mixer.music.set_volume(self.volume)
 
     def get_volume(self):
         return self.volume

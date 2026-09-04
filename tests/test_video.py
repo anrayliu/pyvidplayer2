@@ -197,6 +197,31 @@ class TestVideo(unittest.TestCase):
         v1.close()
         v2.close()
 
+    # tests that a floor of 0.1 seconds is enforced for chunk_size
+    def test_chunk_size_clamp(self):
+        with Video(VIDEO_PATH, chunk_size=0) as v:
+            self.assertEqual(v.chunk_size, 0.1)
+
+        with Video(VIDEO_PATH, chunk_size=0.05) as v:
+            self.assertEqual(v.chunk_size, 0.1)
+
+        with Video(VIDEO_PATH, chunk_size=0.1) as v:
+            self.assertEqual(v.chunk_size, 0.1)
+
+        with Video(VIDEO_PATH, chunk_size=10) as v:
+            self.assertEqual(v.chunk_size, 10)
+
+    # tests that max_chunks cannot be smaller than 1
+    def test_max_chunks_clamp(self):
+        with Video(VIDEO_PATH, max_chunks=-1) as v:
+            self.assertEqual(v.max_chunks, 1)
+
+        with Video(VIDEO_PATH, max_chunks=0) as v:
+            self.assertEqual(v.max_chunks, 1)
+
+        with Video(VIDEO_PATH, max_chunks=2) as v:
+            self.assertEqual(v.max_chunks, 2)
+
     # test the set_interp method
     def test_set_interp(self):
         v = Video(VIDEO_PATH, interp="linear")
@@ -939,7 +964,7 @@ class TestVideo(unittest.TestCase):
     def test_missing_ffmpeg(self):
         v = Video(VIDEO_PATH)
         v._missing_ffmpeg = True
-        self.assertRaises(FileNotFoundError, v.update)
+        self.assertRaises(FFmpegNotFoundError, v.update)
         v.close()
 
     # tests that volume is wokring properly
@@ -1516,12 +1541,6 @@ class TestVideo(unittest.TestCase):
         self.assertFalse(decord_reader.read()[0])
         self.assertFalse(iio_reader.read()[0])
 
-        # test close
-        cv_reader.release()
-        ffmpeg_reader.release()
-        decord_reader.release()
-        iio_reader.release()
-
         v1.close()
         v2.close()
         v3.close()
@@ -1712,16 +1731,20 @@ class TestVideo(unittest.TestCase):
     def test_gif(self):
         with Video("resources/myGif.gif") as v:
             info = v.get_metadata()
+            v.probe()
+
+            # strangely, the duration isn't always consistent, even though
+            # it should be deterministic
 
             self.assertEqual(info["aspect_ratio"], 1.3333333333333333)
             self.assertEqual(info["audio_channels"], 0)
-            self.assertEqual(info["avg_fr"], 14.25)
-            self.assertEqual(info["duration"], 1.1228070175438596)
+            self.assertEqual(info["avg_fr"], 14.285714285714286)
+            self.assertEqual(info["duration"], 1.1199999999999999)
             self.assertEqual(info["ext"], '.gif')
             self.assertEqual(info["frame_count"], 16)
-            self.assertEqual(info["frame_rate"], 14.25)
-            self.assertEqual(info["max_fr"], 14.25)
-            self.assertEqual(info["min_fr"], 14.25)
+            self.assertEqual(info["frame_rate"], 14.285714285714286)
+            self.assertEqual(info["max_fr"], 14.285714285714286)
+            self.assertEqual(info["min_fr"], 14.285714285714286)
             self.assertEqual(info["name"], 'myGif')
             self.assertEqual(info["no_audio"], True)
             self.assertEqual(info["num_audio_tracks"], 0)
@@ -2210,7 +2233,11 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_path("/hehe/ffmpeG")
         self.assertEqual(get_ffmpeg_path(), "/hehe/ffmpeG")
 
-        v = Video(VIDEO_PATH)  # no error here either
+        with self.assertRaises(FFmpegNotFoundError):
+            Video(VIDEO_PATH).close()
+
+        # don't raise error if test_no_audio is not called
+        v = Video(VIDEO_PATH, no_audio=True)
 
         with self.assertRaises(FFmpegNotFoundError):
             while_loop(lambda: v.frame_data is None, v.update, 10)
@@ -2239,6 +2266,21 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_loglevel("quiet")
         set_ffmpeg_path("ffmpeg")
         set_ffprobe_path("ffprobe")
+
+    # tests method test_no_audio without ffmpeg bin
+    def test_no_audio_missing_ffmpeg(self):
+        self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
+
+        if BIN_OVERRIDE:
+            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
+            raise Exception("bin override active")
+
+        set_ffmpeg_path("badpath")
+
+        with self.assertRaises(FFmpegNotFoundError):
+            v = Video(VIDEO_PATH)
+            v._test_no_audio()
+            v.close()
 
     def test_frame_indexing(self):
         v = Video("resources/test.mp4")

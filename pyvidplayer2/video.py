@@ -653,7 +653,7 @@ class Video:
 
         for t in self._threads:
             if not t.is_alive():
-                self._threads.remove(t)
+                continue
 
         self._stop_loading = self._starting_time + self._chunks_claimed * self.chunk_size >= self.duration
         if not self._stop_loading and (len(self._threads) < self.max_threads) and (
@@ -662,6 +662,8 @@ class Video:
             self._threads.append(Thread(target=self._threaded_load,
                                         args=(self._chunks_claimed,)))
             self._threads[-1].start()
+
+        self._threads = [t for t in self._threads if t.is_alive()]
 
     def _write_subs(self, p):
         for sub in self.subs:

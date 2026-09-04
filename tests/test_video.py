@@ -1516,12 +1516,6 @@ class TestVideo(unittest.TestCase):
         self.assertFalse(decord_reader.read()[0])
         self.assertFalse(iio_reader.read()[0])
 
-        # test close
-        cv_reader.release()
-        ffmpeg_reader.release()
-        decord_reader.release()
-        iio_reader.release()
-
         v1.close()
         v2.close()
         v3.close()
@@ -2210,7 +2204,11 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_path("/hehe/ffmpeG")
         self.assertEqual(get_ffmpeg_path(), "/hehe/ffmpeG")
 
-        v = Video(VIDEO_PATH)  # no error here either
+        with self.assertRaises(FFmpegNotFoundError):
+            Video(VIDEO_PATH).close()
+
+        # don't raise error if test_no_audio is not called
+        v = Video(VIDEO_PATH, no_audio=True)
 
         with self.assertRaises(FFmpegNotFoundError):
             while_loop(lambda: v.frame_data is None, v.update, 10)

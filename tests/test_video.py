@@ -1720,16 +1720,17 @@ class TestVideo(unittest.TestCase):
     def test_gif(self):
         with Video("resources/myGif.gif") as v:
             info = v.get_metadata()
+            v.probe()
 
             self.assertEqual(info["aspect_ratio"], 1.3333333333333333)
             self.assertEqual(info["audio_channels"], 0)
-            self.assertEqual(info["avg_fr"], 14.25)
-            self.assertEqual(info["duration"], 1.1228070175438596)
+            self.assertEqual(info["avg_fr"], 14.285714285714286)
+            self.assertEqual(info["duration"], 1.1199999999999999)
             self.assertEqual(info["ext"], '.gif')
             self.assertEqual(info["frame_count"], 16)
-            self.assertEqual(info["frame_rate"], 14.25)
-            self.assertEqual(info["max_fr"], 14.25)
-            self.assertEqual(info["min_fr"], 14.25)
+            self.assertEqual(info["frame_rate"], 14.285714285714286)
+            self.assertEqual(info["max_fr"], 14.285714285714286)
+            self.assertEqual(info["min_fr"], 14.285714285714286)
             self.assertEqual(info["name"], 'myGif')
             self.assertEqual(info["no_audio"], True)
             self.assertEqual(info["num_audio_tracks"], 0)

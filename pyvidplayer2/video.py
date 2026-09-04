@@ -537,8 +537,8 @@ class Video:
                 audio = p.communicate(input=self.path if self.as_bytes else None)[0]
 
         except FileNotFoundError:
-            self._missing_ffmpeg = True
-            return
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         return audio == b''
 

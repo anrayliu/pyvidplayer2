@@ -939,7 +939,7 @@ class TestVideo(unittest.TestCase):
     def test_missing_ffmpeg(self):
         v = Video(VIDEO_PATH)
         v._missing_ffmpeg = True
-        self.assertRaises(FileNotFoundError, v.update)
+        self.assertRaises(FFmpegNotFoundError, v.update)
         v.close()
 
     # tests that volume is wokring properly
@@ -2239,6 +2239,21 @@ class TestVideo(unittest.TestCase):
         set_ffmpeg_loglevel("quiet")
         set_ffmpeg_path("ffmpeg")
         set_ffprobe_path("ffprobe")
+
+    # tests method test_no_audio without ffmpeg bin
+    def test_no_audio_missing_ffmpeg(self):
+        self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
+
+        if BIN_OVERRIDE:
+            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
+            raise Exception("bin override active")
+
+        set_ffmpeg_path("badpath")
+
+        with self.assertRaises(FFmpegNotFoundError):
+            v = Video(VIDEO_PATH)
+            v._test_no_audio()
+            v.close()
 
     def test_frame_indexing(self):
         v = Video("resources/test.mp4")

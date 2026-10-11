@@ -87,6 +87,7 @@ class PSDHandler(AudioHandler):
 
             for sr in sample_rates:
                 try:
+                    # TODO: 24-bit audio might be problematic
                     self.stream = sd.OutputStream(
                         samplerate=sr,
                         channels=self.wave.getnchannels(),
@@ -175,6 +176,7 @@ class PSDHandler(AudioHandler):
         if self.stream is not None:
             self.stream.stop()
             self.stream.close()
+            self.stream = None
 
     def set_volume(self, vol):
         self.volume = min(1.0, max(0.0, vol))

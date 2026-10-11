@@ -156,8 +156,8 @@ class Video:
         self.audio_channels = 0
         self.num_audio_tracks = 0
 
-        self.chunk_size = 0 if chunk_size < 0 else chunk_size
-        self.max_chunks = max_chunks
+        self.chunk_size = max(chunk_size, 0.1)
+        self.max_chunks = max(max_chunks, 1)
         self.max_threads = 1  # locked to 1, max_threads param is deprecated
 
         self._chunks = []
@@ -537,8 +537,8 @@ class Video:
                 audio = p.communicate(input=self.path if self.as_bytes else None)[0]
 
         except FileNotFoundError:
-            self._missing_ffmpeg = True
-            return
+            raise FFmpegNotFoundError(
+                "Could not find FFmpeg. Make sure FFmpeg is installed and accessible via PATH.")
 
         return audio == b''
 
@@ -653,7 +653,7 @@ class Video:
 
         for t in self._threads:
             if not t.is_alive():
-                self._threads.remove(t)
+                continue
 
         self._stop_loading = self._starting_time + self._chunks_claimed * self.chunk_size >= self.duration
         if not self._stop_loading and (len(self._threads) < self.max_threads) and (
@@ -662,6 +662,8 @@ class Video:
             self._threads.append(Thread(target=self._threaded_load,
                                         args=(self._chunks_claimed,)))
             self._threads[-1].start()
+
+        self._threads = [t for t in self._threads if t.is_alive()]
 
     def _write_subs(self, p):
         for sub in self.subs:
@@ -1164,8 +1166,8 @@ class Video:
         if intuitive and not relative:
             index += 1
 
+        # TODO: could diverge here
         self._vid.seek(index)
-
         self.frame = index
 
         for sub in self.subs:

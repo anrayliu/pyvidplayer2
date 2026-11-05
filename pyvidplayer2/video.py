@@ -1,8 +1,8 @@
 # Contains most of the core logic for video playback
 # This project started when I was a lot less experienced,
 # and over the years, it's greatly surpassed my initial scope.
-# As such, the code quality can be lacking - it's an
-# active challenge to make better refactors
+# As such, the code quality can be lacking, and it's an
+# ongoing challenge to make refactors
 
 import importlib.util
 import json
@@ -587,10 +587,10 @@ class Video:
                 "-sn",
                 "-map", f"0:a:{self.audio_track}",
 
-                # sounddevice can get number of channels output device has, allowing
-                # ffmpeg to remix audio to match
-
+                # psd can get number of channels output device has, allowing
+                # ffmpeg to downmix audio to match
                 "-ac", str(self._get_num_channels_to_process()),
+
                 "-f", "wav",
                 "-loglevel", get_ffmpeg_loglevel(),
                 "-"
@@ -1039,10 +1039,20 @@ class Video:
                     stdin=subprocess.PIPE if self.as_bytes else None,
                     stdout=subprocess.PIPE) as p:
                 info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
-        except FileNotFoundError as e:
-            raise FFmpegNotFoundError(
-                "Could not find FFprobe (should be bundled with FFmpeg). "
-                "Make sure FFprobe is installed and accessible via PATH.") from e
+        except FileNotFoundError:
+            # best effort guess without ffprobe
+            #  ¯\_(ツ)_/¯
+
+            # this allows basic video playback and core features with only ffmpeg and no ffprobe
+            info = {
+                "streams": [
+                    {"channels": 2}
+                ]
+            }
+
+            # raise FFmpegNotFoundError(
+            #     "Could not find FFprobe (should be bundled with FFmpeg). "
+            #     "Make sure FFprobe is installed and accessible via PATH.") from e
 
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")
@@ -1052,7 +1062,10 @@ class Video:
             raise AudioStreamError(f"Audio index {index} out of range.")
 
         self.audio_channels = info[index]["channels"]
+
+        # this call is wrapped by "if not self.no_audio", so will have at least 1 audio track
         self.num_audio_tracks = len(info)
+
         self.audio_track = index
         self.seek(self.get_pos(), relative=False, intuitive=False)  # reloads current audio chunks
 

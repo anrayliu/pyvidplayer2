@@ -45,19 +45,22 @@ classifiers = [
 # only needed for running unit tests
 # regular users should not install all of these, as it'll add a lot of bloat
 all = [
-        "pygame-ce",
-        "pysubs2",
-        "yt-dlp[default]",
-        "decord",
-        "imageio",
-        "av",
-        "pyglet",
-        "PySide6",
-        "PyQt6",
-        "raylib",
-        "wxPython",
-    ]
-
+    "pygame-ce",
+    "pysubs2",
+    "yt-dlp[default]",
+    "decord",
+    "imageio",
+    "av",
+    "pyglet",
+    "PySide6",
+    "PyQt6",
+    "raylib",
+    "wxPython",
+    "imageio-ffmpeg==0.8.1",
+]
+ffmpeg = [
+    "imageio-ffmpeg==0.8.1"
+]
 [tool.setuptools]
 packages = ["pyvidplayer2"]
 

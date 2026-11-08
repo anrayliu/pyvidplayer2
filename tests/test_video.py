@@ -2419,6 +2419,12 @@ class TestVideo(unittest.TestCase):
 
         v.close()
 
+    # tests that importing pyvidplayer2 does not automatically init pygame
+    def test_pygame_not_auto_init(self):
+        self.addCleanup(lambda: pygame.init())
+        import pyvidplayer2
+        self.assertFalse(pygame.get_init())
+
     # test missing package checks
     def test_bad_imports(self):
         real_assertion = importlib.util.find_spec

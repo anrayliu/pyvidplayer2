@@ -30,15 +30,28 @@ Featureful library for embedding videos into Python apps.
 
 ## Installation
 
+Most users can get set up quickly by running
+```
+pip install pyvidplayer2[ffmpeg]
+```
+This installs `pyvidplayer2`, a recommended sound library, and a pre-built FFmpeg binary.
+You'll still need a graphics library if you don't already have one (e.g. `pip install pygame-ce` for Pygame users).
+
+This command does not install FFprobe. Most features will still work without FFprobe (only FFmpeg is mandatory),
+but some will throw an exception if FFprobe is not installed and accessible via PATH. To download FFmpeg or FFprobe,
+Windows users can go to the [official website](https://www.ffmpeg.org/). Afterwards, add the bin folder to the
+PATH environment variable. There's plenty of tutorials online for this. Linux and MacOS users can instead use their package
+manager of choice.
+
+If you already have FFmpeg on your system, instead run
 ```
 pip install pyvidplayer2
 ```
-In addition, FFmpeg and FFprobe must be downloaded and accessible via PATH.
-Windows users can go to the [official website](https://www.ffmpeg.org/) to download FFmpeg (includes FFprobe).
-Add the bin folder location to the PATH environment variable. There's plenty of tutorials online for this.
-Linux and MacOS users can use their package manager of choice.
 
 ### Legacy Installations
+
+`pip install pyvidplayer2[ffmpeg]` only works for versions 0.9.38 and beyond. Prior versions will need FFmpeg to
+be installed manually (see above).
 
 Versions prior to v0.9.31 have a PyAudio dependency. To build the wheel for it, some system packages must be present.
 Install them with your package manager before running `pip install pyvidplayer2`.
@@ -49,33 +62,31 @@ Install them with your package manager before running `pip install pyvidplayer2`
 
 ## Dependencies
 
-```
-numpy
-FFmpeg and FFprobe (binaries, not Python packages)
-```
-
-Still requires one graphics library and one audio library of your choice.
+The only mandatory dependencies are `numpy`, an FFmpeg binary, and a sound and graphics library of your choice.
+Every other dependency can be uninstalled and basic video playback will still work. That said, `opencv_python` and
+`sounddevice` are highly recommended and are installed by default. FFprobe is also recommended to be installed
+alongside FFmpeg (see above installation instructions).
 
 ### Optional Packages
 
 ```
-opencv_python       (efficiency improvements and more features, comes installed)
+opencv_python       (backend video reader, efficiency improvements, and enables many features)
+decord              (backend video reader)
+imageio[pyav]       (backend video reader)
+sounddevice         (recommended audio library)
 pygame/pygame-ce    (graphics and audio library)
-sounddevice         (better audio library, comes installed)
-pysubs2             (for subtitles)
-yt_dlp[default]     (for streaming Youtube videos)
-decord              (for videos in bytes, best option)
-imageio[pyav]       (for videos in bytes)
+pysubs2             (enables subtitles)
+yt_dlp[default]     (enables YouTube streaming)
 pyglet              (graphics library)
 PySide6             (graphics library)
 PyQt6               (graphics library)
-tkinter             (graphics library, installed as a sys package or with Python installer, not pip)
+tkinter             (graphics library)
 raylib              (graphics library)
 wxPython            (graphics library)
 ```
 
-Use `pip install pyvidplayer2[all]` to install all packages required for running the unit tests.
-Not required or recommended for regular users.
+Use `pip install pyvidplayer2[all]` to install all optional packages. Useful for developers running unit tests, but is
+not required or recommended for regular users.
 
 # Documentation
 

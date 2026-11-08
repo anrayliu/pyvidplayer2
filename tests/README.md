@@ -4,7 +4,9 @@ Get the videos by cloning this repo: https://github.com/anrayliu/pyvidplayer2-te
 Requires all optional dependencies: `pip install pyvidplayer2[all]`
 
 If the installation isn't working, you can remove problematic packages from 
-`pyproject.toml` and install locally with `pip install .`
+`pyproject.toml` and install locally with `pip install .`, or install them
+separately. PyQt6 and PySide6 don't often play well with each other, and I've
+encountered issues with raylib as well.
 
 Note: Some tests can be inconsistent, depending on your computer specs
 My 5600x has no issues, while my 7530U sometimes struggles

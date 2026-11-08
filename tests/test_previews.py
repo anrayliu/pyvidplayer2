@@ -16,7 +16,7 @@ from test_youtube import YOUTUBE_PATH
 
 
 @unittest.skipIf(sys.platform.startswith("linux") or
-                 sys.platform == "darwin", "Don't work well on linux or mac")
+                 sys.platform == "darwin", "Doesn't work well on linux or mac")
 class TestPreviews(unittest.TestCase):
     # tests that looping is seamless
     # also tests that video does indeed loop by timing out otherwise

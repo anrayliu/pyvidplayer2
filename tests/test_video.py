@@ -1,4 +1,9 @@
-# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+'''
+Core tests for video playback
+
+test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+'''
+
 import importlib.util
 import os
 import random
@@ -25,6 +30,7 @@ from pyvidplayer2.mixer_handler import MixerHandler
 
 from sounddevice import query_devices
 
+# dir containing ffmpeg and ffprobe bins
 BIN_OVERRIDE = r""
 if BIN_OVERRIDE:
     pyvidplayer2.set_ffmpeg_path(os.path.join(BIN_OVERRIDE, "ffmpeg"))
@@ -2222,8 +2228,7 @@ class TestVideo(unittest.TestCase):
         self.addCleanup(lambda: (set_ffmpeg_path("ffmpeg"), set_ffprobe_path("ffprobe")))
 
         if BIN_OVERRIDE:
-            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
-            raise Exception("bin override active")
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
 
         self.assertEqual(get_ffmpeg_path(), "ffmpeg")
         self.assertEqual(get_ffprobe_path(), "ffprobe")
@@ -2272,8 +2277,7 @@ class TestVideo(unittest.TestCase):
         self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
 
         if BIN_OVERRIDE:
-            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
-            raise Exception("bin override active")
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
 
         set_ffmpeg_path("badpath")
 
@@ -2316,8 +2320,7 @@ class TestVideo(unittest.TestCase):
         self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
 
         if BIN_OVERRIDE:
-            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
-            raise Exception("bin override active")
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
 
         set_ffmpeg_path("badpath")
         self.assertRaises(FFmpegNotFoundError, lambda: Video(VIDEO_PATH, reader=READER_FFMPEG))
@@ -2676,8 +2679,7 @@ class TestVideo(unittest.TestCase):
         self.addCleanup(lambda: set_ffprobe_path("badpath"))
 
         if BIN_OVERRIDE:
-            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
-            raise Exception("bin override active")
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
 
         for file in ("resources\\6channels.mkv",
                   "resources\\manya.mp4",

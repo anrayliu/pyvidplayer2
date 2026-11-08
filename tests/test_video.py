@@ -2314,6 +2314,11 @@ class TestVideo(unittest.TestCase):
 
     def test_ffmpeg_not_found(self):
         self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
+
+        if BIN_OVERRIDE:
+            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
+            raise Exception("bin override active")
+
         set_ffmpeg_path("badpath")
         self.assertRaises(FFmpegNotFoundError, lambda: Video(VIDEO_PATH, reader=READER_FFMPEG))
 
@@ -2665,6 +2670,23 @@ class TestVideo(unittest.TestCase):
         v.preview(1, 2, 3, 4, 5, 6, foo=1, bar=2, baz=3)
 
         v.close()
+
+    # tests that video initialization will not crash without ffprobe
+    def test_ffprobe_missing_no_crash(self):
+        self.addCleanup(lambda: set_ffprobe_path("badpath"))
+
+        if BIN_OVERRIDE:
+            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
+            raise Exception("bin override active")
+
+        for file in ("resources\\6channels.mkv",
+                  "resources\\manya.mp4",
+                  VIDEO_PATH):
+            with Video(file) as v:
+                # without ffprobe, a best-effort guess will be made
+                self.assertEqual(v.num_audio_tracks, 1)
+                self.assertEqual(v.audio_channels, 2)
+                self.assertEqual(v._get_num_channels_to_process(), 2)
 
 
 if __name__ == "__main__":

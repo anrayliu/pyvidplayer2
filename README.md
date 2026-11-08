@@ -17,16 +17,16 @@ Featureful library for embedding videos into Python apps.
 
 ## Features
 
-- **Easy integration**: Add a video to an existing app with just 4 lines of code
-- **Lightweight**: Almost every dependency is optional
-- **Feature-rich**: Seamless loops, custom playback speed, reverse playback, parallel playback, and more
-- **Full audio support**: Adjust audio track, output device, volume, and more
-- **Full subtitle support**: Parse subtitles from files or embedded subtitle tracks
-- **Play any format**: Supports almost every codec and container, VFR videos, even GIFs
-- **YouTube integration**: Stream videos and subtitles directly from YouTube
-- **Low-level control**: Frame-by-frame iteration and inspection
-- **High compatibility**: Integrates with 7 graphics libraries (some features limited to Pygame)
-- **Extra features**: Built-in video player GUI, post-processing effects, and webcam features
+- Integrates with existing apps with just 4 lines of code
+- Almost every dependency is optional
+- Full video-support: seamless loops, custom playback speed, reverse playback, parallel playback, and more
+- Full audio-support: adjust audio track, output device, volume, and more
+- Parse subtitles from files or embedded subtitle tracks
+- Supports almost every codec and container, VFR videos, even GIFs
+- Stream videos and subtitles directly from YouTube
+- Frame-by-frame iteration and inspection
+- Integrates with 7 graphics libraries (some features limited to Pygame)
+- Built-in video player GUI, post-processing effects, webcam features
 
 ## Installation
 

@@ -399,7 +399,7 @@ class Video:
                 info = json.loads(p.communicate(input=self.path if self.as_bytes else None)[0])
         except FileNotFoundError as e:
             raise FFmpegNotFoundError(
-                "Could not find FFprobe (should be bundled with FFmpeg). "
+                "Could not find FFprobe (should be installed with FFmpeg). "
                 "Make sure FFprobe is installed and accessible via PATH.") from e
 
         pts = sorted([float(dict_["pts_time"]) for dict_ in info["packets"]])
@@ -1049,10 +1049,6 @@ class Video:
                     {"channels": 2}
                 ]
             }
-
-            # raise FFmpegNotFoundError(
-            #     "Could not find FFprobe (should be bundled with FFmpeg). "
-            #     "Make sure FFprobe is installed and accessible via PATH.") from e
 
         if len(info) == 0:
             raise VideoStreamError("Could not determine video.")

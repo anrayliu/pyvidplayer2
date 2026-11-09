@@ -19,10 +19,10 @@ class VideoReader:
         if probe:
             self._probe(path)
 
-    # as it turns out, obtaining video data such as frame count and dimensions is actually very inconsistent between
+    # obtaining video data such as frame count and dimensions is very inconsistent between
     # different videos and encoders
     def _probe(self, path, as_bytes=False):
-        # strangely for ffprobe, - is not required to indicate output
+        # for ffprobe, - is not required to indicate output
 
         try:
             # this method counts the number of packets as a substitute for frames, which is much too slow
@@ -45,7 +45,7 @@ class VideoReader:
 
         except FileNotFoundError as e:
             raise FFmpegNotFoundError(
-                "Could not find FFprobe (should be bundled with FFmpeg)."
+                "Could not find FFprobe (should be installed with FFmpeg)."
                 "Make sure FFprobe is installed and accessible via PATH."
             ) from e
 

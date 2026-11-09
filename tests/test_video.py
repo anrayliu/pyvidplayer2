@@ -1,4 +1,9 @@
-# test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+'''
+Core tests for video playback
+
+test resources: https://github.com/anrayliu/pyvidplayer2-test-resources
+'''
+
 import importlib.util
 import os
 import random
@@ -25,6 +30,7 @@ from pyvidplayer2.mixer_handler import MixerHandler
 
 from sounddevice import query_devices
 
+# dir containing ffmpeg and ffprobe bins
 BIN_OVERRIDE = r""
 if BIN_OVERRIDE:
     pyvidplayer2.set_ffmpeg_path(os.path.join(BIN_OVERRIDE, "ffmpeg"))
@@ -2222,8 +2228,7 @@ class TestVideo(unittest.TestCase):
         self.addCleanup(lambda: (set_ffmpeg_path("ffmpeg"), set_ffprobe_path("ffprobe")))
 
         if BIN_OVERRIDE:
-            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
-            raise Exception("bin override active")
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
 
         self.assertEqual(get_ffmpeg_path(), "ffmpeg")
         self.assertEqual(get_ffprobe_path(), "ffprobe")
@@ -2272,8 +2277,7 @@ class TestVideo(unittest.TestCase):
         self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
 
         if BIN_OVERRIDE:
-            print(f"ffmpeg: {get_ffmpeg_path()}\nffprobe: {get_ffprobe_path()}")
-            raise Exception("bin override active")
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
 
         set_ffmpeg_path("badpath")
 
@@ -2314,6 +2318,10 @@ class TestVideo(unittest.TestCase):
 
     def test_ffmpeg_not_found(self):
         self.addCleanup(lambda: set_ffmpeg_path("ffmpeg"))
+
+        if BIN_OVERRIDE:
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
+
         set_ffmpeg_path("badpath")
         self.assertRaises(FFmpegNotFoundError, lambda: Video(VIDEO_PATH, reader=READER_FFMPEG))
 
@@ -2410,6 +2418,12 @@ class TestVideo(unittest.TestCase):
         self.assertTrue(pygame.mixer.get_init())
 
         v.close()
+
+    # tests that importing pyvidplayer2 does not automatically init pygame
+    def test_pygame_not_auto_init(self):
+        self.addCleanup(lambda: pygame.init())
+        import pyvidplayer2
+        self.assertFalse(pygame.get_init())
 
     # test missing package checks
     def test_bad_imports(self):
@@ -2665,6 +2679,22 @@ class TestVideo(unittest.TestCase):
         v.preview(1, 2, 3, 4, 5, 6, foo=1, bar=2, baz=3)
 
         v.close()
+
+    # tests that video initialization will not crash without ffprobe
+    def test_ffprobe_missing_no_crash(self):
+        self.addCleanup(lambda: set_ffprobe_path("badpath"))
+
+        if BIN_OVERRIDE:
+            raise Exception(f"bin override active (FFmpeg: {get_ffmpeg_path()}, FFprobe: {get_ffprobe_path()})")
+
+        for file in ("resources\\6channels.mkv",
+                  "resources\\manya.mp4",
+                  VIDEO_PATH):
+            with Video(file) as v:
+                # without ffprobe, a best-effort guess will be made
+                self.assertEqual(v.num_audio_tracks, 1)
+                self.assertEqual(v.audio_channels, 2)
+                self.assertEqual(v._get_num_channels_to_process(), 2)
 
 
 if __name__ == "__main__":

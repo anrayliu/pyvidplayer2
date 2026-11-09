@@ -28,6 +28,10 @@ _ffmpeg_loglvl = "quiet"
 _ffmpeg_path = "ffmpeg"
 _ffprobe_path = "ffprobe"
 
+# imageio comes with pre-packaged ffmpeg bins in their wheels
+if importlib.util.find_spec("imageio_ffmpeg") is not None:
+    from imageio_ffmpeg import get_ffmpeg_exe
+    _ffmpeg_path = get_ffmpeg_exe()
 
 ##################################################
 # need to be near top so library can import these

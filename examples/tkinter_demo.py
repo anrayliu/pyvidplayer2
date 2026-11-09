@@ -10,7 +10,7 @@ import tkinter
 
 from pyvidplayer2 import VideoTkinter
 
-video = VideoTkinter(r"resources\trailer1.mp4")
+video = VideoTkinter("resources/trailer1.mp4")
 
 
 def update():

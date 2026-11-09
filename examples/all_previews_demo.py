@@ -14,7 +14,7 @@ from pyvidplayer2 import (Video, VideoPyglet, VideoPyQT, VideoPySide,
 # but remember that everything shown in a preview can also be integrated
 # into your chosen graphics library (see demos)
 
-PATH = r"resources\trailer1.mp4"
+PATH = "resources/trailer1.mp4"
 
 # for Pygame and Pygame CE
 Video(PATH).preview()

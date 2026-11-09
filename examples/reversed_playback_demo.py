@@ -16,5 +16,5 @@ from pyvidplayer2 import Video
 
 # reversing can also be combined with other video settings like speed changes
 
-with Video(r"resources\birds.avi", reverse=True) as v:
+with Video("resources/birds.avi", reverse=True) as v:
     v.preview()

@@ -10,6 +10,6 @@ from pyvidplayer2 import Video
 
 # speed is capped between 0.25x and 10x the original speed
 
-with Video(r"resources\trailer1.mp4", speed=2) as v:
+with Video("resources/trailer1.mp4", speed=2) as v:
     v.set_speed(1.8)  # can also be set dynamically
     v.preview(show_fps=True)   # plays video twice as fast

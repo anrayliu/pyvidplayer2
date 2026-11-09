@@ -14,34 +14,34 @@ from pyvidplayer2 import Subtitles, Video
 
 # regular subtitles playback
 
-with Video(r"resources\trailer2.mp4",
-           subs=Subtitles(r"resources\subs2.srt")) as v:
+with Video("resources/trailer2.mp4",
+           subs=Subtitles("resources/subs2.srt")) as v:
     v.preview()
 
 # multiple subtitle tracks
 
-with Video(r"resources\trailer1.mp4", subs=[Subtitles(r"resources\subs1.srt"),
-                                            Subtitles(r"resources\subs2.srt",
-                                                      offset=120)]) as v:
+with Video("resources/trailer1.mp4", subs=[Subtitles("resources/subs1.srt"),
+                                           Subtitles("resources/subs2.srt",
+                                                     offset=120)]) as v:
     v.preview()
 
 # custom subtitles
 
-subs = Subtitles(r"resources\subs2.srt", font=Font(r"resources\font.ttf", 60),
+subs = Subtitles("resources/subs2.srt", font=Font("resources/font.ttf", 60),
                  highlight=(255, 0, 0, 128), offset=500)
-with Video(r"resources\trailer2.mp4", subs=subs) as v:
+with Video("resources/trailer2.mp4", subs=subs) as v:
     v.preview()
 
 # set a delay for subtitles
 
-with Video(r"resources\trailer2.mp4",
-           subs=Subtitles(r"resources\subs2.srt", delay=-3)) as v:
+with Video("resources/trailer2.mp4",
+           subs=Subtitles("resources/subs2.srt", delay=-3)) as v:
     v.preview()
 
 # can also read subtitle tracks embedded in video
 
-with Video(r"resources\wSubs.mp4",
-           subs=Subtitles(r"resources\wSubs.mp4", track_index=0)) as v:
+with Video("resources/wSubs.mp4",
+           subs=Subtitles("resources/wSubs.mp4", track_index=0)) as v:
     v.preview()
 
 # you can also use subtitles from within a video by specifying which track it belongs to

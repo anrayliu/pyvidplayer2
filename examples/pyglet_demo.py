@@ -9,7 +9,7 @@ This is a quick example of integrating a video into a pyglet project
 import pyglet
 from pyvidplayer2 import VideoPyglet
 
-video = VideoPyglet(r"resources\trailer1.mp4")
+video = VideoPyglet("resources/trailer1.mp4")
 
 
 def update(dt):

@@ -9,7 +9,7 @@ This example gives a side by side comparison between a few available post proces
 import pygame
 from pyvidplayer2 import PostProcessing, Video
 
-PATH = r"resources\birds.avi"
+PATH = "resources/birds.avi"
 
 win = pygame.display.set_mode((576, 720))
 pygame.display.set_caption("post processing demo")

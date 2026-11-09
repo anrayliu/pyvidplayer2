@@ -9,7 +9,7 @@ This is an example of the built in GUI for videos
 import pygame
 from pyvidplayer2 import Video, VideoPlayer
 
-video = Video(r"resources\ocean.mkv")
+video = Video("resources/ocean.mkv")
 
 win = pygame.display.set_mode(video.original_size, pygame.RESIZABLE)
 pygame.display.set_caption("video player demo")

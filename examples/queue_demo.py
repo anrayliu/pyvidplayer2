@@ -15,12 +15,12 @@ pygame.display.set_caption("queue demo")
 # with loop=True and videos in the queue, each video will be added
 # back into the queue after it finishes playing
 
-player = VideoPlayer(Video(r"resources\clip.mp4"), (0, 0, 1280, 720), loop=True)
+player = VideoPlayer(Video("resources/clip.mp4"), (0, 0, 1280, 720), loop=True)
 
 # queue video objects
 # when the current video finishes playing, the next video will automatically start
-player.queue(Video(r"resources\ocean.mkv"))
-player.queue(Video(r"resources\birds.avi"))
+player.queue(Video("resources/ocean.mkv"))
+player.queue(Video("resources/birds.avi"))
 # can also queue video paths to prevent resources from loading before needed
 player.queue("resources/trailer2.mp4")
 

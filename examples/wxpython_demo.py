@@ -53,7 +53,7 @@ class MyApp(wx.App):
         return True
 
 
-vid = VideoWx("resources//clip.mp4")
+vid = VideoWx("resources/clip.mp4")
 
 app = MyApp(False)
 app.MainLoop()

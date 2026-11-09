@@ -9,7 +9,7 @@ This example shows off preview thumbnails in the video player
 import pygame
 from pyvidplayer2 import Video, VideoPlayer
 
-video = Video(r"resources\medic.mov")
+video = Video("resources/medic.mov")
 
 # specify the number of loaded preview_thumbnails during instantiation
 # the video will load the specified number of frames before running, and when

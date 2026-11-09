@@ -15,7 +15,7 @@ win = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 
 # 1. provide video class with the path to your file
-vid = Video(r"resources\medic.mov")
+vid = Video("resources/medic.mov")
 
 while True:
     key = None

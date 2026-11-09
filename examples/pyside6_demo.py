@@ -26,7 +26,7 @@ class Window(QMainWindow):
         video.draw(self, (0, 0))
 
 
-video = VideoPySide(r"resources/trailer1.mp4")
+video = VideoPySide("resources/trailer1.mp4")
 
 app = QApplication([])
 win = Window()

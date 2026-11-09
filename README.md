@@ -30,35 +30,33 @@ Featureful library for embedding videos into Python apps.
 
 ## Installation
 
+### Windows
 Most users can get set up quickly by running
 ```
 pip install pyvidplayer2[ffmpeg]
 ```
-This installs `pyvidplayer2`, a recommended sound library, and a pre-built FFmpeg binary.
+This installs `pyvidplayer2`, the recommended sound library, and a pre-built FFmpeg binary.
 You'll still need a graphics library if you don't already have one (e.g. `pip install pygame-ce` for Pygame users).
 
 This command does not install FFprobe. Most features will still work without FFprobe (only FFmpeg is mandatory),
 but some will throw an exception if FFprobe is not installed and accessible via PATH. To download FFmpeg or FFprobe,
-Windows users can go to the [official website](https://www.ffmpeg.org/). Afterwards, add the bin folder to the
-PATH environment variable. There's plenty of tutorials online for this. Linux and MacOS users can instead use their package
-manager of choice.
+go to the [official website](https://www.ffmpeg.org/). Afterwards, add the bin folder to the
+PATH environment variable. There's plenty of tutorials online for this. 
 
 If you already have FFmpeg on your system, instead run
 ```
 pip install pyvidplayer2
 ```
+Note: For versions before 0.9.38, `pyvidplayer2[ffmpeg]` does not work, so FFmpeg and FFprobe must be installed manually.
 
-### Legacy Installations
-
-`pip install pyvidplayer2[ffmpeg]` only works for versions 0.9.38 and beyond. Prior versions will need FFmpeg to
-be installed manually (see above).
-
-Versions prior to v0.9.31 have a PyAudio dependency. To build the wheel for it, some system packages must be present.
-Install them with your package manager before running `pip install pyvidplayer2`.
-
-- Ubuntu/Debian: `sudo apt install python3-dev libjack-jackd2-dev portaudio19-dev`
-- Fedora/RHEL: `sudo dnf install python3-devel portaudio-devel`
-- MacOS: `brew install portaudio`
+### Linux and MacOS
+Install with the following
+```
+pip install pyvidplayer2
+```
+Then use your package manager to install FFmpeg, FFprobe, and PortAudio.
+ - Ubuntu: `sudo apt install ffmpeg python3-dev libjack-jackd2-dev portaudio19-dev`
+ - MacOS: `brew install portaudio ffmpeg`
 
 ## Dependencies
 

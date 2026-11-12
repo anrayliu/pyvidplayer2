@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pyvidplayer2"
 dynamic = ["version"]
-description = "Reliable, easy, and fast video playback in Python with integrations for pygame, tkinter, pyglet, and more."
+description = "Comprehensive video playback in Python with integrations for pygame, tkinter, pyglet, and more."
 readme = {file = "README.md", content-type = "text/markdown"}
 authors = [
     {name = "Anray Liu", email = "anrayliu@gmail.com"}
@@ -22,7 +22,7 @@ maintainers = [
     { name = "Anray Liu", email = "anrayliu@gmail.com" }
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
 
   "Intended Audience :: Developers",
   "Topic :: Multimedia :: Video",
